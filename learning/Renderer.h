@@ -1,27 +1,33 @@
 #pragma once
 #include "RenderBase.h"
-#include "Shader.h"
-#include "Mesh.h"
+#include "RenderObject.h"
+#include "Camera.h"
+
+#include "ParticleSystem.h"
 
 class Renderer : public RenderBase {
 public:
 	Renderer(Window& parent);
 	virtual ~Renderer(void);
-	virtual void RenderScene() override;
 
-	void CreateTriangle();
-	void CreateCube();
+	virtual void Update(float dt) override;
+	virtual void Render() override;
+
+	void renderObject();
+	void renderParticle();
 
 	float startingTime;
+	float framesPerSecond;
+	float oneSecond;
 
 protected:
 	
-	Shader* program;
+	RenderObject*	object;
+	Camera*			camera;
 
-	GLuint vertexArrayObject;
-	GLuint vertexBufferObject[MAXBUFFER];
+	ParticleSystem*	particle;
 
-	unsigned short int numVertices = 3;
+	void FPSCalculation(float dt);
 };
 
 

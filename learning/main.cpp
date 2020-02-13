@@ -5,7 +5,7 @@
 
 int main() {
 
-	Window w("OpenGL", 1000, 1000, false);
+	Window w("OpenGL", 1280, 720, false);
 
 	if (!w.HasInitialised()) {
 		return -1;
@@ -16,9 +16,14 @@ int main() {
 		return -1;
 	}
 
+	w.LockMouseToWindow(true);
+	w.ShowOSPointer(false);
+
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
 		renderer.startingTime = w.GetTimer()->GetMS()/1000;
-		renderer.RenderScene();
+		float dt = w.GetTimer()->GetTimedMS();
+
+		renderer.Update(dt);
 	}
 
 	return 0;

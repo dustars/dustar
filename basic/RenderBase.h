@@ -32,7 +32,8 @@ public:
 	RenderBase(Window& parent);
 	virtual ~RenderBase(void);
 
-	virtual void	RenderScene() = 0;
+	virtual void Update(float dt) = 0;
+	virtual void Render() = 0;
 
 	//Returns TRUE if everything in the constructor has gone to plan.
 	inline bool HasInitialised() const{ return init; }
