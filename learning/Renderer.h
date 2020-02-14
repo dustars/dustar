@@ -3,7 +3,7 @@
 #include "RenderObject.h"
 #include "Camera.h"
 
-#include "ParticleSystem.h"
+#include "ParticleRenderer.h"
 
 class Renderer : public RenderBase {
 public:
@@ -14,7 +14,6 @@ public:
 	virtual void Render() override;
 
 	void renderObject();
-	void renderParticle();
 
 	float startingTime;
 	float framesPerSecond;
@@ -22,10 +21,10 @@ public:
 
 protected:
 	
-	RenderObject*	object;
-	Camera*			camera;
+	RenderObject*		object;
+	Camera*				camera;
 
-	Particle*		particle;
+	ParticleRenderer*	particleRenderer;
 
 	void FPSCalculation(float dt);
 };

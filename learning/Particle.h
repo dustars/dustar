@@ -8,6 +8,8 @@ constexpr auto GRAVITY = -50.f;
 
 class Particle
 {
+	friend class ParticleRenderer;
+
 public:
 	// Contain all particles
 	static std::list<Particle> ParticleList;
@@ -37,6 +39,10 @@ public:
 	~Particle();
 	// Update a single particle
 	bool Update(float dt);
+
+	inline Vector3 const	GetPosition()	{ return position; }
+	inline float const		GetRotation()	{ return rotation; }
+	inline float const		GetScale()		{ return scale; }
 
 private:
 	Vector3 position;

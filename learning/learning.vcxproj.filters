@@ -47,6 +47,9 @@
     <ClCompile Include="Particle.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
+    <ClCompile Include="ParticleRenderer.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -80,6 +83,9 @@
       <Filter>necessary</Filter>
     </ClInclude>
     <ClInclude Include="Particle.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleRenderer.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
   </ItemGroup>
