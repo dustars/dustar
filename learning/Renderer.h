@@ -25,7 +25,7 @@ protected:
 	RenderObject*	object;
 	Camera*			camera;
 
-	ParticleSystem*	particle;
+	Particle*		particle;
 
 	void FPSCalculation(float dt);
 };

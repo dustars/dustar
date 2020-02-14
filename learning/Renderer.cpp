@@ -9,7 +9,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 
 	camera = new Camera();
 
-	particle = new ParticleSystem();
+	Particle::ParticleList;
+	Particle::AddParticle({ 0,0,0 }, {0, 30, 0}, 0 ,1, 1, 4);
 
 	init = true;
 }
@@ -21,7 +22,7 @@ Renderer::~Renderer(void) {
 void Renderer::Update(float dt) {
 	camera->UpdateCamera(dt);
 	FPSCalculation(dt);
-	particle->ParticleUpdate(dt);
+	Particle::UpdateParticleList(dt);
 	Render();
 }
 
@@ -29,8 +30,8 @@ void Renderer::Render() {
 	const GLfloat backgroundColor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	glClearBufferfv(GL_COLOR, 0, backgroundColor);
 
-	//renderObject();
-	renderParticle();
+	renderObject();
+	//renderParticle();
 }
 
 void Renderer::renderObject()
@@ -99,7 +100,7 @@ void Renderer::renderParticle()
 	glVertexAttribDivisor(1, 1); // positions : one per quad (its center) -> 1
 	glVertexAttribDivisor(2, 1); // color : one per quad -> 1
 
-	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
+	//glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
 }
 
 void Renderer::FPSCalculation(float dt) {

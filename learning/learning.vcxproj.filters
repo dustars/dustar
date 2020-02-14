@@ -44,6 +44,9 @@
     <ClCompile Include="Camera.cpp">
       <Filter>necessary</Filter>
     </ClCompile>
+    <ClCompile Include="Particle.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -75,6 +78,9 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>necessary</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle.h">
+      <Filter>ParticleSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
