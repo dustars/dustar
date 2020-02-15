@@ -16,7 +16,6 @@ public:
 
 	// Iterate and update all particles in the listf
 	static void UpdateParticleList(float dt) {
-		dt *= 0.001f;
 		for (auto i = ParticleList.begin(); i != ParticleList.end(); ++i) {
 			bool ifAlived = i->Update(dt);
 			if (!ifAlived) {

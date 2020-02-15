@@ -169,8 +169,12 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShaderSource.h" />
     <ClInclude Include="Transform.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\LearningVShader.glsl" />
+    <None Include="shader\BasicColorFShader.glsl" />
+    <None Include="shader\ParticleVShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

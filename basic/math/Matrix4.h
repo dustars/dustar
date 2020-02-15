@@ -16,6 +16,7 @@ _-_-_-_-_-_-_-""  ""
 #pragma once
 
 #include <iostream>
+#include <iomanip>
 #include "CommonOps.h"
 #include "Vector3.h"
 #include "Vector4.h"
@@ -117,11 +118,14 @@ public:
 
 	//Handy string output for the matrix. Can get a bit messy, but better than nothing!
 	inline friend std::ostream& operator<<(std::ostream& o, const Matrix4& m){
-		o << "Mat4(";
-		o << "\t"	<< m.values[0] << "," << m.values[1] << "," << m.values[2] << "," << m.values [3] << std::endl;
-		o << "\t\t" << m.values[4] << "," << m.values[5] << "," << m.values[6] << "," << m.values [7] << std::endl;
-		o << "\t\t" << m.values[8] << "," << m.values[9] << "," << m.values[10] << "," << m.values [11] << std::endl;
-		o << "\t\t" << m.values[12] << "," << m.values[13] << "," << m.values[14] << "," << m.values [15] << " )" <<std::endl;
+		o << " |" << std::setw(9) << m.values[0] << "," << std::setw(9) << m.values[1] << ","
+				  << std::setw(9) << m.values[2] << "," << std::setw(9) << m.values [3] << "|" << std::endl;
+		o << " |" << std::setw(9) << m.values[4] << "," << std::setw(9) << m.values[5] << "," 
+				  << std::setw(9) << m.values[6] << "," << std::setw(9) << m.values [7] << "|" << std::endl;
+		o << " |" << std::setw(9) << m.values[8] << "," << std::setw(9) << m.values[9] << ","
+				  << std::setw(9) << m.values[10] << "," << std::setw(9) << m.values [11] << "|" << std::endl;
+		o << " |" << std::setw(9) << m.values[12] << "," << std::setw(9) << m.values[13] << ","
+				  << std::setw(9) << m.values[14] << "," << std::setw(9) << m.values [15] << "|" << std::endl << std::endl;
 		return o;
 	}
 };

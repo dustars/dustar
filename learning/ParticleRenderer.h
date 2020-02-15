@@ -2,6 +2,7 @@
 
 #include "Particle.h"
 #include "Camera.h"
+#include "Shader.h"
 
 class ParticleRenderer
 {
@@ -14,18 +15,15 @@ public:
 		MAX_BUFFER
 	};
 
-	ParticleRenderer(){}
 	ParticleRenderer(Matrix4 projMatrix, Camera* camera = nullptr);
 	~ParticleRenderer();
-
-	static const int MaxParticles = 100000;
 
 	static void ParticleUpdate(float dt) {
 		Particle::UpdateParticleList(dt);
 	}
 
-	inline const GLuint& GetVBO() { return *vbo; }
-	inline const GLuint GetProgram() { return program; }
+	inline const GLuint&	GetVBO() { return *vbo; }
+	inline const Shader*	GetShader() { return particleShader; }
 
 	GLuint vao;
 	GLuint vbo[MAX_BUFFER];
@@ -34,9 +32,8 @@ public:
 	void UpdateMatrix(Particle& p, const Matrix4& viewMatrix);
 
 protected:
-	GLuint		program;
+	Shader*		particleShader;
 	Camera*		camera;
-
-	void createShader();
+	Matrix4		projMatrix;
 };
 

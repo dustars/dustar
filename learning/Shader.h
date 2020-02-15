@@ -1,30 +1,11 @@
 #pragma once
 
+#include <iostream>
+#include <fstream>
+#include <string>
 #include "glew.h"
 
-static const GLchar* vertex_shader_source[] =
-{
-	"#version 450 core															\n"
-	"																			\n"
-	"uniform mat4 modelViewMatrix;												\n"
-	"uniform mat4 projMatrix;													\n"
-	"uniform mat4 viewMatrix;													\n"
-	"																			\n"
-	"layout (location = 0) in vec4 position;									\n"
-	//"layout (location = 1) in vec4 color;										\n"
-	"																			\n"
-	"out VS{																	\n"
-	"	vec4 color;																\n"
-	"}OUT;																		\n"
-	"																			\n"
-	"void main(void)															\n"
-	"{																			\n"
-	"	gl_Position = projMatrix * viewMatrix * modelViewMatrix * position;		\n"
-	//"	gl_Position = position;													\n"
-	//"	OUT.color = vec4(0.0, 0.0, 0.0, 1.0) + color;							\n"
-	"	OUT.color = position * 2.0 + vec4(0.5, 0.5, 0.5, 0.0);					\n"
-	"}																			\n"
-};
+using namespace std;
 
 static const GLchar* control_shader_source[] =
 {
@@ -79,28 +60,13 @@ static const GLchar* geometry_shader_source[] =
 	"}																\n"
 };
 
-static const GLchar* fragment_shader_source[] =
-{
-	"#version 450 core									\n"
-	"													\n"
-	"in VS{												\n"
-	"	vec4 color;										\n"
-	"}IN;												\n"
-	"													\n"
-	"out vec4 color;									\n"
-	"													\n"
-	"void main(void)									\n"
-	"{													\n"
-	"  color = IN.color;								\n"
-	"}													\n"
-};
-
 class Shader {
 public:
-	Shader(bool gs = false, bool bs = false);
+	Shader(string vs, string fs, string gs = "", string cs = "", string es = "");
 	~Shader();
 
 	inline const GLuint GetProgram() { return program; }
+	bool LinkProgram();
 
 protected:
 	GLuint program;
@@ -111,7 +77,12 @@ protected:
 	GLuint geometry_shader;
 	GLuint fragment_shader;
 
-	void CreateGS();
-	void CreateTS();
+	bool LoadShaderFile(string from, string& into);
+	GLuint GenerateShader(string from, GLenum type);
+
+	void CreateGS(string gs);
+	void CreateTS(string cs, string es);
+
+	bool loadFailed;
 };
 

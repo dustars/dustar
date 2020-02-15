@@ -18,6 +18,9 @@
     <Filter Include="necessary">
       <UniqueIdentifier>{3200cf9e-b685-4ff2-8287-3c7f839a987a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{72e15743-f7e5-4df4-b0d8-de819a018d7a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -61,9 +64,6 @@
     <ClInclude Include="Shader.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderSource.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleSystem.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
@@ -88,5 +88,16 @@
     <ClInclude Include="ParticleRenderer.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\ParticleVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\BasicColorFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\LearningVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

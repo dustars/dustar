@@ -13,6 +13,8 @@ public:
 	inline Mesh*		GetMesh()		{ return mesh; }
 	inline Transform*	GetTransform()	{ return transform; }
 
+	bool SetShader(string vs, string fs, string gs = "", string cs = "", string es = "");
+
 protected:
 	Shader*			shader;
 	Mesh*			mesh;

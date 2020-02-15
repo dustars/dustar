@@ -17,8 +17,8 @@ Particle::~Particle()
 
 bool Particle::Update(float dt)
 {
+	dt *= 0.001f;
 	velocity.y += (GRAVITY * weight * dt);
-
 	Vector3 change(velocity);
 	position += change * dt;
 	elapsedTime += dt;
