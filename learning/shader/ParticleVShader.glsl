@@ -1,8 +1,7 @@
 #version 450 core
 
-uniform mat4 projMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
+uniform mat4 TransformMatrix;
+uniform vec3 color;
 
 layout (location = 0) in vec4 position;
 
@@ -12,7 +11,7 @@ out VS{
 
 void main(void)
 {
-	gl_Position = projMatrix * viewMatrix * modelMatrix * position;
+	gl_Position = TransformMatrix * position;
 
-	OUT.color = vec4(1.0);
+	OUT.color = vec4(color, 1.0);
 }

@@ -10,13 +10,13 @@ ParticleRenderer::ParticleRenderer(Matrix4 projMatrix, Camera* camera) : projMat
 
 	glCreateVertexArrays(1, &vao);
 	glCreateBuffers(1, &vbo[BASEMESH_BUFFER]);
-	static const GLfloat g_vertex_buffer_data[] = {
+	const GLfloat quad[] = {
 		 -0.5f, -0.5f, 0.0f, 1.0f,
 		 0.5f, -0.5f, 0.0f, 1.0f,
 		 -0.5f, 0.5f, 0.0f, 1.0f,
 		 0.5f, 0.5f, 0.0f, 1.0f,
 	};
-	glNamedBufferStorage(vbo[BASEMESH_BUFFER], sizeof(g_vertex_buffer_data), g_vertex_buffer_data, 0);
+	glNamedBufferStorage(vbo[BASEMESH_BUFFER], sizeof(quad), quad, 0);
 	glVertexArrayVertexBuffer(vao, BASEMESH_BUFFER, vbo[BASEMESH_BUFFER], 0, sizeof(Vector4));
 	glVertexArrayAttribFormat(vao, BASEMESH_BUFFER, 4, GL_FLOAT, GL_FALSE, 0);
 	glVertexArrayAttribBinding(vao, BASEMESH_BUFFER, BASEMESH_BUFFER);
@@ -39,15 +39,12 @@ void ParticleRenderer::RenderParticle()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(false);
 
-	// 1. Matrix ( fuck, our matrix is row style!)
-
 	Matrix4 viewMatrix = camera->BuildViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "projMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "viewMatrix"), 1, GL_FALSE, (float*)&viewMatrix);
 
 	//iterate every particle and update their modelview matrix
 	for (auto&& element : Particle::ParticleList) {
 		UpdateMatrix(element, viewMatrix);
+		glUniform3fv(glGetUniformLocation(particleShader->GetProgram(), "color"), 1, (float*)&element.GetColor());
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
@@ -78,5 +75,7 @@ void ParticleRenderer::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 	modelMatrix = modelMatrix * Matrix4::Rotation((float)DegToRad(p.GetRotation()), { 0,0,1 });
 	modelMatrix = modelMatrix * Matrix4::Scale({ p.GetScale(), p.GetScale(), p.GetScale() });
 
-	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	Matrix4 TransformMatrix = projMatrix * viewMatrix * modelMatrix;
+
+	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "TransformMatrix"), 1, GL_FALSE, (float*)&TransformMatrix);
 }
