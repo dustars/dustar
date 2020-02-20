@@ -7,9 +7,8 @@ constexpr auto MAX_PSYSTEM = 10000;
 
 class ParticleMaster
 {
-
+	friend class ParticleSystemBase;
 public:
-
 	ParticleMaster();
 	~ParticleMaster();
 
@@ -23,6 +22,6 @@ public:
 	bool SystemExist(); // need?
 	
 protected:
-	std::vector<ParticleSystemBase*> particleSystemArray[MAX_PSYSTEM];
+	vector<ParticleSystemBase*> particleSystemArray[MAX_PSYSTEM];
 };
 

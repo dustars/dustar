@@ -22,6 +22,7 @@ public:
 	float scale;
 	float weight;
 	float life; // Remaining life of the particle. if < 0 : dead and unused.
-
+	
 	float elapsedTime;
+	float distanceFromCamera;  // For correct rendering
 };

@@ -23,8 +23,9 @@ protected:
 	
 	RenderObject*		object;
 	Camera*				camera;
+	Matrix4				projMatrix;
 
-	ParticleMaster* particleMaster;
+	ParticleMaster*		particleMaster;
 
 	void FPSCalculation(float dt);
 };

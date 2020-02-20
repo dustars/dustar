@@ -102,13 +102,22 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\ParticleVShader.glsl">
-      <Filter>shader</Filter>
-    </None>
     <None Include="shader\BasicColorFShader.glsl">
       <Filter>shader</Filter>
     </None>
     <None Include="shader\LearningVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\TriangleFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\TriangleVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ParticleBaseFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ParticleBaseVShader.glsl">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

@@ -1,6 +1,9 @@
 #include "Mesh.h"
 
-Mesh::Mesh()
+#include "../basic/math/Vector4.h"
+#include "../basic/math/Vector2.h"
+
+Mesh::Mesh() : renderType(GL_TRIANGLES)
 {
 	vao = 0;
 
@@ -19,6 +22,7 @@ Mesh::~Mesh()
 
 void Mesh::CreateTriangle() {
 	numOfVertices = 3;
+	renderType = GL_TRIANGLES;
 
 	glCreateVertexArrays(1, &vao);
 	//glGenVertexArrays(1, &vertexArrayObject);  // Note the difference between Gen and Create
@@ -39,6 +43,7 @@ void Mesh::CreateTriangle() {
 	// Remember three ways to change the data in buffer (BufferSubData() and Map/Unmap)
 	glNamedBufferStorage(vbo[POSITION], sizeof(position), position, 0);
 	glNamedBufferStorage(vbo[COLOR], sizeof(color), color, 0);
+	glNamedBufferStorage(vbo[TEXTURE], sizeof(textureCoordinate), textureCoordinate, 0);
 	//glNamedBufferStorage(vertexBufferObject[TEXTURE],	sizeof(vertices),	vertices, 0);
 
 	//// Get a pointer to the buffer's data store
@@ -55,13 +60,17 @@ void Mesh::CreateTriangle() {
 	//----------------------Bind buffer to OpenGL context----------------------// ????? Optional?
 	//glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject[POSITION]);
 
-	glVertexArrayVertexBuffer(vao, 0, vbo[POSITION], 0, sizeof(Vector4));
-	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribBinding(vao, 0, 0);
+	glVertexArrayVertexBuffer(vao, POSITION, vbo[POSITION], 0, sizeof(Vector4));
+	glVertexArrayAttribFormat(vao, POSITION, 4, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayAttribBinding(vao, POSITION, POSITION);
 
-	glVertexArrayVertexBuffer(vao, 1, vbo[COLOR], 0, sizeof(Vector4));
-	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribBinding(vao, 1, 1);
+	glVertexArrayVertexBuffer(vao, COLOR, vbo[COLOR], 0, sizeof(Vector4));
+	glVertexArrayAttribFormat(vao, COLOR, 4, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayAttribBinding(vao, COLOR, COLOR);
+
+	glVertexArrayVertexBuffer(vao, TEXTURE, vbo[TEXTURE], 0, sizeof(Vector2));
+	glVertexArrayAttribFormat(vao, TEXTURE, 2, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayAttribBinding(vao, TEXTURE, TEXTURE);
 
 	//glVertexArrayAttribBinding(vertexArrayObject, positionIndex, 0);
 	//glVertexArrayAttribBinding(vertexArrayObject, colorIndex, 0);
@@ -74,6 +83,7 @@ void Mesh::CreateTriangle() {
 
 void Mesh::CreateCube() {
 	numOfVertices = 36;
+	renderType = GL_TRIANGLES;
 
 	glCreateVertexArrays(1, &vao);
 	glCreateBuffers(1, &vbo[POSITION]);

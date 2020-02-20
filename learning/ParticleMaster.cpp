@@ -1,9 +1,7 @@
 #include "ParticleMaster.h"
 
-
-ParticleMaster::ParticleMaster(){
-
-
+ParticleMaster::ParticleMaster()
+{
 }
 
 ParticleMaster::~ParticleMaster()
