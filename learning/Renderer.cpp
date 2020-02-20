@@ -2,19 +2,23 @@
 
 Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), oneSecond(0), startingTime(0){
 
-	//object = new RenderObject();
-	//if (!object->SetShader("shader/LearningVshader.glsl", "shader/BasicColorFShader.glsl")) {
-	//	cout << "Shader set up failed!" << endl;
-	//}
+	object = new RenderObject();
+	if (!object->SetShader("shader/LearningVshader.glsl", "shader/BasicColorFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
+		cout << "Texture set up failed!" << endl;
+	}
 
-	//object->GetTransform()->CreateRotatingCube(startingTime);
-	//object->GetMesh()->CreateCube();
+	object->GetTransform()->CreateRotatingCube(startingTime);
+	object->GetMesh()->CreateCube();
 
 	camera = new Camera();
 
 	Matrix4 projMatrix = Matrix4::Perspective(0.1f, 1000.0f, (float)width / (float)height, 50.0f);
 
-	particleRenderer = new ParticleRenderer(projMatrix, camera);
+	particleMaster = new ParticleMaster();
+	particleMaster->AddSystem(new ParticleSystemBase(camera, projMatrix, 30, { 0,0,-50 }, 10.f));
 
 	init = true;
 }
@@ -22,14 +26,14 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 Renderer::~Renderer(void) {
 	delete object;
 	delete camera;
-	delete particleRenderer;
+	delete particleMaster;
 }
 
 void Renderer::Update(float dt) {
 	camera->UpdateCamera(dt);
 	//Vector3 color = {sin(dt), cos(dt), sin(dt)-cos(dt)};
-	Particle::Fountain(30, { 0,0,-50 }, {1.0, 1.0,1.0}, 10);
-	ParticleRenderer::ParticleUpdate(dt);
+
+	particleMaster->Update(dt);
 	Render();
 
 	// Utility
@@ -41,7 +45,7 @@ void Renderer::Render() {
 	glClearBufferfv(GL_COLOR, 0, backgroundColor);
 
 	//renderObject();
-	particleRenderer->RenderParticle();
+	particleMaster->Render();
 	::SwapBuffers(deviceContext);
 }
 

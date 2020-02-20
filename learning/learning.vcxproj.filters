@@ -29,9 +29,6 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleSystem.cpp">
-      <Filter>ParticleSystem</Filter>
-    </ClCompile>
     <ClCompile Include="RenderObject.cpp">
       <Filter>Experiment</Filter>
     </ClCompile>
@@ -50,7 +47,16 @@
     <ClCompile Include="Particle.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleRenderer.cpp">
+    <ClCompile Include="ParticleSystemBase.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleMaster.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Rain.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
   </ItemGroup>
@@ -63,9 +69,6 @@
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleSystem.h">
-      <Filter>ParticleSystem</Filter>
     </ClInclude>
     <ClInclude Include="RenderObject.h">
       <Filter>Experiment</Filter>
@@ -85,7 +88,16 @@
     <ClInclude Include="Particle.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleRenderer.h">
+    <ClInclude Include="ParticleSystemBase.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleMaster.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Rain.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
   </ItemGroup>

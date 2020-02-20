@@ -146,11 +146,13 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Particle.cpp" />
-    <ClCompile Include="ParticleRenderer.cpp" />
-    <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="ParticleMaster.cpp" />
+    <ClCompile Include="ParticleSystemBase.cpp" />
+    <ClCompile Include="Rain.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,11 +166,13 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshSource.h" />
     <ClInclude Include="Particle.h" />
-    <ClInclude Include="ParticleRenderer.h" />
-    <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="ParticleMaster.h" />
+    <ClInclude Include="ParticleSystemBase.h" />
+    <ClInclude Include="Rain.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>

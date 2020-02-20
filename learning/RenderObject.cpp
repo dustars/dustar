@@ -4,6 +4,7 @@ RenderObject::RenderObject()
 {
 	shader		= nullptr;
 	mesh		= new Mesh();
+	texture		= new Texture();
 	transform	= new Transform();
 }
 
@@ -11,6 +12,7 @@ RenderObject::~RenderObject()
 {
 	delete shader;
 	delete mesh;
+	delete texture;
 	delete transform;
 }
 

@@ -3,7 +3,7 @@
 #include "RenderObject.h"
 #include "Camera.h"
 
-#include "ParticleRenderer.h"
+#include "ParticleMaster.h"
 
 class Renderer : public RenderBase {
 public:
@@ -24,7 +24,7 @@ protected:
 	RenderObject*		object;
 	Camera*				camera;
 
-	ParticleRenderer*	particleRenderer;
+	ParticleMaster* particleMaster;
 
 	void FPSCalculation(float dt);
 };

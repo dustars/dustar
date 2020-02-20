@@ -19,6 +19,10 @@
 //Basic funtionalities
 #include "Window.h"
 
+//Learning
+#include "../learning/Mesh.h"
+#include "../learning/Shader.h"
+
 using namespace std;
 using std::vector;
 
