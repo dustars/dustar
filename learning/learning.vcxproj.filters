@@ -56,9 +56,6 @@
     <ClCompile Include="ParticleMaster.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Rain.cpp">
-      <Filter>ParticleSystem</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -95,9 +92,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="ParticleMaster.h">
-      <Filter>ParticleSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Rain.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
   </ItemGroup>

@@ -22,7 +22,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 
 	particleMaster = new ParticleMaster();
 	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/star.jpg",
-		camera, particleShader, 5, { 0,0,-50 }, 3.f, 2, 7));
+		camera, particleShader, 1, { 0,0,-50 }, 3.f, 2, 7));
 
 	init = true;
 }

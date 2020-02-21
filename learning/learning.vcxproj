@@ -148,7 +148,6 @@
     <ClCompile Include="Particle.cpp" />
     <ClCompile Include="ParticleMaster.cpp" />
     <ClCompile Include="ParticleSystemBase.cpp" />
-    <ClCompile Include="Rain.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -168,7 +167,6 @@
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleMaster.h" />
     <ClInclude Include="ParticleSystemBase.h" />
-    <ClInclude Include="Rain.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="Shader.h" />

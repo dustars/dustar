@@ -34,8 +34,8 @@ ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, Camer
 	const float texCoords[] = {
 	 0.0f, 0.0f,
 	 1.0f, 0.0f,
-	 1.0f, 1.0f,
 	 0.0f, 1.0f,
+	 1.0f, 1.0f,
 	};
 
 	glNamedBufferStorage(vbo[TEXTURE_BUFFER], sizeof(texCoords), texCoords, 0);
