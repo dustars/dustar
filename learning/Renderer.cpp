@@ -4,13 +4,13 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	object(nullptr), particleMaster(nullptr)
 {
 	// Initialize the basics ( later move to a function )
-	camera = new Camera(0,0,Vector3(0,0,200.f));
-	projMatrix = Matrix4::Perspective(0.1f, 1000.0f, (float)width / (float)height, 50.0f);
+	camera = new Camera(0,0,Vector3(0,2000,200.f));
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(100,100,100));
 
 	// That experimental quad
 	object = new RenderObject();
-	if (!object->SetShader("shader/TriangleVShader.glsl", "shader/TriangleFShader.glsl")) {
+	if (!object->SetShader("shader/objectVShader.glsl", "shader/objectFShader.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 
@@ -18,8 +18,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 		cout << "Texture set up failed!" << endl;
 	}
 
-	object->GetMesh()->CreateTriangle();
-	//object->SetMesh(new HeightMap(5, 5));
+	//object->GetMesh()->CreateTriangle();
+	object->SetMesh(new HeightMap(5, 0.4));
 
 	//CreateParticle();
 
@@ -37,7 +37,7 @@ Renderer::~Renderer(void) {
 }
 
 void Renderer::Update(float dt) {
-	camera->UpdateCamera(dt*0.1f);
+	camera->UpdateCamera(dt);
 	if (particleMaster) {
 		particleMaster->Update(dt);
 	}
@@ -68,11 +68,9 @@ void Renderer::Render() {
 void Renderer::renderObject()
 {
 	glUseProgram(object->GetShader()->GetProgram());
-	Matrix4 transform = projMatrix * camera->BuildViewMatrix() * modelMatrix;
-	//glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
-	//glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-	//glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "TransformMatrix"), 1, GL_FALSE, (float*)&transform);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	object->Draw();
 	glUseProgram(0);
 	if (glGetError()) {

@@ -21,9 +21,9 @@ void Mesh::CreateTriangle() {
 	//renderType = GL_TRIANGLE_STRIP;
 	renderType = GL_TRIANGLES;
 
-	position.push_back(Vector3(-0.5f, -0.5f, 0.0f));
+	position.push_back(Vector3(-0.5f, -0.5f, 10.0f));
 	position.push_back(Vector3(-0.5f, 0.5f, 0.0f));
-	position.push_back(Vector3(0.5f, -0.5f, 0.0f));
+	position.push_back(Vector3(0.5f, -0.5f, 10.0f));
 	position.push_back(Vector3(0.5f, 0.5f, 0.0f));
 
 	color.push_back(Vector3(1.0f, 0.0f, 0.0f));
@@ -36,13 +36,13 @@ void Mesh::CreateTriangle() {
 	texCoord.push_back(Vector2(1.0f, 1.0f));
 	texCoord.push_back(Vector2(1.0f, 0.0f));
 
+	index.push_back(0);
+	index.push_back(1);
+	index.push_back(2);
+
 	index.push_back(1);
 	index.push_back(2);
 	index.push_back(3);
-
-	index.push_back(4);
-	index.push_back(5);
-	index.push_back(6);
 
 	BufferDataToGPU();
 }
