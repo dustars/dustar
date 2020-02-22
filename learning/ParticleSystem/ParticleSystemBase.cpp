@@ -15,10 +15,10 @@ ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, Camer
 
 	// Shape Define
 	const float quad[] = {
-	 -0.25f, -0.25f, 0.0f, 1.0f,
-	 0.25f, -0.25f, 0.0f, 1.0f,
-	 -0.25f, 0.25f, 0.0f, 1.0f,
-	 0.25f, 0.25f, 0.0f, 1.0f,
+	 -1.f, -1.f, 0.0f, 1.0f,
+	 1.f, -1.f, 0.0f, 1.0f,
+	 -1.f, 1.f, 0.0f, 1.0f,
+	 1.f, 1.f, 0.0f, 1.0f,
 	};
 	SetShape(quad);
 

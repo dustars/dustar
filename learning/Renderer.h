@@ -1,9 +1,10 @@
 #pragma once
 #include "RenderBase.h"
 #include "RenderObject.h"
+#include "HeightMap.h"
 #include "Camera.h"
 
-#include "ParticleMaster.h"
+#include "ParticleSystem/ParticleMaster.h"
 
 class Renderer : public RenderBase {
 public:
@@ -23,11 +24,14 @@ protected:
 	
 	RenderObject*		object;
 	Camera*				camera;
+
 	Matrix4				projMatrix;
+	Matrix4				modelMatrix;
 
 	ParticleMaster*		particleMaster;
 
 	void FPSCalculation(float dt);
+	void CreateParticle();
 };
 
 

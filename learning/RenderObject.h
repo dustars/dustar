@@ -15,7 +15,11 @@ public:
 	inline Texture*		GetTexture()	{ return texture; }
 	inline Transform*	GetTransform()	{ return transform; }
 
+	void SetMesh(Mesh* m);
+
 	bool SetShader(string vs, string fs, string gs = "", string cs = "", string es = "");
+
+	void Draw();
 
 protected:
 	Shader*			shader;

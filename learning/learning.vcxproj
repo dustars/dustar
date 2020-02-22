@@ -143,11 +143,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Particle.cpp" />
-    <ClCompile Include="ParticleMaster.cpp" />
-    <ClCompile Include="ParticleSystemBase.cpp" />
+    <ClCompile Include="ParticleSystem\Particle.cpp" />
+    <ClCompile Include="ParticleSystem\ParticleMaster.cpp" />
+    <ClCompile Include="ParticleSystem\ParticleSystemBase.cpp" />
+    <ClCompile Include="Perlin.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -161,12 +163,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="HeightMap.h" />
     <ClInclude Include="learningNotes.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshSource.h" />
-    <ClInclude Include="Particle.h" />
-    <ClInclude Include="ParticleMaster.h" />
-    <ClInclude Include="ParticleSystemBase.h" />
+    <ClInclude Include="ParticleSystem\Particle.h" />
+    <ClInclude Include="ParticleSystem\ParticleMaster.h" />
+    <ClInclude Include="ParticleSystem\ParticleSystemBase.h" />
+    <ClInclude Include="Perlin.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="Shader.h" />
@@ -176,6 +179,8 @@
   <ItemGroup>
     <None Include="shader\LearningVShader.glsl" />
     <None Include="shader\BasicColorFShader.glsl" />
+    <None Include="shader\objectFShader.glsl" />
+    <None Include="shader\objectVShader.glsl" />
     <None Include="shader\ParticleBaseFShader.glsl" />
     <None Include="shader\ParticleBaseVShader.glsl" />
     <None Include="shader\TriangleFShader.glsl" />

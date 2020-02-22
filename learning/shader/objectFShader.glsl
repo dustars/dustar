@@ -13,9 +13,9 @@ out vec4 FragColor;
 void main()
 {
 	if (UseTexture > 0) {
-		FragColor = texture(ourTexture, IN.texCoord) * IN.color;
-	}
-	else {
+		FragColor = texture(ourTexture, IN.texCoord);
+	} else {
 		FragColor = IN.color;
 	}
+	
 }

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Particle.h"
-#include "Texture.h"
-#include "Shader.h"
-#include "Camera.h"
+#include "../Texture.h"
+#include "../Shader.h"
+#include "../Camera.h"
 
 #include <list>
 

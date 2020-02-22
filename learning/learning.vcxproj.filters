@@ -8,18 +8,18 @@
     <Filter Include="ParticleSystem">
       <UniqueIdentifier>{aca24d4c-7935-434e-ae01-e48c7fd55d00}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Experiment">
-      <UniqueIdentifier>{241010c7-7bef-436c-9de3-f1844c66bc45}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="necessary">
-      <UniqueIdentifier>{3200cf9e-b685-4ff2-8287-3c7f839a987a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="shader">
       <UniqueIdentifier>{72e15743-f7e5-4df4-b0d8-de819a018d7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="StaticObjects">
+      <UniqueIdentifier>{43cb471e-fc00-4df9-8fae-fbe90cd8f062}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Others">
+      <UniqueIdentifier>{3200cf9e-b685-4ff2-8287-3c7f839a987a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -28,9 +28,6 @@
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderObject.cpp">
-      <Filter>Experiment</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Core</Filter>
@@ -42,33 +39,36 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>necessary</Filter>
-    </ClCompile>
-    <ClCompile Include="Particle.cpp">
-      <Filter>ParticleSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleSystemBase.cpp">
-      <Filter>ParticleSystem</Filter>
+      <Filter>Others</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleMaster.cpp">
+    <ClCompile Include="ParticleSystem\Particle.cpp">
       <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem\ParticleMaster.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem\ParticleSystemBase.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Perlin.cpp">
+      <Filter>Others</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="HeightMap.cpp">
+      <Filter>StaticObjects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="MeshSource.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderObject.h">
-      <Filter>Experiment</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Source Files</Filter>
@@ -80,19 +80,28 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>necessary</Filter>
-    </ClInclude>
-    <ClInclude Include="Particle.h">
-      <Filter>ParticleSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleSystemBase.h">
-      <Filter>ParticleSystem</Filter>
+      <Filter>Others</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleMaster.h">
+    <ClInclude Include="ParticleSystem\Particle.h">
       <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem\ParticleMaster.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem\ParticleSystemBase.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Perlin.h">
+      <Filter>Others</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderObject.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="HeightMap.h">
+      <Filter>StaticObjects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -112,6 +121,12 @@
       <Filter>shader</Filter>
     </None>
     <None Include="shader\ParticleBaseVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\objectVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\objectFShader.glsl">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

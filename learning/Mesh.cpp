@@ -1,17 +1,12 @@
 #include "Mesh.h"
 
-#include "../basic/math/Vector4.h"
-#include "../basic/math/Vector2.h"
-
-Mesh::Mesh() : renderType(GL_TRIANGLES)
+Mesh::Mesh() : renderType(GL_TRIANGLES), numOfVertices(0), numOfIndex(0)
 {
 	vao = 0;
 
 	for (int i = 0; i < MAXBUFFER; ++i) {
 		vbo[i] = 0;
 	}
-
-	numOfVertices = 0;
 }
 
 Mesh::~Mesh()
@@ -21,75 +16,103 @@ Mesh::~Mesh()
 }
 
 void Mesh::CreateTriangle() {
-	numOfVertices = 3;
+	numOfVertices = 4;
+	numOfIndex = 6;
+	//renderType = GL_TRIANGLE_STRIP;
 	renderType = GL_TRIANGLES;
 
-	glCreateVertexArrays(1, &vao);
-	//glGenVertexArrays(1, &vertexArrayObject);  // Note the difference between Gen and Create
-	//glBindVertexArray(vertexArrayObject); //Why I need this?
+	position.push_back(Vector3(-0.5f, -0.5f, 0.0f));
+	position.push_back(Vector3(-0.5f, 0.5f, 0.0f));
+	position.push_back(Vector3(0.5f, -0.5f, 0.0f));
+	position.push_back(Vector3(0.5f, 0.5f, 0.0f));
 
-	glCreateBuffers(MAXBUFFER, vbo);
-	//glGenBuffers(MAXBUFFER, vertexBufferObject);
+	color.push_back(Vector3(1.0f, 0.0f, 0.0f));
+	color.push_back(Vector3(0.0f, 1.0f, 0.0f));
+	color.push_back(Vector3(0.0f, 0.0f, 1.0f));
+	color.push_back(Vector3(0.0f, 1.0f, 1.0f));
 
-	/*----------------------Allocate memory to the buffer----------------------//
-		The fourth parameter in the following two buffer storage allocation functions is, flag, and it has the 6 types:
-		(For further information, please refer to the OpenGL superbible 5th edition. Everthing is in there.)
-		GL_DYNAMIC_STORAGE_BIT, if you need to update the buffer frequently.
-		GL_MAP_READ_BIT, GL_MAP_WRITE_BIT, GL_MAP_PERSISTENT_BIT, and GL_MAP_COHERENT_BIT, how you gonna access the buffer.
-		GL_CILENT_STORAGE_BIT, I have no ideas
-	*/
-	// glBufferStorage(GL_ARRAY_BUFFER, numVertices*sizeof(Vector4), NULL, GL_DYNAMIC_STORAGE_BIT);
-	// Note the difference here
-	// Remember three ways to change the data in buffer (BufferSubData() and Map/Unmap)
-	glNamedBufferStorage(vbo[POSITION], sizeof(position), position, 0);
-	glNamedBufferStorage(vbo[COLOR], sizeof(color), color, 0);
-	glNamedBufferStorage(vbo[TEXTURE], sizeof(textureCoordinate), textureCoordinate, 0);
-	//glNamedBufferStorage(vertexBufferObject[TEXTURE],	sizeof(vertices),	vertices, 0);
+	texCoord.push_back(Vector2(0.0f, 1.0f));
+	texCoord.push_back(Vector2(0.0f, 0.0f));
+	texCoord.push_back(Vector2(1.0f, 1.0f));
+	texCoord.push_back(Vector2(1.0f, 0.0f));
 
-	//// Get a pointer to the buffer's data store
-	//void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	//// Copy our data into it...
-	//memcpy(ptr, data, sizeof(data));
-	//// Tell OpenGL that we're done with the
-	//glUnmapBuffer(GL_ARRAY_BUFFER);
-	/* Alternatively, it's actually preferable to use glMapBufferRange() and glMapNamedBufferRange() */
+	index.push_back(1);
+	index.push_back(2);
+	index.push_back(3);
 
-	/* glClearBufferSubData() or glClearNamedBufferSubData(), for put constant value into buffer objects */
-	/* glCopyBufferSubData() and glCopyNamedBufferSubData(), share exchange between buffers in GPU */
+	index.push_back(4);
+	index.push_back(5);
+	index.push_back(6);
 
-	//----------------------Bind buffer to OpenGL context----------------------// ????? Optional?
-	//glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject[POSITION]);
-
-	glVertexArrayVertexBuffer(vao, POSITION, vbo[POSITION], 0, sizeof(Vector4));
-	glVertexArrayAttribFormat(vao, POSITION, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribBinding(vao, POSITION, POSITION);
-
-	glVertexArrayVertexBuffer(vao, COLOR, vbo[COLOR], 0, sizeof(Vector4));
-	glVertexArrayAttribFormat(vao, COLOR, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribBinding(vao, COLOR, COLOR);
-
-	glVertexArrayVertexBuffer(vao, TEXTURE, vbo[TEXTURE], 0, sizeof(Vector2));
-	glVertexArrayAttribFormat(vao, TEXTURE, 2, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribBinding(vao, TEXTURE, TEXTURE);
-
-	//glVertexArrayAttribBinding(vertexArrayObject, positionIndex, 0);
-	//glVertexArrayAttribBinding(vertexArrayObject, colorIndex, 0);
-
-	//glVertexArrayAttribFormat(vertexArrayObject, positionIndex, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, x));
-	//glVertexArrayAttribFormat(vertexArrayObject, colorIndex, 3, GL_FLOAT, GL_FALSE, offsetof(vertex, r));
-
-	//glVertexArrayVertexBuffer(vertexArrayObject, 0, vertexBufferObject[TEXTURE], 0, sizeof(vertex));
+	BufferDataToGPU();
 }
 
-void Mesh::CreateCube() {
-	numOfVertices = 36;
-	renderType = GL_TRIANGLES;
+void Mesh::Draw()
+{
+	EnableAttribs();
+	if (vbo[INDEX]) {
+		glDrawElements(renderType, numOfIndex, GL_UNSIGNED_INT, (void*)(index.data()));
+	}
+	else {
+		glDrawArrays(renderType, 0, numOfVertices);
+	}
+	DisableAttribs();
+}
 
+void Mesh::BufferDataToGPU()
+{
 	glCreateVertexArrays(1, &vao);
-	glCreateBuffers(1, &vbo[POSITION]);
+	if (!position.empty()) {
+		glCreateBuffers(1, &vbo[POSITION]);
+		glNamedBufferStorage(vbo[POSITION], numOfVertices * sizeof(Vector3), (void*)(position.data()), 0);
+		glVertexArrayVertexBuffer(vao, POSITION, vbo[POSITION], 0, sizeof(Vector3));
+		glVertexArrayAttribFormat(vao, POSITION, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribBinding(vao, POSITION, POSITION);
+	}
+	if (!color.empty()) {
+		glCreateBuffers(1, &vbo[COLOR]);
+		glNamedBufferStorage(vbo[COLOR], numOfVertices * sizeof(Vector3), (void*)(color.data()), 0);
+		glVertexArrayVertexBuffer(vao, COLOR, vbo[COLOR], 0, sizeof(Vector3));
+		glVertexArrayAttribFormat(vao, COLOR, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribBinding(vao, COLOR, COLOR);
+	}
+	if (!texCoord.empty()) {
+		glCreateBuffers(1, &vbo[TEXTURE]);
+		glNamedBufferStorage(vbo[TEXTURE], numOfVertices * sizeof(Vector2), (void*)(texCoord.data()), 0);
+		glVertexArrayVertexBuffer(vao, TEXTURE, vbo[TEXTURE], 0, sizeof(Vector2));
+		glVertexArrayAttribFormat(vao, TEXTURE, 2, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribBinding(vao, TEXTURE, TEXTURE);
+	}
+	if (!index.empty()) {
+		glCreateBuffers(1, &vbo[INDEX]);
+		//lNamedBufferStorage(vbo[INDEX], numOfIndex * sizeof(GLuint), (void*)(index.data()), 0);
+	}
+}
 
-	glNamedBufferStorage(vbo[POSITION], sizeof(cube), cube, 0);
-	glVertexArrayVertexBuffer(vao, 0, vbo[POSITION], 0, sizeof(Vector4));
-	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0); //?
-	glVertexArrayAttribBinding(vao, 0, 0);
+void Mesh::EnableAttribs()
+{
+	glBindVertexArray(vao);
+	if (!position.empty()) {
+		glEnableVertexAttribArray(POSITION);
+	}
+	if (!color.empty()) {
+		glEnableVertexAttribArray(COLOR);
+	}
+	if (!texCoord.empty()) {
+		glEnableVertexAttribArray(TEXTURE);
+	}
+}
+
+void Mesh::DisableAttribs()
+{
+	if (!position.empty()) {
+		glDisableVertexAttribArray(POSITION);
+	}
+	if (!color.empty()) {
+		glDisableVertexAttribArray(COLOR);
+	}
+	if (!texCoord.empty()) {
+		glDisableVertexAttribArray(TEXTURE);
+	}
+	glBindVertexArray(0);
 }
