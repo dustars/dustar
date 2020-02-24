@@ -4,9 +4,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	object(nullptr), particleMaster(nullptr)
 {
 	// Initialize the basics ( later move to a function )
-	camera = new Camera(0,0,Vector3(0,2000,200.f));
+	camera = new Camera(-50,-110,Vector3(0,500,200.f));
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
-	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(100,100,100));
 
 	// That experimental quad
 	object = new RenderObject();
@@ -14,16 +13,22 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 		cout << "Shader set up failed!" << endl;
 	}
 
-	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
+	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
 		cout << "Texture set up failed!" << endl;
 	}
 
 	//object->GetMesh()->CreateTriangle();
-	object->SetMesh(new HeightMap(5, 0.4));
+	object->SetMesh(new HeightMap(100, 0.5));
 
-	//CreateParticle();
+	CreateParticle();
 
 	init = true;
+
+	int a = 5;
+	decltype(a);
+	decltype(a + 5);
+
+	
 }
 
 Renderer::~Renderer(void) {
@@ -97,5 +102,5 @@ void Renderer::CreateParticle()
 
 	particleMaster = new ParticleMaster();
 	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/star.jpg",
-		camera, particleShader, 1, { 0,0,-50 }, 3.f, 2, 7));
+		camera, particleShader, 1, {350,100,350 }, 3.f, 2, 7));
 }
