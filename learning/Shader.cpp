@@ -41,18 +41,18 @@ Shader::~Shader() {
 
 void Shader::CreateGS(string gs) {
 	geometry_shader = glCreateShader(GL_GEOMETRY_SHADER);
-	glShaderSource(geometry_shader, 1, geometry_shader_source, NULL);
+	glShaderSource(geometry_shader, 1, 0, NULL);
 	glCompileShader(geometry_shader);
 	glAttachShader(program, geometry_shader);
 }
 void Shader::CreateTS(string cs, string es) {
 	control_shader = glCreateShader(GL_TESS_CONTROL_SHADER);
-	glShaderSource(control_shader, 1, control_shader_source, NULL);
+	glShaderSource(control_shader, 1, 0, NULL);
 	glCompileShader(control_shader);
 	glAttachShader(program, control_shader);
 
 	evaluation_shader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-	glShaderSource(evaluation_shader, 1, evaluation_shader_source, NULL);
+	glShaderSource(evaluation_shader, 1, 0, NULL);
 	glCompileShader(evaluation_shader);
 	glAttachShader(program, evaluation_shader);
 }

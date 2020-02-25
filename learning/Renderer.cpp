@@ -101,6 +101,6 @@ void Renderer::CreateParticle()
 	}
 
 	particleMaster = new ParticleMaster();
-	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/star.jpg",
+	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/cosmic.png", 4,
 		camera, particleShader, 1, {350,100,350 }, 3.f, 2, 7));
 }

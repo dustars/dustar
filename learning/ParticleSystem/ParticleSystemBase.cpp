@@ -1,13 +1,13 @@
 #include "ParticleSystemBase.h"
 
-ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, Camera* camera, Shader* shader,
+ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, int numOfRows, Camera* camera, Shader* shader,
 	unsigned int number, Vector3 position, float life, unsigned int variation, int initialForce):
 	projMatrix(projMatrix), camera(camera), particleShader(shader), 
 	number(number), position(position), life(life), variation(variation), initialForce(initialForce), texture(nullptr)
 {
 	// Set Texture
 	texture = new Texture();
-	if (!texture->SetTexture(texFile)) {
+	if (!texture->SetTexture(texFile, numOfRows)) {
 		cout << "Texture Set up failed!" << endl;
 		delete texture;
 		return;
@@ -67,6 +67,7 @@ void ParticleSystemBase::Update(float dt)
 				break;
 			}
 		}
+		UpdateTextureCoordinate(*i);
 	}
 	//Sort the list at the end of each update
 	//I literally don't understand the time complexity for this one, and how it affects the overall performance
@@ -93,10 +94,14 @@ void ParticleSystemBase::Render()
 	glDepthMask(false);
 
 	Matrix4 viewMatrix = camera->BuildViewMatrix();
+	glUniform1f(glGetUniformLocation(particleShader->GetProgram(), "numOfRows"), (float)texture->GetNumOfRows());
 
 	//iterate every particle and update their modelview matrix
-	for (auto&& element : particleList) {
-		UpdateMatrix(element, viewMatrix);
+	for (auto& element : particleList) {
+		UpdateMatrix(element, viewMatrix); // Probably needs optimization
+		glUniform2fv(glGetUniformLocation(particleShader->GetProgram(), "TexOffset1"), 2, (float*)&element.texOffset1);
+		glUniform2fv(glGetUniformLocation(particleShader->GetProgram(), "TexOffset2"), 2, (float*)&element.texOffset2);
+		glUniform1f(glGetUniformLocation(particleShader->GetProgram(), "blendFactor"), element.blendFactor);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
@@ -157,4 +162,16 @@ void ParticleSystemBase::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 	Matrix4 TransformMatrix = projMatrix * viewMatrix * modelMatrix;
 
 	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "TransformMatrix"), 1, GL_FALSE, (float*)&TransformMatrix);
+}
+
+void ParticleSystemBase::UpdateTextureCoordinate(Particle& p)
+{
+	float lifeFactor = p.elapsedTime/life;
+	int totalIndex = texture->GetNumOfRows() * texture->GetNumOfRows();
+	float currentAtlas = lifeFactor * totalIndex;
+	int index1 = currentAtlas;
+	int index2 = index1 < totalIndex - 1 ? index1 + 1 : index1;
+
+	p.blendFactor = currentAtlas - (float)index1;
+	p.SetTextureOffset(texture->GetNumOfRows(), index1, index2);
 }

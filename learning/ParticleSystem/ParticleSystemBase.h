@@ -18,7 +18,7 @@ public:
 		MAX_BUFFER
 	};
 
-	ParticleSystemBase(Matrix4 projMatrix, string texFile, Camera* camera = nullptr, Shader* shader = nullptr,
+	ParticleSystemBase(Matrix4 projMatrix, string texFile, int numOfRows = 1, Camera* camera = nullptr, Shader* shader = nullptr,
 		unsigned int number = 50, Vector3 position = { 0,0,-50 }, float life = 4.f,
 		unsigned int variation = 0, int initialForce = 50);
 	virtual ~ParticleSystemBase();
@@ -39,6 +39,7 @@ protected:
 
 	void EmitParticles();
 	void UpdateMatrix(Particle& p, const Matrix4& viewMatrix);
+	void UpdateTextureCoordinate(Particle& p);
 
 	Shader* particleShader;
 
