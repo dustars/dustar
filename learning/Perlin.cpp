@@ -1,5 +1,5 @@
 #include "Perlin.h"
-#include <cmath>
+#include <math.h>
 #include <random>
 #include <algorithm>
 #include <numeric>
@@ -76,18 +76,16 @@ double PerlinNoise::noise(double x, double y, double z) {
 	return (res + 1.0) / 2.0;
 }
 
-double PerlinNoise::octavePerlin(double x, double y, double z, int octaves, double persistence) {
-	double total = 0;
-	double frequency = 1;
-	double amplitude = 1;
-	double maxValue = 0;  // Used for normalizing result to 0.0 - 1.0
+double PerlinNoise::octavePerlin(double x, double y, double z, int octaves, double lacunarity, double persistence) {
+	double total = 0, frequency = 1, amplitude = 1, maxValue = 0;
 	for (int i = 0; i < octaves; i++) {
+
+		frequency = pow(lacunarity, i);
+		amplitude = pow(persistence, i);
+
 		total += noise(x * frequency, y * frequency, z * frequency) * amplitude;
 
 		maxValue += amplitude;
-
-		amplitude *= persistence;
-		frequency *= 2;
 	}
 
 	return total / maxValue;

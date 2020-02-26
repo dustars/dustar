@@ -18,17 +18,13 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	}
 
 	//object->GetMesh()->CreateTriangle();
-	object->SetMesh(new HeightMap(5, 0.5));
+	object->SetMesh(new HeightMap(4, 2, 0.5));
 
 	CreateParticle();
 
 	init = true;
 
-	int a = 5;
-	decltype(a);
-	decltype(a + 5);
-
-	
+	glEnable(GL_DEPTH_TEST);
 }
 
 Renderer::~Renderer(void) {
@@ -58,7 +54,8 @@ void Renderer::Update(float dt) {
 void Renderer::Render() {
 	const GLfloat backgroundColor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	glClearBufferfv(GL_COLOR, 0, backgroundColor);
-	glDepthMask(true);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	
 	if (object) {
 		renderObject();
 	}
@@ -71,7 +68,7 @@ void Renderer::Render() {
 	if (error) {
 		cout << "\nError(Code: " << error << "). Please check the program." << endl;
 	}
-	glDepthMask(false);
+
 	::SwapBuffers(deviceContext);
 }
 

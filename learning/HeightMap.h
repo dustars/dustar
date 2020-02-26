@@ -13,7 +13,7 @@
 
 class HeightMap : public Mesh {
 public:
-	HeightMap(int octave, float persistence, int width = 100, int length = 100);  // Random Generation by using Perlin Noise
+	HeightMap(int octave, double lacunarity, double persistence, int width = 100, int length = 100);  // Random Generation by using Perlin Noise
 	HeightMap(std::string name);				 // Read from file, TODO in the future;
 
 	~HeightMap(void) {};

@@ -5,7 +5,7 @@
 #include <random>
 #include <time.h>
 
-HeightMap::HeightMap(int octave, float persistence, int width, int length) : Mesh(){
+HeightMap::HeightMap(int octave, double lacunarity, double persistence, int width, int length) : Mesh(){
 	// Should have a setter for these values.
 	
 	numOfVertices = width * length;
@@ -23,10 +23,9 @@ HeightMap::HeightMap(int octave, float persistence, int width, int length) : Mes
 			double i = (double)x / ((double)width);
 			double j = (double)z / ((double)length);
 
-			double n = noise.octavePerlin(10 * i, 10 * j, 0.8, octave, persistence) * 1000;
+			double n = noise.octavePerlin(i, j, 0.5, octave, lacunarity, persistence) * 1000;
 
-
-			position.push_back(Vector3(x * HEIGHTMAP_X, n/10, z * HEIGHTMAP_Z));
+			position.push_back(Vector3(x * HEIGHTMAP_X, n - 500, z * HEIGHTMAP_Z));
 			texCoord.push_back(Vector2(x * HEIGHTMAP_TEX_X, z * HEIGHTMAP_TEX_Z));
 		}
 	}
