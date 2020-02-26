@@ -6,5 +6,5 @@ A little renderer out of interest
 
 
 ### Update: Particle System now supports texture atlas
-![Particle System Demo](demo/PS_texAtlas.gif)
+![Particle System Demo](demo/PS_texAtlas.gif)  
 (The terrain is randomly generated)
