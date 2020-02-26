@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{8638B772-C64D-477C-9EEC-66CE6A038C7A}"
 	ProjectSection(SolutionItems) = preProject
 		demo\particle_system.gif = demo\particle_system.gif
+		demo\PS_texAtlas.gif = demo\PS_texAtlas.gif
 	EndProjectSection
 EndProject
 Global

@@ -2,9 +2,9 @@
 
 uniform mat4 TransformMatrix;
 
-uniform float numOfRows;
 uniform vec2 TexOffset1;
 uniform vec2 TexOffset2;
+uniform int numOfRows;
 uniform float blendFactor;
 
 layout (location = 0) in vec4 position;
@@ -21,7 +21,7 @@ void main(void)
 {
 	gl_Position = TransformMatrix * position;
 
-	vec2 tempCoord = texCoord * (1.0f / numOfRows);
+	vec2 tempCoord = texCoord/numOfRows;
 
 	OUT.texCoord1 = tempCoord + TexOffset1;
 	OUT.texCoord2 = tempCoord + TexOffset2;

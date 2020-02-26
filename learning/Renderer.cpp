@@ -18,7 +18,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	}
 
 	//object->GetMesh()->CreateTriangle();
-	object->SetMesh(new HeightMap(100, 0.5));
+	object->SetMesh(new HeightMap(5, 0.5));
 
 	CreateParticle();
 
@@ -42,7 +42,7 @@ Renderer::~Renderer(void) {
 }
 
 void Renderer::Update(float dt) {
-	camera->UpdateCamera(dt);
+	camera->UpdateCamera(dt*0.5f);
 	if (particleMaster) {
 		particleMaster->Update(dt);
 	}
@@ -58,7 +58,7 @@ void Renderer::Update(float dt) {
 void Renderer::Render() {
 	const GLfloat backgroundColor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	glClearBufferfv(GL_COLOR, 0, backgroundColor);
-
+	glDepthMask(true);
 	if (object) {
 		renderObject();
 	}
@@ -66,7 +66,12 @@ void Renderer::Render() {
 	if (particleMaster) {
 		particleMaster->Render();
 	}
-	
+
+	auto error = glGetError();
+	if (error) {
+		cout << "\nError(Code: " << error << "). Please check the program." << endl;
+	}
+	glDepthMask(false);
 	::SwapBuffers(deviceContext);
 }
 
@@ -78,9 +83,6 @@ void Renderer::renderObject()
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	object->Draw();
 	glUseProgram(0);
-	if (glGetError()) {
-		cout << "Error Happens! Code: " << glGetError() << endl;
-	}
 }
 
 void Renderer::FPSCalculation(float dt) {
@@ -102,5 +104,5 @@ void Renderer::CreateParticle()
 
 	particleMaster = new ParticleMaster();
 	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/cosmic.png", 4,
-		camera, particleShader, 1, {350,100,350 }, 3.f, 2, 7));
+		camera, particleShader, 1, {350,100,350 }, 5.f, 2, 10));
 }

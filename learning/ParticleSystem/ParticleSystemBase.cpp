@@ -32,10 +32,10 @@ ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, int n
 	glVertexArrayAttribBinding(vao, BASEMESH_BUFFER, BASEMESH_BUFFER);
 
 	const float texCoords[] = {
-	 0.0f, 0.0f,
-	 1.0f, 0.0f,
 	 0.0f, 1.0f,
 	 1.0f, 1.0f,
+	 0.0f, 0.0f,
+	 1.0f, 0.0f,
 	};
 
 	glNamedBufferStorage(vbo[TEXTURE_BUFFER], sizeof(texCoords), texCoords, 0);
@@ -67,7 +67,6 @@ void ParticleSystemBase::Update(float dt)
 				break;
 			}
 		}
-		UpdateTextureCoordinate(*i);
 	}
 	//Sort the list at the end of each update
 	//I literally don't understand the time complexity for this one, and how it affects the overall performance
@@ -91,26 +90,34 @@ void ParticleSystemBase::Render()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(false);
+	//glDepthMask(false);
 
 	Matrix4 viewMatrix = camera->BuildViewMatrix();
-	glUniform1f(glGetUniformLocation(particleShader->GetProgram(), "numOfRows"), (float)texture->GetNumOfRows());
+	glUniform1i(glGetUniformLocation(particleShader->GetProgram(), "numOfRows"), texture->GetNumOfRows());
 
 	//iterate every particle and update their modelview matrix
 	for (auto& element : particleList) {
 		UpdateMatrix(element, viewMatrix); // Probably needs optimization
-		glUniform2fv(glGetUniformLocation(particleShader->GetProgram(), "TexOffset1"), 2, (float*)&element.texOffset1);
-		glUniform2fv(glGetUniformLocation(particleShader->GetProgram(), "TexOffset2"), 2, (float*)&element.texOffset2);
+		UpdateTextureCoordinate(element);
+
+		glUniform2f(glGetUniformLocation(particleShader->GetProgram(), "TexOffset1"), element.texOffset1.x, element.texOffset1.y);
+		glUniform2f(glGetUniformLocation(particleShader->GetProgram(), "TexOffset2"), element.texOffset2.x, element.texOffset2.y);
 		glUniform1f(glGetUniformLocation(particleShader->GetProgram(), "blendFactor"), element.blendFactor);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 	}
 
-	glDepthMask(true);
+	//glDepthMask(true);
 	glDisable(GL_BLEND);
 	glEnableVertexAttribArray(TEXTURE_BUFFER);
 	glDisableVertexAttribArray(BASEMESH_BUFFER);
 	glBindVertexArray(0);
 	glUseProgram(0);
+
+	auto error = glGetError();
+	if (error) {
+		cout << "\nError(Code: " << error << "). Particle System." << endl;
+	}
 }
 
 void ParticleSystemBase::SetShape(const float shape[16]) {

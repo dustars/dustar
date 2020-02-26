@@ -13,8 +13,5 @@ out vec4 FragColor;
 
 void main(void)
 {
-	vec4 colorTex1 = texture(Texture, IN.texCoord1);
-	vec4 colorTex2 = texture(Texture, IN.texCoord2);
-
-	FragColor = mix(colorTex1, colorTex2, IN.blendFactor);
+	FragColor = mix(texture(Texture, IN.texCoord1) , texture(Texture, IN.texCoord2), IN.blendFactor);
 }

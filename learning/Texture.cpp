@@ -15,7 +15,7 @@ bool Texture::SetTexture(std::string file, unsigned numR)
 
 	int width, height, nChannels;
 
-	stbi_set_flip_vertically_on_load(true);
+	//stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(file.c_str(), &width, &height, &nChannels, 0);
 
 	int GL_Channels = GL_RGB;
