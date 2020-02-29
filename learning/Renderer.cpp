@@ -9,7 +9,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 
 	// That experimental quad
 	object = new RenderObject();
-	if (!object->SetShader("shader/objectVShader.glsl", "shader/objectFShader.glsl")) {
+	if (!object->SetShader("shader/HeightMapVShader.glsl", "shader/HeightMapFShader.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 
@@ -18,12 +18,11 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	}
 
 	//object->GetMesh()->CreateTriangle();
-	object->SetMesh(new HeightMap(4, 2, 0.5));
+	object->SetMesh(new HeightMap(6, 3, 0.4, 500, 500));
 
-	CreateParticle();
+	//CreateParticle();
 
 	init = true;
-
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -53,7 +52,7 @@ void Renderer::Update(float dt) {
 
 void Renderer::Render() {
 	const GLfloat backgroundColor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	glClearBufferfv(GL_COLOR, 0, backgroundColor);
+
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	
 	if (object) {

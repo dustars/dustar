@@ -62,6 +62,9 @@
     <ClCompile Include="HeightMap.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
+    <ClCompile Include="RenderObjectManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -103,6 +106,9 @@
     <ClInclude Include="HeightMap.h">
       <Filter>StaticObjects</Filter>
     </ClInclude>
+    <ClInclude Include="RenderObjectManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\BasicColorFShader.glsl">
@@ -127,6 +133,12 @@
       <Filter>shader</Filter>
     </None>
     <None Include="shader\objectFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\HeightMapFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\HeightMapVShader.glsl">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

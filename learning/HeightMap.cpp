@@ -23,9 +23,33 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 			double i = (double)x / ((double)width);
 			double j = (double)z / ((double)length);
 
-			double n = noise.octavePerlin(i, j, 0.5, octave, lacunarity, persistence) * 1000;
+			double n = noise.octavePerlin(i, j, 0.5, octave, lacunarity, persistence) * 3000;
 
-			position.push_back(Vector3(x * HEIGHTMAP_X, n - 500, z * HEIGHTMAP_Z));
+			n -= 1000.0;
+
+			position.push_back(Vector3(x * HEIGHTMAP_X, n, z * HEIGHTMAP_Z));
+
+			Vector3 tempColor;
+			if (n > 300) {
+				if (n > 750.0f) { // Snow
+					tempColor = { 1.f, 0.98f, 0.98f };
+				}
+				else if (n > 500.0f) { // Grass
+					tempColor = { 0.133f, 0.545f, 0.133f };
+				}
+				else { // ground
+					tempColor = { 0.1f, 1.0f, 0.498f };
+				}
+			}
+			else {
+				if (n < 200) { // water
+					tempColor = { 0.125f, 0.698f, 0.667f };
+				}
+				else { // ground
+					tempColor = { 0.545f, 0.271f, 0.075f };
+				}
+			}
+			color.push_back(tempColor);
 			texCoord.push_back(Vector2(x * HEIGHTMAP_TEX_X, z * HEIGHTMAP_TEX_Z));
 		}
 	}
@@ -47,6 +71,5 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 			index.push_back(d);
 		}
 	}
-
 	BufferDataToGPU();
 }

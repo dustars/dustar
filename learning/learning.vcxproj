@@ -152,6 +152,7 @@
     <ClCompile Include="Perlin.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="RenderObjectManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -172,11 +173,14 @@
     <ClInclude Include="Perlin.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="RenderObjectManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shader\HeightMapFShader.glsl" />
+    <None Include="shader\HeightMapVShader.glsl" />
     <None Include="shader\LearningVShader.glsl" />
     <None Include="shader\BasicColorFShader.glsl" />
     <None Include="shader\objectFShader.glsl" />

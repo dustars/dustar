@@ -78,7 +78,7 @@ double PerlinNoise::noise(double x, double y, double z) {
 
 double PerlinNoise::octavePerlin(double x, double y, double z, int octaves, double lacunarity, double persistence) {
 	double total = 0, frequency = 1, amplitude = 1, maxValue = 0;
-	for (int i = 0; i < octaves; i++) {
+	for (int i = 0; i < octaves-1; ++i) {
 
 		frequency = pow(lacunarity, i);
 		amplitude = pow(persistence, i);
