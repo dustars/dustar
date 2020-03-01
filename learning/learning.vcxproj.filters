@@ -141,5 +141,11 @@
     <None Include="shader\HeightMapVShader.glsl">
       <Filter>shader</Filter>
     </None>
+    <None Include="shader\SkyBoxFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\SkyBoxVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

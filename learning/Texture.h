@@ -2,7 +2,9 @@
 #include <iostream>
 #include "glew.h"
 #include <string>
+#include <vector>
 
+using namespace std;
 
 class Texture
 {
@@ -10,10 +12,12 @@ public:
 	Texture() : texture(0), numOfRows(0) {}
 	~Texture() {}
 
-	bool SetTexture(std::string file, unsigned numR = 1);
+	bool SetTexture(string file, unsigned numR = 1);
 	unsigned GetTexture() { return texture; }
 
 	unsigned GetNumOfRows() { return numOfRows; }
+
+	void CreateCubeMap(string right, string left, string top, string bottom, string back, string front);
 
 private:
 	unsigned texture;

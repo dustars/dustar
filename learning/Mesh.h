@@ -25,6 +25,7 @@ public:
 	~Mesh();
 
 	void CreateTriangle();
+	void CreateSkyBox();
 
 	inline int GetNumOfVertices()	{ return numOfVertices; }
 	inline GLuint GetVAO()			{ return vao; }

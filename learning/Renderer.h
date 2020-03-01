@@ -15,6 +15,7 @@ public:
 	virtual void Render() override;
 
 	void renderObject();
+	void renderSkyBox();
 
 	float startingTime;
 	float framesPerSecond;
@@ -23,6 +24,8 @@ public:
 protected:
 	
 	RenderObject*		object;
+	RenderObject*		skybox;
+
 	Camera*				camera;
 
 	Matrix4				projMatrix;

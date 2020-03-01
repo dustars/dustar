@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "3rdParty/stb_image.h"
 
-bool Texture::SetTexture(std::string file, unsigned numR)
+bool Texture::SetTexture(string file, unsigned numR)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -34,4 +34,29 @@ bool Texture::SetTexture(std::string file, unsigned numR)
 	stbi_image_free(data);
 	numOfRows = numR;
 	return data ? true : false;
+}
+
+void Texture::CreateCubeMap(string right, string left, string top, string bottom, string back, string front)
+{
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+	int width, height, nChannels;
+	unsigned char* data;
+	vector<string> fileCube = { right, left, top, bottom, back, front };
+	int i = 0;
+	for (auto& element : fileCube) {
+		data = stbi_load(element.c_str(), &width, &height, &nChannels, 0);
+		if (data) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		}
+		else {
+			cout << "Loading cube map failed: " << element << " is not valid file string" << endl;
+		}
+		stbi_image_free(data);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
