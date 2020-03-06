@@ -2,49 +2,45 @@
 
 ParticleMaster::ParticleMaster()
 {
+	Shader* particleShader = new Shader("shader/ParticleBaseVShader.glsl", "shader/ParticleBaseFShader.glsl");
+	if (!particleShader->LinkProgram()) {
+		cout << "Shader set up failed!" << endl;
+	}
+
+	Shaders["Basic"] = particleShader;
 }
 
 ParticleMaster::~ParticleMaster()
 {
-	if (!particleSystemArray->size()) {
-		return;
-	}
-	for (unsigned int i = 0; i < particleSystemArray->size(); ++i) {
-		delete particleSystemArray->at(i);
-	}
 }
 
-void ParticleMaster::AddSystem(ParticleSystemBase* p)
+void ParticleMaster::AddSystem(ParticleSystem* p, string shaderName)
 {
-	particleSystemArray->push_back(p);
+	p->particleShader = Shaders[shaderName];
+	particleSystemArray.push_back(*p);
 }
 
 void ParticleMaster::RemoveSystem()
 {
-
 }
 
 void ParticleMaster::Update(float dt)
 {
-	if (!particleSystemArray->size()) {
+	if (!particleSystemArray.size()) {
 		return;
 	}
-	for (unsigned int i = 0; i < particleSystemArray->size(); ++i) {
-		particleSystemArray->at(i)->Update(dt);
+	for (auto& element : particleSystemArray) {
+		element.Update(dt);
 	}
 }
 
 void ParticleMaster::Render()
 {
-	if (!particleSystemArray->size()) {
+	if (!particleSystemArray.size()) {
 		return;
 	}
-	for (unsigned int i = 0; i < particleSystemArray->size(); ++i) {
-		particleSystemArray->at(i)->Render();
+
+	for (auto& element : particleSystemArray) {
+		element.Render();
 	}
 }
-
-void ParticleMaster::DeleteParticleMaster()
-{
-}
-

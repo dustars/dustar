@@ -1,8 +1,9 @@
-#include "ParticleSystemBase.h"
+#include "ParticleSystem.h"
 
-ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, int numOfRows, Camera* camera, Shader* shader,
+Renderer* ParticleSystem::renderer = nullptr;
+
+ParticleSystem::ParticleSystem(string texFile, int numOfRows,
 	unsigned int number, Vector3 position, float life, unsigned int variation, int initialForce):
-	projMatrix(projMatrix), camera(camera), particleShader(shader), 
 	number(number), position(position), life(life), variation(variation), initialForce(initialForce), texture(nullptr)
 {
 	// Set Texture
@@ -44,7 +45,7 @@ ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, int n
 	glVertexArrayAttribBinding(vao, TEXTURE_BUFFER, TEXTURE_BUFFER);
 }
 
-ParticleSystemBase::~ParticleSystemBase()
+ParticleSystem::~ParticleSystem()
 {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(MAX_BUFFER, vbo);
@@ -52,7 +53,7 @@ ParticleSystemBase::~ParticleSystemBase()
 	delete texture;
 }
 
-void ParticleSystemBase::Update(float dt)
+void ParticleSystem::Update(float dt)
 {
 	//Generate new particles per frame
 	EmitParticles();
@@ -60,7 +61,7 @@ void ParticleSystemBase::Update(float dt)
 	//Update each particle
 	for (auto i = particleList.begin(); i != particleList.end(); ++i) {
 		bool ifAlived = i->Update(dt);
-		i->distanceFromCamera = (camera->GetPosition() - i->position).Length();
+		i->distanceFromCamera = (renderer->GetCamera()->GetPosition() - i->position).Length();
 		if (!ifAlived) {
 			i = particleList.erase(i);
 			if (i == particleList.end()) {
@@ -76,7 +77,7 @@ void ParticleSystemBase::Update(float dt)
 	particleList.sort(sortDis);
 }
 
-void ParticleSystemBase::Render()
+void ParticleSystem::Render()
 {
 	if (!particleShader) {
 		cout << "Particle System doesn't have a shader!" << endl;
@@ -92,12 +93,14 @@ void ParticleSystemBase::Render()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glDepthMask(false);
 
-	Matrix4 viewMatrix = camera->BuildViewMatrix();
+	Matrix4 viewMatrix = renderer->GetCamera()->BuildViewMatrix();
+	
 	glUniform1i(glGetUniformLocation(particleShader->GetProgram(), "numOfRows"), texture->GetNumOfRows());
 
 	//iterate every particle and update their modelview matrix
 	for (auto& element : particleList) {
 		UpdateMatrix(element, viewMatrix); // Probably needs optimization
+
 		UpdateTextureCoordinate(element);
 
 		glUniform2f(glGetUniformLocation(particleShader->GetProgram(), "TexOffset1"), element.texOffset1.x, element.texOffset1.y);
@@ -120,13 +123,13 @@ void ParticleSystemBase::Render()
 	}
 }
 
-void ParticleSystemBase::SetShape(const float shape[16]) {
+void ParticleSystem::SetShape(const float shape[16]) {
 	for (int i = 0; i <= 15; ++i) {
 		shapeArray[i] = shape[i];
 	}
 }
 
-void ParticleSystemBase::EmitParticles()
+void ParticleSystem::EmitParticles()
 {
 	for (unsigned int i = 0; i < number; ++i) {
 		// random velocity of unit circle
@@ -147,7 +150,7 @@ void ParticleSystemBase::EmitParticles()
 	}
 }
 
-void ParticleSystemBase::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
+void ParticleSystem::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 {
 	Matrix4 modelMatrix;
 	modelMatrix = modelMatrix * Matrix4::Translation(p.position);
@@ -166,12 +169,12 @@ void ParticleSystemBase::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 	modelMatrix = modelMatrix * Matrix4::Rotation((float)DegToRad(p.rotation), { 0,0,1 });
 	modelMatrix = modelMatrix * Matrix4::Scale({ p.scale, p.scale, p.scale });
 
-	Matrix4 TransformMatrix = projMatrix * viewMatrix * modelMatrix;
+	Matrix4 TransformMatrix = renderer->GetProjMatrix() * viewMatrix * modelMatrix;
 
 	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "TransformMatrix"), 1, GL_FALSE, (float*)&TransformMatrix);
 }
 
-void ParticleSystemBase::UpdateTextureCoordinate(Particle& p)
+void ParticleSystem::UpdateTextureCoordinate(Particle& p)
 {
 	float lifeFactor = p.elapsedTime/life;
 	int totalIndex = texture->GetNumOfRows() * texture->GetNumOfRows();

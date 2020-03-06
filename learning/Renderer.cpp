@@ -20,7 +20,10 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	//object->GetMesh()->CreateTriangle();
 	object->SetMesh(new HeightMap(6, 3, 0.4, 500, 500));
 
-	//CreateParticle();
+	ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
+	particleMaster = new ParticleMaster();
+
+	particleMaster->AddSystem(new ParticleSystem("../assets/Textures/cosmic.png", 4, 1, { 350,100,350 }, 5.f, 2, 10));
 
 	skybox = new RenderObject();
 	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {
@@ -125,16 +128,4 @@ void Renderer::FPSCalculation(float dt) {
 		oneSecond = 0;
 		framesPerSecond = 0;
 	}
-}
-
-void Renderer::CreateParticle()
-{
-	Shader* particleShader = new Shader("shader/ParticleBaseVShader.glsl", "shader/ParticleBaseFShader.glsl");
-	if (!particleShader->LinkProgram()) {
-		cout << "Shader set up failed!" << endl;
-	}
-
-	particleMaster = new ParticleMaster();
-	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/cosmic.png", 4,
-		camera, particleShader, 1, {350,100,350 }, 5.f, 2, 10));
 }
