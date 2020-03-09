@@ -23,7 +23,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
 	particleMaster = new ParticleMaster();
 
-	particleMaster->AddSystem(new ParticleSystem("../assets/Textures/cosmic.png", 4, 1, { 350,100,350 }, 5.f, 2, 10));
+	particleMaster->AddSystem(new ParticleSystem(1, { 350,100,350 }, 5.f, 0, 10));
+	particleMaster->AddSystem(new ParticleSystem(1, { 300,100,300 }, 5.f, 0, 10, EmitType::TRAJECTORY), "Basic", "Container");
 
 	skybox = new RenderObject();
 	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {

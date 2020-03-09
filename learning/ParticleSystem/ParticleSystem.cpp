@@ -2,18 +2,10 @@
 
 Renderer* ParticleSystem::renderer = nullptr;
 
-ParticleSystem::ParticleSystem(string texFile, int numOfRows,
-	unsigned int number, Vector3 position, float life, unsigned int variation, int initialForce):
-	number(number), position(position), life(life), variation(variation), initialForce(initialForce), texture(nullptr)
+ParticleSystem::ParticleSystem(
+	unsigned number, Vector3 position, float life, unsigned variation, int initialForce, EmitType type):
+	number(number), position(position), life(life), variation(variation), initialForce(initialForce), type(type)
 {
-	// Set Texture
-	texture = new Texture();
-	if (!texture->SetTexture(texFile, numOfRows)) {
-		cout << "Texture Set up failed!" << endl;
-		delete texture;
-		return;
-	}
-
 	// Shape Define
 	const float quad[] = {
 	 -1.f, -1.f, 0.0f, 1.0f,
@@ -49,14 +41,22 @@ ParticleSystem::~ParticleSystem()
 {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(MAX_BUFFER, vbo);
-	delete particleShader;
-	delete texture;
 }
 
 void ParticleSystem::Update(float dt)
 {
 	//Generate new particles per frame
-	EmitParticles();
+	switch (type)
+	{
+	case EmitType::BASIC:
+		EmitFountain();
+		break;
+	case EmitType::TRAJECTORY:
+		EmitTrajectory();
+		break;
+	default:
+		break;
+	}
 
 	//Update each particle
 	for (auto i = particleList.begin(); i != particleList.end(); ++i) {
@@ -129,23 +129,30 @@ void ParticleSystem::SetShape(const float shape[16]) {
 	}
 }
 
-void ParticleSystem::EmitParticles()
+void ParticleSystem::EmitFountain()
 {
 	for (unsigned int i = 0; i < number; ++i) {
 		// random velocity of unit circle
-		float dirX = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2)) - 1;
-		float dirZ = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2)) - 1;
+		float dirX = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
+		float dirZ = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
 		Vector3 velocity(dirX, 0, dirZ);
 		velocity.Normalise();
 
-		if (!variation) {
-			float randY = rand() % (variation + 1);
-		}
-		velocity.x *= initialForce;
-		velocity.y = variation * initialForce;
-		velocity.z *= initialForce;
+		float factor = (static_cast <float>(rand()) / static_cast <float>(RAND_MAX)) - 0.5;
+
+		velocity.x *= (initialForce * factor);
+		velocity.y = factor * initialForce;
+		velocity.z *= (initialForce * factor);
 
 		Particle newP(position, velocity, life, 0, 1, 1);
+		particleList.push_back(newP);
+	}
+}
+
+void ParticleSystem::EmitTrajectory()
+{
+	for (unsigned int i = 0; i < number; ++i) {
+		Particle newP(position, Vector3(0, initialForce, -initialForce), life, 0, 1, 1);
 		particleList.push_back(newP);
 	}
 }

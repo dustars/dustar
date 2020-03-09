@@ -9,7 +9,7 @@ using namespace std;
 
 class Shader {
 public:
-	Shader(string vs, string fs, string gs = "", string cs = "", string es = "");
+	Shader(string vs = "", string fs = "", string gs = "", string cs = "", string es = "");
 	~Shader();
 
 	inline const GLuint GetProgram() { return program; }

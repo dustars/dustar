@@ -12,7 +12,7 @@ public:
 	ParticleMaster();
 	~ParticleMaster();
 
-	void AddSystem(ParticleSystem* p, string shaderName = "Basic");
+	void AddSystem(ParticleSystem* p, string shaderName = "Basic", string textureName = "Cosmic");
 	void RemoveSystem();
 
 	void Update(float dt);
@@ -22,8 +22,9 @@ public:
 	auto GetParticleSystemSize() { return particleSystemArray.size(); }
 	
 protected:
-	vector<ParticleSystem> particleSystemArray;
+	vector<ParticleSystem*> particleSystemArray;
 
-	unordered_map<string, Shader*> Shaders;
+	unordered_map<string, Shader*> shaders;
+	unordered_map<string, Texture*> textures;
 };
 

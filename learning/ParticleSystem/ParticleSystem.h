@@ -11,6 +11,11 @@ using namespace std;
 
 class Renderer;
 
+enum class EmitType {
+	BASIC,
+	TRAJECTORY
+};
+
 class ParticleSystem
 {
 	friend class ParticleMaster;
@@ -23,35 +28,38 @@ public:
 		MAX_BUFFER
 	};
 
-	ParticleSystem(string texFile, int numOfRows = 1,
-		unsigned int number = 50, Vector3 position = { 0,0,-50 }, float life = 4.f,
-		unsigned int variation = 0, int initialForce = 50);
-	virtual ~ParticleSystem();
+	ParticleSystem(unsigned = 50, Vector3 = { 0,0,-50 }, float = 4.f, unsigned = 0, int = 50, EmitType = EmitType::BASIC);
+	~ParticleSystem();
 
-	virtual void Update(float);
-	virtual void Render();
+	void Update(float);
+	void Render();
 
 	void SetShape(const float shape[16]);
 
 protected:
+	void EmitFountain();
+	void EmitTrajectory();
+
+	void UpdateMatrix(Particle& p, const Matrix4& viewMatrix);
+	void UpdateTextureCoordinate(Particle& p);
+
+	// Render part
 	Texture* texture;
+	Shader* particleShader;
 
 	float shapeArray[16];
 	GLuint vao;
 	GLuint vbo[MAX_BUFFER];
 
-	list<Particle> particleList;
+	// System part
+	list<Particle> particleList; // total particles
+	EmitType type;
 
-	void EmitParticles();
-	void UpdateMatrix(Particle& p, const Matrix4& viewMatrix);
-	void UpdateTextureCoordinate(Particle& p);
-
-	Shader* particleShader;
-
-	unsigned int number;
+	// General properties for each particle
+	unsigned number;
 	Vector3 position;
 	float life;
-	unsigned int variation;
+	unsigned variation;
 	int initialForce;
 };
 
