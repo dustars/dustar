@@ -6,6 +6,8 @@
 
 #include "ParticleSystem/ParticleMaster.h"
 
+class ParticleMaster;
+
 class Renderer : public RenderBase {
 public:
 	Renderer(Window& parent);
@@ -17,6 +19,9 @@ public:
 	void renderObject();
 	void renderSkyBox();
 
+	Camera* GetCamera() { return camera; }
+	Matrix4& GetProjMatrix() { return projMatrix; }
+
 	float startingTime;
 	float framesPerSecond;
 	float oneSecond;
@@ -26,15 +31,13 @@ protected:
 	RenderObject*		object;
 	RenderObject*		skybox;
 
-	Camera*				camera;
-
-	Matrix4				projMatrix;
-	Matrix4				modelMatrix;
+	Camera*		camera;
+	Matrix4		projMatrix;
+	Matrix4		modelMatrix;
 
 	ParticleMaster*		particleMaster;
 
 	void FPSCalculation(float dt);
-	void CreateParticle();
 };
 
 

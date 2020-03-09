@@ -1,27 +1,30 @@
 #pragma once
 
-#include "ParticleSystemBase.h"
+#include "ParticleSystem.h"
 #include <vector>
-
-constexpr auto MAX_PSYSTEM = 10000;
+#include <unordered_map>
 
 class ParticleMaster
 {
-	friend class ParticleSystemBase;
 public:
+	// For the convenience of each particle system to access objects like camera and projection matrix.
+
 	ParticleMaster();
 	~ParticleMaster();
 
-	void AddSystem(ParticleSystemBase* p);
+	void AddSystem(ParticleSystem* p, string shaderName = "Basic", string textureName = "Cosmic");
 	void RemoveSystem();
 
 	void Update(float dt);
 	void Render();
 
-	void DeleteParticleMaster();
-	bool SystemExist(); // need?
+
+	auto GetParticleSystemSize() { return particleSystemArray.size(); }
 	
 protected:
-	vector<ParticleSystemBase*> particleSystemArray[MAX_PSYSTEM];
+	vector<ParticleSystem*> particleSystemArray;
+
+	unordered_map<string, Shader*> shaders;
+	unordered_map<string, Texture*> textures;
 };
 

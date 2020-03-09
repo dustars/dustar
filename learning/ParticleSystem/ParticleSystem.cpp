@@ -1,17 +1,13 @@
 #include "ParticleSystem.h"
 
-ParticleSystem::ParticleSystem(Matrix4 projMatrix, string texFile, int numOfRows, Camera* camera, Shader* shader,
-	unsigned int number, Vector3 position, float life, unsigned int variation, int initialForce):
-	projMatrix(projMatrix), camera(camera), particleShader(shader), 
-	number(number), position(position), life(life), variation(variation), initialForce(initialForce), texture(nullptr)
+Renderer* ParticleSystem::renderer = nullptr;
+
+ParticleSystem::ParticleSystem(
+	unsigned number, Vector3 position, float life, unsigned variation, int initialForce, EmitType type):
+	number(number), position(position), life(life), variation(variation), initialForce(initialForce), type(type)
 {
-	// Set Texture
-	texture = new Texture();
-	if (!texture->SetTexture(texFile, numOfRows)) {
-		cout << "Texture Set up failed!" << endl;
-		delete texture;
-		return;
-	}
+	emitInterval = 1000.f / static_cast <float> (number);
+	cout << emitInterval << endl;
 
 	// Shape Define
 	const float quad[] = {
@@ -48,19 +44,34 @@ ParticleSystem::~ParticleSystem()
 {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(MAX_BUFFER, vbo);
-	delete particleShader;
-	delete texture;
 }
 
 void ParticleSystem::Update(float dt)
 {
 	//Generate new particles per frame
-	EmitParticles();
+	elaspedTime += dt;
+	if ( elaspedTime > emitInterval) {
+
+		// Just emit one particle, if emitInterval < dt, then multiple particles should be emiited, currently in progress.
+
+		switch (type)
+		{
+		case EmitType::BASIC:
+			EmitFountain();
+			break;
+		case EmitType::TRAJECTORY:
+			EmitTrajectory();
+			break;
+		default:
+			break;
+		}
+		elaspedTime = 0;
+	}
 
 	//Update each particle
 	for (auto i = particleList.begin(); i != particleList.end(); ++i) {
 		bool ifAlived = i->Update(dt);
-		i->distanceFromCamera = (camera->GetPosition() - i->position).Length();
+		i->distanceFromCamera = (renderer->GetCamera()->GetPosition() - i->position).Length();
 		if (!ifAlived) {
 			i = particleList.erase(i);
 			if (i == particleList.end()) {
@@ -92,12 +103,14 @@ void ParticleSystem::Render()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glDepthMask(false);
 
-	Matrix4 viewMatrix = camera->BuildViewMatrix();
+	Matrix4 viewMatrix = renderer->GetCamera()->BuildViewMatrix();
+	
 	glUniform1i(glGetUniformLocation(particleShader->GetProgram(), "numOfRows"), texture->GetNumOfRows());
 
 	//iterate every particle and update their modelview matrix
 	for (auto& element : particleList) {
 		UpdateMatrix(element, viewMatrix); // Probably needs optimization
+
 		UpdateTextureCoordinate(element);
 
 		glUniform2f(glGetUniformLocation(particleShader->GetProgram(), "TexOffset1"), element.texOffset1.x, element.texOffset1.y);
@@ -126,26 +139,28 @@ void ParticleSystem::SetShape(const float shape[16]) {
 	}
 }
 
-void ParticleSystem::EmitParticles()
+void ParticleSystem::EmitFountain()
 {
-	for (unsigned int i = 0; i < number; ++i) {
-		// random velocity of unit circle
-		float dirX = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2)) - 1;
-		float dirZ = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2)) - 1;
+	// random velocity of unit circle
+	float dirX = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
+	float dirZ = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
+	Vector3 velocity(dirX, 0, dirZ);
+	velocity.Normalise();
 
-		Vector3 velocity(dirX, 0, dirZ);
-		velocity.Normalise();
+	float factor = (static_cast <float>(rand()) / static_cast <float>(RAND_MAX)) - 0.5;
 
-		if (!variation) {
-			float randY = rand() % (variation + 1);
-		}
-		velocity.x *= initialForce;
-		velocity.y = variation * initialForce;
-		velocity.z *= initialForce;
+	velocity.x *= (initialForce * factor);
+	velocity.y = factor * initialForce;
+	velocity.z *= (initialForce * factor);
 
-		Particle newP(position, velocity, life, 0, 1, 1);
-		particleList.push_back(newP);
-	}
+	Particle newP(position, velocity, life, 0, 1, 1);
+	particleList.push_back(newP);
+}
+
+void ParticleSystem::EmitTrajectory()
+{
+	Particle newP(position, Vector3(0, initialForce, -initialForce), life, 0, 1, 1);
+	particleList.push_back(newP);
 }
 
 void ParticleSystem::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
@@ -167,7 +182,7 @@ void ParticleSystem::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 	modelMatrix = modelMatrix * Matrix4::Rotation((float)DegToRad(p.rotation), { 0,0,1 });
 	modelMatrix = modelMatrix * Matrix4::Scale({ p.scale, p.scale, p.scale });
 
-	Matrix4 TransformMatrix = projMatrix * viewMatrix * modelMatrix;
+	Matrix4 TransformMatrix = renderer->GetProjMatrix() * viewMatrix * modelMatrix;
 
 	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "TransformMatrix"), 1, GL_FALSE, (float*)&TransformMatrix);
 }

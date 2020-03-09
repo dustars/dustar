@@ -1,50 +1,77 @@
 #include "ParticleMaster.h"
+#include <algorithm>
 
 ParticleMaster::ParticleMaster()
 {
+	Shader* particleShader = new Shader("shader/ParticleBaseVShader.glsl", "shader/ParticleBaseFShader.glsl");
+	if (!particleShader->LinkProgram()) {
+		cout << "Shader set up failed!" << endl;
+	}
+	shaders["Basic"] = particleShader;
+
+	Texture* texture = new Texture();
+	if (!texture->SetTexture("../assets/Textures/cosmic.png", 4)) {
+		cout << "Texture Set up failed!" << endl;
+	}
+	textures["Cosmic"] = texture;
+
+	Texture* texture1 = new Texture();
+	if (!texture1->SetTexture("../assets/Textures/particleAtlas.png", 4)) {
+		cout << "Texture Set up failed!" << endl;
+	}
+	textures["RedDot"] = texture1;
+
+	Texture* texture2 = new Texture();
+	if (!texture2->SetTexture("../assets/Textures/container.jpg", 1)) {
+		cout << "Texture Set up failed!" << endl;
+	}
+	textures["Container"] = texture2;
 }
 
 ParticleMaster::~ParticleMaster()
 {
-	if (!particleSystemArray->size()) {
-		return;
+	for (auto& ele : particleSystemArray) {
+		delete ele;
 	}
-	for (unsigned int i = 0; i < particleSystemArray->size(); ++i) {
-		delete particleSystemArray->at(i);
+
+	for (auto i = shaders.begin(); i != shaders.end(); ++i) {
+		delete i->second;
+	}
+	
+	for (auto i = textures.begin(); i != textures.end(); ++i) {
+		delete i->second;
 	}
 }
 
-void ParticleMaster::AddSystem(ParticleSystemBase* p)
+void ParticleMaster::AddSystem(ParticleSystem* p, string shaderName, string textureName)
 {
-	particleSystemArray->push_back(p);
+	p->particleShader = shaders[shaderName];
+	p->texture = textures[textureName];
+
+	particleSystemArray.push_back(p); // Why only pointers
 }
 
 void ParticleMaster::RemoveSystem()
 {
-
 }
 
 void ParticleMaster::Update(float dt)
 {
-	if (!particleSystemArray->size()) {
+	if (!particleSystemArray.size()) {
 		return;
 	}
-	for (unsigned int i = 0; i < particleSystemArray->size(); ++i) {
-		particleSystemArray->at(i)->Update(dt);
+	for (auto& element : particleSystemArray) {
+		element->Update(dt);
 	}
 }
 
 void ParticleMaster::Render()
 {
-	if (!particleSystemArray->size()) {
+	if (!particleSystemArray.size()) {
 		return;
 	}
-	for (unsigned int i = 0; i < particleSystemArray->size(); ++i) {
-		particleSystemArray->at(i)->Render();
+
+	for (auto& element : particleSystemArray) {
+		element->Render();
 	}
 }
-
-void ParticleMaster::DeleteParticleMaster()
-{
-}
-
