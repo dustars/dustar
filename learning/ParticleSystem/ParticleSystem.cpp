@@ -1,6 +1,6 @@
-#include "ParticleSystemBase.h"
+#include "ParticleSystem.h"
 
-ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, int numOfRows, Camera* camera, Shader* shader,
+ParticleSystem::ParticleSystem(Matrix4 projMatrix, string texFile, int numOfRows, Camera* camera, Shader* shader,
 	unsigned int number, Vector3 position, float life, unsigned int variation, int initialForce):
 	projMatrix(projMatrix), camera(camera), particleShader(shader), 
 	number(number), position(position), life(life), variation(variation), initialForce(initialForce), texture(nullptr)
@@ -44,7 +44,7 @@ ParticleSystemBase::ParticleSystemBase(Matrix4 projMatrix, string texFile, int n
 	glVertexArrayAttribBinding(vao, TEXTURE_BUFFER, TEXTURE_BUFFER);
 }
 
-ParticleSystemBase::~ParticleSystemBase()
+ParticleSystem::~ParticleSystem()
 {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(MAX_BUFFER, vbo);
@@ -52,7 +52,7 @@ ParticleSystemBase::~ParticleSystemBase()
 	delete texture;
 }
 
-void ParticleSystemBase::Update(float dt)
+void ParticleSystem::Update(float dt)
 {
 	//Generate new particles per frame
 	EmitParticles();
@@ -76,7 +76,7 @@ void ParticleSystemBase::Update(float dt)
 	particleList.sort(sortDis);
 }
 
-void ParticleSystemBase::Render()
+void ParticleSystem::Render()
 {
 	if (!particleShader) {
 		cout << "Particle System doesn't have a shader!" << endl;
@@ -120,18 +120,19 @@ void ParticleSystemBase::Render()
 	}
 }
 
-void ParticleSystemBase::SetShape(const float shape[16]) {
+void ParticleSystem::SetShape(const float shape[16]) {
 	for (int i = 0; i <= 15; ++i) {
 		shapeArray[i] = shape[i];
 	}
 }
 
-void ParticleSystemBase::EmitParticles()
+void ParticleSystem::EmitParticles()
 {
 	for (unsigned int i = 0; i < number; ++i) {
 		// random velocity of unit circle
 		float dirX = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2)) - 1;
 		float dirZ = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2)) - 1;
+
 		Vector3 velocity(dirX, 0, dirZ);
 		velocity.Normalise();
 
@@ -147,7 +148,7 @@ void ParticleSystemBase::EmitParticles()
 	}
 }
 
-void ParticleSystemBase::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
+void ParticleSystem::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 {
 	Matrix4 modelMatrix;
 	modelMatrix = modelMatrix * Matrix4::Translation(p.position);
@@ -171,7 +172,7 @@ void ParticleSystemBase::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)
 	glUniformMatrix4fv(glGetUniformLocation(particleShader->GetProgram(), "TransformMatrix"), 1, GL_FALSE, (float*)&TransformMatrix);
 }
 
-void ParticleSystemBase::UpdateTextureCoordinate(Particle& p)
+void ParticleSystem::UpdateTextureCoordinate(Particle& p)
 {
 	float lifeFactor = p.elapsedTime/life;
 	int totalIndex = texture->GetNumOfRows() * texture->GetNumOfRows();

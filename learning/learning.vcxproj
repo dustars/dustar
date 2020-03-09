@@ -148,7 +148,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ParticleSystem\Particle.cpp" />
     <ClCompile Include="ParticleSystem\ParticleMaster.cpp" />
-    <ClCompile Include="ParticleSystem\ParticleSystemBase.cpp" />
+    <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Perlin.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
@@ -169,7 +169,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ParticleSystem\Particle.h" />
     <ClInclude Include="ParticleSystem\ParticleMaster.h" />
-    <ClInclude Include="ParticleSystem\ParticleSystemBase.h" />
+    <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="Perlin.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />

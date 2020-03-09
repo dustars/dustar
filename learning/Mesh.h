@@ -25,16 +25,15 @@ public:
 	~Mesh();
 
 	void CreateTriangle();
-	void CreateSkyBox();
+	void CreateQuad();
 
-	inline int GetNumOfVertices()	{ return numOfVertices; }
-	inline GLuint GetVAO()			{ return vao; }
-	inline GLuint GetType()			{ return renderType; }
-
-	inline vector<Vector3>& GetPosition() { return position; }
-	inline vector<Vector3>& GetColor() { return color; }
-	inline vector<Vector2>& GetTexCoord() { return texCoord; }
-	inline vector<unsigned int>& GetIndex() { return index; }
+	int						GetNumOfVertices()		{ return numOfVertices; }
+	GLuint					GetVAO()				{ return vao; }
+	GLuint					GetType()				{ return renderType; }
+	vector<Vector3>&		GetPosition()			{ return position; }
+	vector<Vector3>&		GetColor()				{ return color; }
+	vector<Vector2>&		GetTexCoord()			{ return texCoord; }
+	vector<unsigned int>&	GetIndex()				{ return index; }
 
 	void Draw();
 	

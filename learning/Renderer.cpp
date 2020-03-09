@@ -33,10 +33,10 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 										"../assets/Skybox/bluecloud_dn.jpg",
 										"../assets/Skybox/bluecloud_bk.jpg",
 										"../assets/Skybox/bluecloud_ft.jpg");
-	skybox->GetMesh()->CreateSkyBox();
+	skybox->GetMesh()->CreateQuad();
 
 	init = true;
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);		
 }
 
 Renderer::~Renderer(void) {
@@ -135,6 +135,6 @@ void Renderer::CreateParticle()
 	}
 
 	particleMaster = new ParticleMaster();
-	particleMaster->AddSystem(new ParticleSystemBase(projMatrix, "../assets/Textures/cosmic.png", 4,
+	particleMaster->AddSystem(new ParticleSystem(projMatrix, "../assets/Textures/cosmic.png", 4,
 		camera, particleShader, 1, {350,100,350 }, 5.f, 2, 10));
 }
