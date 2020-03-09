@@ -6,6 +6,9 @@ ParticleSystem::ParticleSystem(
 	unsigned number, Vector3 position, float life, unsigned variation, int initialForce, EmitType type):
 	number(number), position(position), life(life), variation(variation), initialForce(initialForce), type(type)
 {
+	emitInterval = 1000.f / static_cast <float> (number);
+	cout << emitInterval << endl;
+
 	// Shape Define
 	const float quad[] = {
 	 -1.f, -1.f, 0.0f, 1.0f,
@@ -46,16 +49,23 @@ ParticleSystem::~ParticleSystem()
 void ParticleSystem::Update(float dt)
 {
 	//Generate new particles per frame
-	switch (type)
-	{
-	case EmitType::BASIC:
-		EmitFountain();
-		break;
-	case EmitType::TRAJECTORY:
-		EmitTrajectory();
-		break;
-	default:
-		break;
+	elaspedTime += dt;
+	if ( elaspedTime > emitInterval) {
+
+		// Just emit one particle, if emitInterval < dt, then multiple particles should be emiited, currently in progress.
+
+		switch (type)
+		{
+		case EmitType::BASIC:
+			EmitFountain();
+			break;
+		case EmitType::TRAJECTORY:
+			EmitTrajectory();
+			break;
+		default:
+			break;
+		}
+		elaspedTime = 0;
 	}
 
 	//Update each particle
@@ -131,30 +141,26 @@ void ParticleSystem::SetShape(const float shape[16]) {
 
 void ParticleSystem::EmitFountain()
 {
-	for (unsigned int i = 0; i < number; ++i) {
-		// random velocity of unit circle
-		float dirX = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
-		float dirZ = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
-		Vector3 velocity(dirX, 0, dirZ);
-		velocity.Normalise();
+	// random velocity of unit circle
+	float dirX = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
+	float dirZ = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
+	Vector3 velocity(dirX, 0, dirZ);
+	velocity.Normalise();
 
-		float factor = (static_cast <float>(rand()) / static_cast <float>(RAND_MAX)) - 0.5;
+	float factor = (static_cast <float>(rand()) / static_cast <float>(RAND_MAX)) - 0.5;
 
-		velocity.x *= (initialForce * factor);
-		velocity.y = factor * initialForce;
-		velocity.z *= (initialForce * factor);
+	velocity.x *= (initialForce * factor);
+	velocity.y = factor * initialForce;
+	velocity.z *= (initialForce * factor);
 
-		Particle newP(position, velocity, life, 0, 1, 1);
-		particleList.push_back(newP);
-	}
+	Particle newP(position, velocity, life, 0, 1, 1);
+	particleList.push_back(newP);
 }
 
 void ParticleSystem::EmitTrajectory()
 {
-	for (unsigned int i = 0; i < number; ++i) {
-		Particle newP(position, Vector3(0, initialForce, -initialForce), life, 0, 1, 1);
-		particleList.push_back(newP);
-	}
+	Particle newP(position, Vector3(0, initialForce, -initialForce), life, 0, 1, 1);
+	particleList.push_back(newP);
 }
 
 void ParticleSystem::UpdateMatrix(Particle& p, const Matrix4& viewMatrix)

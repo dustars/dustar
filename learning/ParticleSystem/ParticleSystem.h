@@ -61,5 +61,9 @@ protected:
 	float life;
 	unsigned variation;
 	int initialForce;
+
+	float elaspedTime = 0.f;
+	float currentThreshhold = 0.f;
+	float emitInterval = 0.f;
 };
 
