@@ -1,9 +1,11 @@
 #include "Mesh.h"
 
-Mesh::Mesh() : renderType(GL_TRIANGLES), numOfVertices(0), numOfIndex(0)
+Mesh::Mesh() :
+	renderType(GL_TRIANGLES),
+	numOfVertices(0),
+	numOfIndex(0),
+	vao(0)
 {
-	vao = 0;
-
 	for (int i = 0; i < MAXBUFFER; ++i) {
 		vbo[i] = 0;
 	}
@@ -46,58 +48,15 @@ void Mesh::CreateTriangle() {
 	BufferDataToGPU();
 }
 
-void Mesh::CreateSkyBox()
+void Mesh::CreateQuad()
 {
 	numOfVertices = 4;
 	renderType = GL_TRIANGLE_STRIP;
-
-	//position.push_back(Vector3(-1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, -1.0f));
-
-	//position.push_back(Vector3(-1.0f, -1.0f, 1.0f));
-	//position.push_back(Vector3(-1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(-1.0f, -1.0f, 1.0f));
-
-	//position.push_back(Vector3(1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, -1.0f));
-
-	//position.push_back(Vector3(-1.0f, -1.0f, 1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, 1.0f));
-	//position.push_back(Vector3(-1.0f, -1.0f, 1.0f));
-
-	//position.push_back(Vector3(-1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, 1.0f));
-	//position.push_back(Vector3(-1.0f, 1.0f, -1.0f));
-
-	//position.push_back(Vector3(-1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, -1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, -1.0f));
-	//position.push_back(Vector3(-1.0f, -1.0f, 1.0f));
-	//position.push_back(Vector3(1.0f, -1.0f, 1.0f));
 
 	position.push_back(Vector3(-1.0f, -1.0f, 0.0f));
 	position.push_back(Vector3(-1.0f, 1.0f, 0.0f));
 	position.push_back(Vector3(1.0f, -1.0f, 0.0f));
 	position.push_back(Vector3(1.0f, 1.0f, 0.0f));
-
 
 	BufferDataToGPU();
 }
