@@ -44,8 +44,8 @@ protected:
 	void UpdateTextureCoordinate(Particle& p);
 
 	// Render part
-	Texture* texture;
-	Shader* particleShader;
+	shared_ptr<Texture> texture;
+	shared_ptr<Shader>	particleShader;
 
 	float shapeArray[16];
 	GLuint vao;
@@ -62,8 +62,7 @@ protected:
 	unsigned variation;
 	int initialForce;
 
-	float elaspedTime = 0.f;
-	float currentThreshhold = 0.f;
-	float emitInterval = 0.f;
+	float elaspedTime;
+	float currentThreshhold;
+	float emitInterval;
 };
-
