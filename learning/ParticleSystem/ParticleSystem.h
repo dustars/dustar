@@ -38,7 +38,7 @@ public:
 
 protected:
 	void EmitFountain();
-	void EmitTrajectory();
+	void DrawTrajectory();
 
 	void UpdateMatrix(Particle& p, const Matrix4& viewMatrix);
 	void UpdateTextureCoordinate(Particle& p);
@@ -62,6 +62,7 @@ protected:
 	unsigned variation;
 	int initialForce;
 
+	//for emit purpose
 	float elaspedTime;
 	float currentThreshhold;
 	float emitInterval;

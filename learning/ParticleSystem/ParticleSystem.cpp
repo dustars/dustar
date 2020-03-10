@@ -55,21 +55,22 @@ void ParticleSystem::Update(float dt)
 	//Generate new particles per frame
 	elaspedTime += dt;
 	if ( elaspedTime > emitInterval) {
-
-		// Just emit one particle, if emitInterval < dt, then multiple particles should be emiited, currently in progress.
-
-		switch (type)
-		{
-		case EmitType::BASIC:
-			EmitFountain();
-			break;
-		case EmitType::TRAJECTORY:
-			EmitTrajectory();
-			break;
-		default:
-			break;
+		int temp = elaspedTime / emitInterval;
+		for (unsigned i = 1; i <= temp; ++i) {
+			switch (type)
+			{
+			case EmitType::BASIC:
+				EmitFountain();
+				break;
+			case EmitType::TRAJECTORY:
+				DrawTrajectory();
+				break;
+			default:
+				break;
+			}
+			elaspedTime = 0;
 		}
-		elaspedTime = 0;
+		// Just emit one particle, if emitInterval < dt, then multiple particles should be emiited, currently in progress.
 	}
 
 	//Update each particle
@@ -145,13 +146,13 @@ void ParticleSystem::SetShape(const float shape[16]) {
 
 void ParticleSystem::EmitFountain()
 {
-	// random velocity of unit circle
+	// random velocity of unit circle, set Y component also as random for round emition.
 	float dirX = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
 	float dirZ = static_cast <float> (rand()) / (RAND_MAX / 2) - 1;
 	Vector3 velocity(dirX, 0, dirZ);
 	velocity.Normalise();
 
-	float factor = (static_cast <float>(rand()) / static_cast <float>(RAND_MAX)) - 0.5;
+	float factor = 2 * ((static_cast <float>(rand()) / static_cast <float>(RAND_MAX)) - 0.5);
 
 	velocity.x *= (initialForce * factor);
 	velocity.y = factor * initialForce;
@@ -161,7 +162,7 @@ void ParticleSystem::EmitFountain()
 	particleList.push_back(newP);
 }
 
-void ParticleSystem::EmitTrajectory()
+void ParticleSystem::DrawTrajectory()
 {
 	Particle newP(position, Vector3(0, initialForce, -initialForce), life, 0, 1, 1);
 	particleList.push_back(newP);

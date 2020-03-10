@@ -23,8 +23,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
 	particleMaster = new ParticleMaster();
 
-	particleMaster->AddSystem(new ParticleSystem(60, { 350,100,350 }, 5.f, 0, 10));
-	particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 10, EmitType::TRAJECTORY), "Basic", "Container");
+	//particleMaster->AddSystem(new ParticleSystem(60, { 350,100,350 }, 5.f, 1, 100));
+	particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 25, EmitType::TRAJECTORY));
 
 	skybox = new RenderObject();
 	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {

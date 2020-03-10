@@ -65,6 +65,9 @@
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
+    <ClCompile Include="Trajectory.cpp">
+      <Filter>StaticObjects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -108,6 +111,9 @@
     </ClInclude>
     <ClInclude Include="ParticleSystem\ParticleSystem.h">
       <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Trajectory.h">
+      <Filter>StaticObjects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
