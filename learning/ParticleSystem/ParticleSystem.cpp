@@ -4,11 +4,15 @@ Renderer* ParticleSystem::renderer = nullptr;
 
 ParticleSystem::ParticleSystem(
 	unsigned number, Vector3 position, float life, unsigned variation, int initialForce, EmitType type):
-	number(number), position(position), life(life), variation(variation), initialForce(initialForce), type(type)
+	number(number),
+	position(position),
+	life(life), variation(variation),
+	initialForce(initialForce),
+	type(type),
+	elaspedTime(0),
+	currentThreshhold(0),
+	emitInterval(1000.f / static_cast <float> (number)) //be careful about the order
 {
-	emitInterval = 1000.f / static_cast <float> (number);
-	cout << emitInterval << endl;
-
 	// Shape Define
 	const float quad[] = {
 	 -1.f, -1.f, 0.0f, 1.0f,

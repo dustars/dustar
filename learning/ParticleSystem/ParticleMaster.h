@@ -3,6 +3,7 @@
 #include "ParticleSystem.h"
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
 class ParticleMaster
 {
@@ -18,13 +19,12 @@ public:
 	void Update(float dt);
 	void Render();
 
-
 	auto GetParticleSystemSize() { return particleSystemArray.size(); }
 	
 protected:
 	vector<ParticleSystem*> particleSystemArray;
 
-	unordered_map<string, Shader*> shaders;
-	unordered_map<string, Texture*> textures;
+	unordered_map<string, shared_ptr<Shader>>	shaders;
+	unordered_map<string, shared_ptr<Texture>>	textures;
 };
 
