@@ -73,12 +73,17 @@ void Mesh::Draw()
 	DisableAttribs();
 }
 
+void Mesh::Update(float dt)
+{
+	UpdateDataToGPU();
+}
+
 void Mesh::BufferDataToGPU()
 {
 	glCreateVertexArrays(1, &vao);
 	if (!position.empty()) {
 		glCreateBuffers(1, &vbo[POSITION]);
-		glNamedBufferStorage(vbo[POSITION], numOfVertices * sizeof(Vector3), (void*)(position.data()), 0);
+		glNamedBufferStorage(vbo[POSITION], numOfVertices * sizeof(Vector3), static_cast<void*>(position.data()), GL_DYNAMIC_STORAGE_BIT);
 		glVertexArrayVertexBuffer(vao, POSITION, vbo[POSITION], 0, sizeof(Vector3));
 		glVertexArrayAttribFormat(vao, POSITION, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, POSITION, POSITION);
@@ -100,6 +105,19 @@ void Mesh::BufferDataToGPU()
 	if (!index.empty()) {
 		glCreateBuffers(1, &vbo[INDEX]);
 		//lNamedBufferStorage(vbo[INDEX], numOfIndex * sizeof(GLuint), (void*)(index.data()), 0);
+	}
+}
+
+void Mesh::UpdateDataToGPU()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[POSITION]);
+	if (!position.empty()) {
+		glNamedBufferSubData(vbo[POSITION], 0, numOfVertices * sizeof(Vector3), static_cast<void*>(position.data()));
+	}
+
+	auto error = glGetError();
+	if (error) {
+		cout << "\nError(Code: " << error << "). Update Mesh." << endl;
 	}
 }
 

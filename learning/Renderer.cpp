@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
-Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), oneSecond(0), startingTime(0),
-	object(nullptr), particleMaster(nullptr)
+Renderer::Renderer(Window& parent) : RenderBase(parent)
 {
 	// Initialize the basics ( later move to a function )
 	camera = new Camera(-50,-110,Vector3(0,500,200.f));
@@ -20,24 +19,14 @@ Renderer::Renderer(Window& parent) : RenderBase(parent), framesPerSecond(0), one
 	//object->GetMesh()->CreateTriangle();
 	object->SetMesh(new HeightMap(6, 3, 0.4, 500, 500));
 
+	// Particle System Creation
 	ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
 	particleMaster = new ParticleMaster();
-
 	//particleMaster->AddSystem(new ParticleSystem(60, { 350,100,350 }, 5.f, 1, 100));
 	particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 25, EmitType::TRAJECTORY));
 
-	skybox = new RenderObject();
-	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-
-	skybox->GetTexture()->CreateCubeMap("../assets/Skybox/bluecloud_rt.jpg",
-										"../assets/Skybox/bluecloud_lf.jpg",
-										"../assets/Skybox/bluecloud_up.jpg",
-										"../assets/Skybox/bluecloud_dn.jpg",
-										"../assets/Skybox/bluecloud_bk.jpg",
-										"../assets/Skybox/bluecloud_ft.jpg");
-	skybox->GetMesh()->CreateQuad();
+	CreateSkybox();
+	CreateTrajectory();
 
 	init = true;
 	glEnable(GL_DEPTH_TEST);		
@@ -47,6 +36,9 @@ Renderer::~Renderer(void) {
 	delete camera;
 	if (object) {
 		delete object;
+	}
+	if (trajectory) {
+		delete trajectory;
 	}
 	if (skybox) {
 		delete skybox;
@@ -61,6 +53,9 @@ void Renderer::Update(float dt) {
 	if (particleMaster) {
 		particleMaster->Update(dt);
 	}
+
+	trajectory->GetMesh()->Update(dt);
+
 	////////////
 	// Render //
 	////////////
@@ -81,6 +76,15 @@ void Renderer::Render() {
 	
 	if (object) {
 		renderObject();
+	}
+
+	if (trajectory) {
+		glUseProgram(trajectory->GetShader()->GetProgram());
+		glUniformMatrix4fv(glGetUniformLocation(trajectory->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
+		glUniformMatrix4fv(glGetUniformLocation(trajectory->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+		glUniformMatrix4fv(glGetUniformLocation(trajectory->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+		trajectory->Draw();
+		glUseProgram(0);
 	}
 
 	if (particleMaster) {
@@ -129,4 +133,31 @@ void Renderer::FPSCalculation(float dt) {
 		oneSecond = 0;
 		framesPerSecond = 0;
 	}
+}
+
+void Renderer::CreateSkybox()
+{
+	skybox = new RenderObject();
+	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+
+	skybox->GetTexture()->CreateCubeMap("../assets/Skybox/bluecloud_rt.jpg",
+		"../assets/Skybox/bluecloud_lf.jpg",
+		"../assets/Skybox/bluecloud_up.jpg",
+		"../assets/Skybox/bluecloud_dn.jpg",
+		"../assets/Skybox/bluecloud_bk.jpg",
+		"../assets/Skybox/bluecloud_ft.jpg");
+	skybox->GetMesh()->CreateQuad();
+}
+
+void Renderer::CreateTrajectory()
+{
+	trajectory = new RenderObject();
+
+	if (!trajectory->SetShader("shader/TriangleVShader.glsl", "shader/TriangleFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+
+	trajectory->SetMesh(new Trajectory());
 }

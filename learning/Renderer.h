@@ -2,6 +2,7 @@
 #include "RenderBase.h"
 #include "RenderObject.h"
 #include "HeightMap.h"
+#include "Trajectory.h"
 #include "Camera.h"
 
 #include "ParticleSystem/ParticleMaster.h"
@@ -22,22 +23,27 @@ public:
 	Camera* GetCamera() { return camera; }
 	Matrix4& GetProjMatrix() { return projMatrix; }
 
-	float startingTime;
-	float framesPerSecond;
-	float oneSecond;
+	float startingTime = 0;
+	float framesPerSecond = 0;
+	float oneSecond = 0;
 
 protected:
 	
-	RenderObject*		object;
-	RenderObject*		skybox;
+	RenderObject*		object			= nullptr;
+	RenderObject*		trajectory		= nullptr;
+	RenderObject*		skybox			= nullptr;
 
-	Camera*		camera;
+	Camera*		camera					= nullptr;
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
 
-	ParticleMaster*		particleMaster;
+	ParticleMaster*		particleMaster	= nullptr;
 
 	void FPSCalculation(float dt);
+
+	//Temp creations
+	void CreateSkybox();
+	void CreateTrajectory();
 };
 
 

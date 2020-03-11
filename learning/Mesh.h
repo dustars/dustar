@@ -33,24 +33,26 @@ public:
 	vector<Vector3>&		GetPosition()			{ return position; }
 	vector<Vector3>&		GetColor()				{ return color; }
 	vector<Vector2>&		GetTexCoord()			{ return texCoord; }
-	vector<unsigned int>&	GetIndex()				{ return index; }
+	vector<unsigned>&		GetIndex()				{ return index; }
 
-	void Draw();
+	virtual void Draw();
+	virtual void Update(float dt);
 	
 protected:
 	GLuint vao;
 	GLuint vbo[MAXBUFFER];
 	void BufferDataToGPU();
+	void UpdateDataToGPU();
 
 	GLuint renderType;
 
 	vector<Vector3> position;
 	vector<Vector3> color;
 	vector<Vector2> texCoord;
-	vector<unsigned int> index;
+	vector<unsigned> index;
 
-	unsigned int numOfVertices;
-	unsigned int numOfIndex;
+	unsigned numOfVertices;
+	unsigned numOfIndex;
 
 	void EnableAttribs();
 	void DisableAttribs();
