@@ -19,10 +19,7 @@ int main() {
 	w.LockMouseToWindow(true);
 	w.ShowOSPointer(false);
 
-
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)) {
-		renderer.startingTime = w.GetTimer()->GetMS()/1000;
-
 		float dt = w.GetTimer()->GetTimedMS();
 		renderer.Update(dt);
 	}

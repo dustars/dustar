@@ -17,8 +17,6 @@ public:
 	// Update a single particle
 	bool Update(float dt);
 
-
-
 	void SetTextureOffset(int numRows, int index1, int index2);
 
 	Vector2 GetTexOffset1() { return texOffset1; }

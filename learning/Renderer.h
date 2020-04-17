@@ -23,10 +23,6 @@ public:
 	Camera* GetCamera() { return camera; }
 	Matrix4& GetProjMatrix() { return projMatrix; }
 
-	float startingTime = 0;
-	float framesPerSecond = 0;
-	float oneSecond = 0;
-
 protected:
 	
 	RenderObject*		object			= nullptr;
@@ -39,11 +35,13 @@ protected:
 
 	ParticleMaster*		particleMaster	= nullptr;
 
-	void FPSCalculation(float dt);
-
 	//Temp creations
 	void CreateSkybox();
 	void CreateTrajectory();
+
+	//Utility
+	const float renderFrames = 1000.f / 60.f;
+	float oneFrame = 0;
 };
 
 

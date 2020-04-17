@@ -28,6 +28,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 	CreateSkybox();
 	CreateTrajectory();
 
+	
+
 	init = true;
 	glEnable(GL_DEPTH_TEST);		
 }
@@ -49,20 +51,31 @@ Renderer::~Renderer(void) {
 }
 
 void Renderer::Update(float dt) {
-	camera->UpdateCamera(dt*0.5f);
-	if (particleMaster) {
-		particleMaster->Update(dt);
+
+	// Todo: Put into the 60 fps loop
+	camera->UpdateCamera(dt);
+
+	// Temporary method to limit frame rate at 60FPS
+	oneFrame += dt;
+	if (oneFrame > renderFrames) {
+		////////////////////////
+		//  Locations Update  //
+		////////////////////////
+		if (particleMaster) {
+			particleMaster->Update(oneFrame);
+		}
+
+		if (trajectory) {
+			trajectory->GetMesh()->Update(oneFrame);
+		}
+
+		////////////////////////
+		// Graphics Rendering //
+		////////////////////////
+		Render();
+
+		oneFrame = 0;
 	}
-
-	trajectory->GetMesh()->Update(dt);
-
-	////////////
-	// Render //
-	////////////
-	Render();
-
-	// Utility
-	FPSCalculation(dt);
 }
 
 void Renderer::Render() {
@@ -123,16 +136,6 @@ void Renderer::renderSkyBox()
 
 	glDepthMask(GL_TRUE);
 	glUseProgram(0);
-}
-
-void Renderer::FPSCalculation(float dt) {
-	oneSecond += dt * 0.001f;
-	framesPerSecond = framesPerSecond + 1;
-	if (oneSecond > 1.0f) {
-		cout << "Current FPS: " << framesPerSecond << endl;
-		oneSecond = 0;
-		framesPerSecond = 0;
-	}
 }
 
 void Renderer::CreateSkybox()

@@ -122,7 +122,6 @@ void ParticleSystem::Render()
 		glUniform2f(glGetUniformLocation(particleShader->GetProgram(), "TexOffset2"), element.texOffset2.x, element.texOffset2.y);
 		glUniform1f(glGetUniformLocation(particleShader->GetProgram(), "blendFactor"), element.blendFactor);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
 	}
 
 	//glDepthMask(true);

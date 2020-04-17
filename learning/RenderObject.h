@@ -2,9 +2,8 @@
 	TODO:
 	1. Maybe a string member variable is necessary for the ID purpose.
 	2. texture could be more than one.
-	3. Transform should have a local type instead of a pointer.
+	3. Transform should have a local type instead of a pointer. (pointer in class is dangerous anyway)
 */
-
 
 #pragma once
 #include "Mesh.h"
