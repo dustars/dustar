@@ -1,12 +1,11 @@
 #pragma once
-
 #include "../basic/math/Matrix4.h"
 
 class Transform
 {
 public:
-	Transform();
-	~Transform();
+	Transform() {}
+	~Transform() {}
 
 	inline Matrix4& GetModelMatrix() { return modelMatrix; }
 	inline void SetTransform(Matrix4 tran) { modelMatrix = tran; }

@@ -32,8 +32,6 @@ bool RenderObject::SetShader(string vs, string fs, string gs, string cs, string 
 
 void RenderObject::Draw()
 {
-
-	
 	if (texture->GetTexture()) {
 		glBindTexture(GL_TEXTURE_2D, GetTexture()->GetTexture());
 		glUniform1i(glGetUniformLocation(GetShader()->GetProgram(), "UseTexture"), 1);
@@ -43,6 +41,4 @@ void RenderObject::Draw()
 	}
 	
 	GetMesh()->Draw();
-
-
 }

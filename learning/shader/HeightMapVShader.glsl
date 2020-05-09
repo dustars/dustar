@@ -8,16 +8,27 @@ uniform mat4 ProjMatrix;
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 color;
 layout(location = 2) in vec2 texCoord;
+layout(location = 3) in vec3 normal;
 
 out VS{
-	vec4 color;
+	vec3 uFUnlit;
+	vec3 uWarmColor;
 	vec2 texCoord;
+	vec3 vPos;
+	vec3 vNormal;
 }OUT;
 
 void main(void) {
-	gl_Position = ProjMatrix * ViewMatrix * ModelMatrix * vec4(position, 1.0f);
+	
+	OUT.vNormal = (ModelMatrix * vec4(normal, 1.0f)).xyz;
 
-	OUT.color = vec4(color, 1.0f);
+	vec4 temp = ModelMatrix * vec4(position, 1.0f);
+	OUT.vPos = temp.xyz;
+
+	OUT.uFUnlit = ((0, 0, 0.55) + 0.25 * color) * 0.5;
+	OUT.uWarmColor = (0.3, 0.3, 0) + 0.25 * color;
 	
 	OUT.texCoord = texCoord;
+
+	gl_Position = ProjMatrix * ViewMatrix * temp;
 }

@@ -17,7 +17,8 @@ Mesh::~Mesh()
 	glDeleteBuffers(MAXBUFFER, vbo);
 }
 
-void Mesh::CreateTriangle() {
+void Mesh::CreateTriangle()
+{
 	numOfVertices = 4;
 	numOfIndex = 6;
 	renderType = GL_TRIANGLES;
@@ -36,6 +37,8 @@ void Mesh::CreateTriangle() {
 	texCoord.push_back(Vector2(0.0f, 0.0f));
 	texCoord.push_back(Vector2(1.0f, 1.0f));
 	texCoord.push_back(Vector2(1.0f, 0.0f));
+	
+	//Add normal later?
 
 	index.push_back(0);
 	index.push_back(1);
@@ -102,6 +105,13 @@ void Mesh::BufferDataToGPU()
 		glVertexArrayAttribFormat(vao, TEXTURE, 2, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, TEXTURE, TEXTURE);
 	}
+	if (!normal.empty()) {
+		glCreateBuffers(1, &vbo[NORMAL]);
+		glNamedBufferStorage(vbo[NORMAL], numOfVertices * sizeof(Vector3), (void*)(normal.data()), 0);
+		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector2));
+		glVertexArrayAttribFormat(vao, NORMAL, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribBinding(vao, NORMAL, NORMAL);
+	}
 	if (!index.empty()) {
 		glCreateBuffers(1, &vbo[INDEX]);
 		//lNamedBufferStorage(vbo[INDEX], numOfIndex * sizeof(GLuint), (void*)(index.data()), 0);
@@ -133,6 +143,9 @@ void Mesh::EnableAttribs()
 	if (!texCoord.empty()) {
 		glEnableVertexAttribArray(TEXTURE);
 	}
+	if (!normal.empty()) {
+		glEnableVertexAttribArray(NORMAL);
+	}
 }
 
 void Mesh::DisableAttribs()
@@ -146,5 +159,45 @@ void Mesh::DisableAttribs()
 	if (!texCoord.empty()) {
 		glDisableVertexAttribArray(TEXTURE);
 	}
+	if (!normal.empty()) {
+		glDisableVertexAttribArray(NORMAL);
+	}
 	glBindVertexArray(0);
+}
+
+// From NCLGL, rich's implementation
+void Mesh::GenerateNormals() 
+{
+	for (GLuint i = 0; i < numOfVertices; ++i) {
+		normal.push_back(Vector3());
+	}
+	if (!index.empty()) { // Generate per - vertex normals
+		for (GLuint i = 0; i < numOfIndex; i += 3) {
+			unsigned int a = index[i];
+			unsigned int b = index[i + 1];
+			unsigned int c = index[i + 2];
+
+			Vector3 tempNormal = Vector3::Cross((position[b] - position[a]), (position[c] - position[a]));
+
+			normal[a] += tempNormal;
+			normal[b] += tempNormal;
+			normal[c] += tempNormal;
+		}
+	}
+	else { // It ¡¯s just a list of triangles , so generate face normals
+		for (GLuint i = 0; i < numOfVertices; i += 3) {
+			Vector3& a = position[i];
+			Vector3& b = position[i + 1];
+			Vector3& c = position[i + 2];
+
+			Vector3 tempNormal = Vector3::Cross(b - a, c - a);
+
+			normal[i] = tempNormal;
+			normal[i + 1] = tempNormal;
+			normal[i + 2] = tempNormal;
+		}
+	}
+	for (GLuint i = 0; i < numOfVertices; ++i) {
+		normal[i].Normalise();
+	}
 }

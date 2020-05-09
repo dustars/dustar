@@ -1,8 +1,8 @@
 #pragma once
 #include <iostream>
-#include "glew.h"
 #include <string>
 #include <vector>
+#include "glew.h"
 
 using namespace std;
 
@@ -14,9 +14,7 @@ public:
 
 	bool SetTexture(string file, unsigned numR = 1);
 	unsigned GetTexture() { return texture; }
-
 	unsigned GetNumOfRows() { return numOfRows; }
-
 	void CreateCubeMap(string right, string left, string top, string bottom, string back, string front);
 
 private:

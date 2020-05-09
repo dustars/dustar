@@ -1,5 +1,10 @@
-#pragma once
+/*
+	1. Need to be "upgraded" to polymorphism.
+	2. The Renderer here makes a circular dependence (As a pointer)
+*/
 
+
+#pragma once
 #include "Particle.h"
 #include "../Renderer.h"
 #include "../Texture.h"

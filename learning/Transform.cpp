@@ -1,13 +1,5 @@
 #include "Transform.h"
 
-Transform::Transform()
-{
-}
-
-Transform::~Transform()
-{
-}
-
 void Transform::CreateRotatingCube(float rand)
 {
 	float f = (float)rand * (float)PI * 0.1f;

@@ -6,7 +6,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 	camera = new Camera(-50,-110,Vector3(0,500,200.f));
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 
-	// That experimental quad
+	// Map
 	object = new RenderObject();
 	if (!object->SetShader("shader/HeightMapVShader.glsl", "shader/HeightMapFShader.glsl")) {
 		cout << "Shader set up failed!" << endl;
@@ -16,19 +16,20 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 		cout << "Texture set up failed!" << endl;
 	}
 
+	//Lightings
+	pointLight1 = new PointLight(Vector4(0.f, 1200.f, 0.f, 1.f), Vector4(0.9f, 0.8f, 1.f, 1.f));
+
 	//object->GetMesh()->CreateTriangle();
 	object->SetMesh(new HeightMap(6, 3, 0.4, 500, 500));
 
-	// Particle System Creation
-	ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
-	particleMaster = new ParticleMaster();
+	//Particle System Creation
+	//ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
+	//particleMaster = new ParticleMaster();
 	//particleMaster->AddSystem(new ParticleSystem(60, { 350,100,350 }, 5.f, 1, 100));
-	particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 25, EmitType::TRAJECTORY));
+	//particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 25, EmitType::TRAJECTORY));
 
 	CreateSkybox();
-	CreateTrajectory();
-
-	
+	//CreateTrajectory();
 
 	init = true;
 	glEnable(GL_DEPTH_TEST);		
@@ -44,6 +45,9 @@ Renderer::~Renderer(void) {
 	}
 	if (skybox) {
 		delete skybox;
+	}
+	if (pointLight1) {
+		delete pointLight1;
 	}
 	if (particleMaster) {
 		delete particleMaster;
@@ -67,6 +71,10 @@ void Renderer::Update(float dt) {
 
 		if (trajectory) {
 			trajectory->GetMesh()->Update(oneFrame);
+		}
+
+		if (pointLight1) {
+			pointLight1->SetPosition(Vector4( 1, 1200.f, 1, 1.f));
 		}
 
 		////////////////////////
@@ -118,6 +126,11 @@ void Renderer::renderObject()
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	if (pointLight1) {
+		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
+		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&pointLight1->GetPosition());
+		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&pointLight1->GetColor());
+	}
 	object->Draw();
 	glUseProgram(0);
 }

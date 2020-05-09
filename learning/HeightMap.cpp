@@ -71,5 +71,6 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 			index.push_back(d);
 		}
 	}
+	GenerateNormals();
 	BufferDataToGPU();
 }

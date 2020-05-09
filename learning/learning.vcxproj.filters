@@ -21,6 +21,9 @@
     <Filter Include="Others">
       <UniqueIdentifier>{3200cf9e-b685-4ff2-8287-3c7f839a987a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Lightings">
+      <UniqueIdentifier>{dad06187-b5ec-4b0f-8160-51bf97788aa8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -68,6 +71,12 @@
     <ClCompile Include="Trajectory.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
+    <ClCompile Include="Lightings\Light.cpp">
+      <Filter>Lightings</Filter>
+    </ClCompile>
+    <ClCompile Include="Lightings\PointLight.cpp">
+      <Filter>Lightings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -114,6 +123,12 @@
     </ClInclude>
     <ClInclude Include="Trajectory.h">
       <Filter>StaticObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="Lightings\Light.h">
+      <Filter>Lightings</Filter>
+    </ClInclude>
+    <ClInclude Include="Lightings\PointLight.h">
+      <Filter>Lightings</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
