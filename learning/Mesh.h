@@ -28,6 +28,7 @@ public:
 	~Mesh();
 
 	void CreateTriangle();
+	void CreateCube();
 	void CreateQuad();
 
 	int						GetNumOfVertices()		{ return numOfVertices; }

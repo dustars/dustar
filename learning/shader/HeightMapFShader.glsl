@@ -30,7 +30,7 @@ void main()
 	//Lightings
 	vec3 n = normalize(IN.vNormal);
 	vec3 v = normalize(cameraPos - IN.vPos);
-	FragColor = vec4(IN.uFUnlit, 1.0);
+	FragColor = texture(ourTexture, IN.texCoord) * vec4(IN.uFUnlit, 1.0);
 
 	vec3 l = normalize(LightPos.xyz - IN.vPos);
 	float NdL = clamp(dot(n, l), 0.0, 1.0);

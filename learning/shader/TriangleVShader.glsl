@@ -20,7 +20,7 @@ void main(void) {
 		OUT.color = vec4(color, 1.0f);
 	}
 	else {
-		OUT.color = vec4(0.3f, 0.6f, 0.9f, 1.0f);
+		OUT.color = vec4(1, 1, 1, 1);
 	}
 	OUT.texCoord = texCoord;
 }

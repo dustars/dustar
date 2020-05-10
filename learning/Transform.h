@@ -7,8 +7,9 @@ public:
 	Transform() {}
 	~Transform() {}
 
-	inline Matrix4& GetModelMatrix() { return modelMatrix; }
-	inline void SetTransform(Matrix4 tran) { modelMatrix = tran; }
+	Matrix4& GetModelMatrix() { return modelMatrix; }
+	void SetTransform(const Matrix4& tran) { modelMatrix = tran; }
+	void SetTransform(const Matrix4&& tran) { modelMatrix = tran; }
 
 	void CreateRotatingCube(float rand);
 

@@ -3,24 +3,28 @@
 Renderer::Renderer(Window& parent) : RenderBase(parent)
 {
 	// Initialize the basics ( later move to a function )
-	camera = new Camera(-50,-110,Vector3(0,500,200.f));
+	//camera = new Camera(-50,-110,Vector3(0,500,200.f));
+	camera = new Camera(0,0,Vector3(0,0,500));
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 
 	// Map
 	object = new RenderObject();
 	if (!object->SetShader("shader/HeightMapVShader.glsl", "shader/HeightMapFShader.glsl")) {
+	//if (!object->SetShader("shader/TriangleVShader.glsl", "shader/TriangleFShader.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 
-	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
+	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
 		cout << "Texture set up failed!" << endl;
 	}
 
-	//Lightings
-	pointLight1 = new PointLight(Vector4(0.f, 1200.f, 0.f, 1.f), Vector4(0.9f, 0.8f, 1.f, 1.f));
+	// Lightings
+	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(200.f,200.f,200.f));
+	pointLight1 = new PointLight(Vector4(0, 500, 0, 1.f), Vector4(0.9f, 0.8f, 1.f, 1.f));
 
-	//object->GetMesh()->CreateTriangle();
-	object->SetMesh(new HeightMap(6, 3, 0.4, 500, 500));
+	//octave, lacunarity, persistence, width, length
+	//object->SetMesh(new HeightMap(5, 3, 0.4, 500, 500));
+	object->GetMesh()->CreateCube();
 
 	//Particle System Creation
 	//ParticleSystem::renderer = this; // Let all particle systems be able to access the resources

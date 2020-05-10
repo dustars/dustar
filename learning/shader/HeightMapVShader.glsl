@@ -25,8 +25,13 @@ void main(void) {
 	vec4 temp = ModelMatrix * vec4(position, 1.0f);
 	OUT.vPos = temp.xyz;
 
-	OUT.uFUnlit = ((0, 0, 0.55) + 0.25 * color) * 0.5;
-	OUT.uWarmColor = (0.3, 0.3, 0) + 0.25 * color;
+	if (HaveColor == 0) {
+		OUT.uFUnlit = vec3(1, 1, 1);
+		OUT.uWarmColor = vec3(1, 1, 1);
+	} else{
+		OUT.uFUnlit = ((0, 0, 0.55) + 0.25 * color) * 0.5;
+		OUT.uWarmColor = (0.3, 0.3, 0) + 0.25 * color;
+	}
 	
 	OUT.texCoord = texCoord;
 
