@@ -8,10 +8,10 @@ public:
 	~PointLight() override {}
 
 	Vector4 GetPosition() const { return position; }
-	void SetPosition(Vector4 val) { position = val; }
+	void SetPosition(const Vector4& val) { position = val; }
 
 	Vector4 GetColor() const { return color; }
-	void SetColor(Vector4 val) { color = val; }
+	void SetColor(const Vector4& val) { color = val; }
 
 protected:
 	Vector4 position;

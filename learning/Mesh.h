@@ -1,6 +1,8 @@
 /*
-	1. Do we need a base class? Now it's really class-based programming. Is it necessary to use polymorphism?
+	1. Do we need a base class? Is it necessary to use polymorphism?
 	2. Now the Getters are just resources leak, do we really need them?
+	3. A better method to create a cube and plane for testing purpose
+	4. Normal Generation doesn't work accurately
 */
 
 #pragma once
@@ -25,15 +27,15 @@ class Mesh {
 public:
 	Mesh();
 	Mesh(string filename);
-	~Mesh();
+	virtual ~Mesh();
 
-	void CreateTriangle();
+	void CreatePlane();
 	void CreateCube();
 	void CreateQuad();
 
-	int						GetNumOfVertices()		{ return numOfVertices; }
-	GLuint					GetVAO()				{ return vao; }
-	GLuint					GetType()				{ return renderType; }
+	int						GetNumOfVertices()		const { return numOfVertices; }
+	GLuint					GetVAO()				const { return vao; }
+	GLuint					GetType()				const { return renderType; }
 	vector<Vector3>&		GetPosition()			{ return position; }
 	vector<Vector3>&		GetColor()				{ return color; }
 	vector<Vector2>&		GetTexCoord()			{ return texCoord; }
@@ -46,10 +48,9 @@ public:
 protected:
 	GLuint vao;
 	GLuint vbo[MAXBUFFER];
-	void BufferDataToGPU();
-	void UpdateDataToGPU();
-
 	GLuint renderType;
+	unsigned numOfVertices;
+	unsigned numOfIndex;
 
 	vector<Vector3> position;
 	vector<Vector3> color;
@@ -57,13 +58,13 @@ protected:
 	vector<Vector3> normal;
 	vector<unsigned> index;
 
-	unsigned numOfVertices;
-	unsigned numOfIndex;
-
 	void EnableAttribs();
 	void DisableAttribs();
 
 	void GenerateNormals();
+
+	void BufferDataToGPU();
+	void UpdateDataToGPU();
 };
 
 

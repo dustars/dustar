@@ -17,7 +17,7 @@ Mesh::~Mesh()
 	glDeleteBuffers(MAXBUFFER, vbo);
 }
 
-void Mesh::CreateTriangle()
+void Mesh::CreatePlane()
 {
 	numOfVertices = 4;
 	numOfIndex = 6;
@@ -38,15 +38,18 @@ void Mesh::CreateTriangle()
 	texCoord.push_back(Vector2(1.0f, 1.0f));
 	texCoord.push_back(Vector2(1.0f, 0.0f));
 
+	Vector3 tempNormal = Vector3::Cross(position[2] - position[0], position[1] - position[0]);
+	normal.push_back(tempNormal);
+	normal.push_back(tempNormal);
+	normal.push_back(tempNormal);
+	normal.push_back(tempNormal);
+
 	index.push_back(0);
 	index.push_back(1);
 	index.push_back(2);
-
 	index.push_back(1);
 	index.push_back(2);
 	index.push_back(3);
-
-	GenerateNormals();
 
 	BufferDataToGPU();
 }
@@ -56,7 +59,6 @@ void Mesh::CreateCube()
 	numOfVertices = 36;
 	renderType = GL_TRIANGLES;
 
-	//How to set up texture coordinate for index? for a cube?
 	position.push_back(Vector3(-0.5f, -0.5f, -0.5f));
 	texCoord.push_back(Vector2(0.0f, 0.0f));
 	position.push_back(Vector3(0.5f, -0.5f, -0.5f));
@@ -196,7 +198,7 @@ void Mesh::BufferDataToGPU()
 	if (!normal.empty()) {
 		glCreateBuffers(1, &vbo[NORMAL]);
 		glNamedBufferStorage(vbo[NORMAL], numOfVertices * sizeof(Vector3), (void*)(normal.data()), 0);
-		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector2));
+		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector3)); // 5/11/2020，曾在这里因Vector2而非3发生过血案
 		glVertexArrayAttribFormat(vao, NORMAL, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, NORMAL, NORMAL);
 	}
@@ -208,6 +210,7 @@ void Mesh::BufferDataToGPU()
 
 void Mesh::UpdateDataToGPU()
 {
+	// For trajectory update (only updates position)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[POSITION]);
 	if (!position.empty()) {
 		glNamedBufferSubData(vbo[POSITION], 0, numOfVertices * sizeof(Vector3), static_cast<void*>(position.data()));

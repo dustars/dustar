@@ -5,7 +5,7 @@ class Trajectory : public Mesh
 {
 public:
 	Trajectory();
-	~Trajectory() = default;
+	~Trajectory() override = default;
 
 	void Update(float dt) final;
 

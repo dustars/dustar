@@ -1,22 +1,16 @@
 /*
 	Some issues:
-	1. Now the Tranform component from class RenderObject has no usages in this renderer.
-	   I need to put it into use after having a thorough understanding of Transformation.
-	2. Be careful about your resouce management, pointers in class are dangerous (using unique_ptr or something)
-
-	Lightings:
-	1. I've implemented the shading model from RTR 4rd, 5.3, it's called extended Gooch shading model.
-	   But Why the color is so weird? Especially the hightlight area, something wrong with the normal?
-	   I need to try the shading equation in Rich's model to see it's the problem of normal.
+	1. Pointer in class
 */
 
 
 #pragma once
 #include "RenderBase.h"
 #include "RenderObject.h"
+#include "Camera.h"
+
 #include "HeightMap.h"
 #include "Trajectory.h"
-#include "Camera.h"
 
 #include "Lightings/PointLight.h"
 
@@ -24,19 +18,17 @@
 
 class ParticleMaster;
 
-class Renderer : public RenderBase {
+class Renderer : public RenderBase
+{
 public:
 	Renderer(Window& parent);
-	virtual ~Renderer(void);
+	~Renderer(void) override;
 
-	virtual void Update(float dt) override;
-	virtual void Render() override;
+	void Update(float dt) override;
+	void Render() override;
 
-	void renderObject();
-	void renderSkyBox();
-
-	Camera* GetCamera() { return camera; }
-	Matrix4& GetProjMatrix() { return projMatrix; }
+	Camera* GetCamera()		const{ return camera; }
+	Matrix4 GetProjMatrix() const{ return projMatrix; }
 
 protected:
 	
@@ -57,9 +49,16 @@ protected:
 	void CreateSkybox();
 	void CreateTrajectory();
 
+	//Rendering
+	void renderObject();
+	void renderSkyBox();
+
 	//Utility
 	const float renderFrames = 1000.f / 60.f;
 	float oneFrame = 0;
+
+private:
+	void testing();
 };
 
 

@@ -25,16 +25,16 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 
 			double n = noise.octavePerlin(i, j, 0.5, octave, lacunarity, persistence) * 3000;
 
-			n -= 1000.0;
+			n -= 1500.0;
 
 			position.push_back(Vector3(x * HEIGHTMAP_X, n, z * HEIGHTMAP_Z));
 
 			Vector3 tempColor;
-			if (n > 300) {
-				if (n > 750.0f) { // Snow
+			if (n > 100) {
+				if (n > 550.0f) { // Snow
 					tempColor = { 1.f, 0.98f, 0.98f };
 				}
-				else if (n > 500.0f) { // Grass
+				else if (n > 300.0f) { // Grass
 					tempColor = { 0.133f, 0.545f, 0.133f };
 				}
 				else { // ground
@@ -42,7 +42,7 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 				}
 			}
 			else {
-				if (n < 200) { // water
+				if (n < 0) { // water
 					tempColor = { 0.125f, 0.698f, 0.667f };
 				}
 				else { // ground

@@ -1,30 +1,34 @@
 #include "Renderer.h"
 
+#define TESTING
+constexpr auto MAPWIDTH = 500;
+constexpr auto MAPLENGTH = 500;
+
 Renderer::Renderer(Window& parent) : RenderBase(parent)
 {
+#ifdef TESTING
+	testing();
+#else
 	// Initialize the basics ( later move to a function )
 	//camera = new Camera(-50,-110,Vector3(0,500,200.f));
-	camera = new Camera(0,0,Vector3(0,0,500));
+	camera = new Camera(0,0,Vector3(0,0,0));
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 
 	// Map
 	object = new RenderObject();
-	if (!object->SetShader("shader/HeightMapVShader.glsl", "shader/HeightMapFShader.glsl")) {
-	//if (!object->SetShader("shader/TriangleVShader.glsl", "shader/TriangleFShader.glsl")) {
+	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 
-	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
+	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
 		cout << "Texture set up failed!" << endl;
 	}
 
 	// Lightings
-	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(200.f,200.f,200.f));
-	pointLight1 = new PointLight(Vector4(0, 500, 0, 1.f), Vector4(0.9f, 0.8f, 1.f, 1.f));
+	pointLight1 = new PointLight(Vector4(0, 1000.f, 0,1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
 
 	//octave, lacunarity, persistence, width, length
-	//object->SetMesh(new HeightMap(5, 3, 0.4, 500, 500));
-	object->GetMesh()->CreateCube();
+	object->SetMesh(new HeightMap(5, 3, 0.4, MAPWIDTH, MAPLENGTH));
 
 	//Particle System Creation
 	//ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
@@ -36,7 +40,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 	//CreateTrajectory();
 
 	init = true;
-	glEnable(GL_DEPTH_TEST);		
+	glEnable(GL_DEPTH_TEST);
+#endif
 }
 
 Renderer::~Renderer(void) {
@@ -75,10 +80,6 @@ void Renderer::Update(float dt) {
 
 		if (trajectory) {
 			trajectory->GetMesh()->Update(oneFrame);
-		}
-
-		if (pointLight1) {
-			pointLight1->SetPosition(Vector4( 1, 1200.f, 1, 1.f));
 		}
 
 		////////////////////////
@@ -127,11 +128,12 @@ void Renderer::Render() {
 void Renderer::renderObject()
 {
 	glUseProgram(object->GetShader()->GetProgram());
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	if (pointLight1) {
 		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
+		//pointLight1->SetPosition(Vector4(camera->GetPosition(), 1.0));
 		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&pointLight1->GetPosition());
 		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&pointLight1->GetColor());
 	}
@@ -180,4 +182,35 @@ void Renderer::CreateTrajectory()
 	}
 
 	trajectory->SetMesh(new Trajectory());
+}
+
+/*
+	This method is for testing purpose
+	Feel free to change all values and add different effects to see the result
+*/
+void Renderer::testing()
+{
+	camera = new Camera(0.f, 0.f, Vector3(0.f, 0.f, 500.f));
+
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+
+	object = new RenderObject();
+	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
+		cout << "Texture set up failed!" << endl;
+	}
+	// Make object 200x bigger for better view
+	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(200.f, 200.f, 200.f));
+
+	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
+
+	object->GetMesh()->CreatePlane();
+
+	//Optional, it will give a sense of direction
+	CreateSkybox();
+
+	init = true;
+	glEnable(GL_DEPTH_TEST);
 }

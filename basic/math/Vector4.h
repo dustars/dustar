@@ -16,15 +16,9 @@ _-_-_-_-_-_-_-""  ""
 
 class Vector4	{
 public:
-	Vector4(void) {
-		x = y = z = w = 1.0f;
+	Vector4(float x = 0, float y = 0, float z = 0, float w = 0) : x(x), y(y), z(z), w(w){
 	}
-	Vector4(float x, float y, float z, float w) {
-		this->x = x;
-		this->y = y;
-		this->z = z;
-		this->w = w;
-	}
+	Vector4(const Vector3& v3, float w): x(v3.x), y(v3.y), z(v3.z), w(w) {}
 
 	Vector3 ToVector3() {
 		return Vector3(x, y, z);

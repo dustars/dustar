@@ -168,5 +168,7 @@
     <None Include="shader\SkyBoxVShader.glsl">
       <Filter>shader</Filter>
     </None>
+    <None Include="shader\PhongShadingFS.glsl" />
+    <None Include="shader\PhongShadingVS.glsl" />
   </ItemGroup>
 </Project>
