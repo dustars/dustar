@@ -17,6 +17,9 @@ public:
 	HeightMap(std::string name);				 // Read from file, TODO in the future;
 
 	~HeightMap(void) {};
+
+private:
+	void GenerateHeightColor(double n);
 };
 
 

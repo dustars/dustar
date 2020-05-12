@@ -1,6 +1,6 @@
 #include "Renderer.h"
 
-#define TESTING
+//#define TESTING
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
 
@@ -25,7 +25,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 	}
 
 	// Lightings
-	pointLight1 = new PointLight(Vector4(0, 1000.f, 0,1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
+	pointLight1 = new PointLight(Vector4(2000.f, 1000.f, 2000.f ,1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
 
 	//octave, lacunarity, persistence, width, length
 	object->SetMesh(new HeightMap(5, 3, 0.4, MAPWIDTH, MAPLENGTH));
@@ -41,6 +41,8 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 
 	init = true;
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 #endif
 }
 
@@ -213,4 +215,6 @@ void Renderer::testing()
 
 	init = true;
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 }

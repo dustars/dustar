@@ -23,22 +23,22 @@ void Mesh::CreatePlane()
 	numOfIndex = 6;
 	renderType = GL_TRIANGLES;
 
-	position.push_back(Vector3(-0.5f, -0.5f, 0.0f));
 	position.push_back(Vector3(-0.5f, 0.5f, 0.0f));
-	position.push_back(Vector3(0.5f, -0.5f, 0.0f));
+	position.push_back(Vector3(-0.5f, -0.5f, 0.0f));
 	position.push_back(Vector3(0.5f, 0.5f, 0.0f));
+	position.push_back(Vector3(0.5f, -0.5f, 0.0f));
 
 	color.push_back(Vector3(1.0f, 0.0f, 0.0f));
 	color.push_back(Vector3(0.0f, 1.0f, 0.0f));
 	color.push_back(Vector3(0.0f, 0.0f, 1.0f));
-	color.push_back(Vector3(0.0f, 1.0f, 1.0f));
-
-	texCoord.push_back(Vector2(0.0f, 1.0f));
+	color.push_back(Vector3(1.0f, 0.0f, 1.0f));
+	
 	texCoord.push_back(Vector2(0.0f, 0.0f));
-	texCoord.push_back(Vector2(1.0f, 1.0f));
+	texCoord.push_back(Vector2(0.0f, 1.0f));
 	texCoord.push_back(Vector2(1.0f, 0.0f));
+	texCoord.push_back(Vector2(1.0f, 1.0f));
 
-	Vector3 tempNormal = Vector3::Cross(position[2] - position[0], position[1] - position[0]);
+	Vector3 tempNormal = Vector3::Cross(position[1] - position[0], position[2] - position[0]);
 	normal.push_back(tempNormal);
 	normal.push_back(tempNormal);
 	normal.push_back(tempNormal);
@@ -47,8 +47,8 @@ void Mesh::CreatePlane()
 	index.push_back(0);
 	index.push_back(1);
 	index.push_back(2);
-	index.push_back(1);
 	index.push_back(2);
+	index.push_back(1);
 	index.push_back(3);
 
 	BufferDataToGPU();
@@ -146,10 +146,10 @@ void Mesh::CreateQuad()
 	numOfVertices = 4;
 	renderType = GL_TRIANGLE_STRIP;
 
-	position.push_back(Vector3(-1.0f, -1.0f, 0.0f));
 	position.push_back(Vector3(-1.0f, 1.0f, 0.0f));
-	position.push_back(Vector3(1.0f, -1.0f, 0.0f));
+	position.push_back(Vector3(-1.0f, -1.0f, 0.0f));
 	position.push_back(Vector3(1.0f, 1.0f, 0.0f));
+	position.push_back(Vector3(1.0f, -1.0f, 0.0f));
 
 	BufferDataToGPU();
 }
