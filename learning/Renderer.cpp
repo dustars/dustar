@@ -37,7 +37,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 	//particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 25, EmitType::TRAJECTORY));
 
 	CreateSkybox();
-	//CreateTrajectory();
+	CreateTrajectory();
 
 	init = true;
 	glEnable(GL_DEPTH_TEST);

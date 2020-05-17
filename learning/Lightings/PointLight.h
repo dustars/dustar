@@ -1,6 +1,6 @@
 #include "Light.h"
 
-#include "../basic/math/Vector4.h"
+#include "../basic/math/Math.h"
 
 class PointLight : public Light {
 public:

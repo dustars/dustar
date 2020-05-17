@@ -159,6 +159,7 @@
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="math\CommonOps.h" />
+    <ClInclude Include="math\Math.h" />
     <ClInclude Include="math\Matrix4.h" />
     <ClInclude Include="math\Quaternion.h" />
     <ClInclude Include="math\Vector2.h" />

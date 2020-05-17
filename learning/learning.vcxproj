@@ -144,8 +144,6 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="HeightMap.cpp" />
-    <ClCompile Include="Lightings\Light.cpp" />
-    <ClCompile Include="Lightings\PointLight.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ParticleSystem\Particle.cpp" />
@@ -168,7 +166,6 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="HeightMap.h" />
-    <ClInclude Include="learningNotes.h" />
     <ClInclude Include="Lightings\Light.h" />
     <ClInclude Include="Lightings\PointLight.h" />
     <ClInclude Include="Mesh.h" />

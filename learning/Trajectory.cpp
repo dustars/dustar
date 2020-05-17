@@ -11,10 +11,10 @@ Trajectory::Trajectory()
 	BufferDataToGPU();
 }
 
+//How it works:
+//Given the current dir and force, calculate each point in an interval of time t.
 void Trajectory::CreateTrajectory()
 {
-	// According to the current dir and force, calculate each point in an interval of n, until reaching the total numbers.
-
 	float t = 0;
 	Vector3 vel = dir * force;
 
@@ -61,8 +61,10 @@ void Trajectory::CreateTrajectory(Vector3 vel)
 
 void Trajectory::Update(float dt)
 {
-	dir.x = sin(rand());
-	dir.z = cos(rand());
+	rotateDegree += 0.0002f * 1000.f / dt;
+	if (rotateDegree > 2*PI) rotateDegree = 0;
+	dir.x = sin(rotateDegree);
+	dir.z = cos(rotateDegree);
 	dir.Normalise();
 	//Change dir
 	CreateTrajectory(dir * force);

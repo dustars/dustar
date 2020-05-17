@@ -8,8 +8,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "../basic/math/Vector4.h"
-#include "../basic/math/Vector2.h"
+#include "../basic/math/Math.h"
 #include "glew.h"
 
 using namespace std;

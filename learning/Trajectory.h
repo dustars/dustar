@@ -19,6 +19,8 @@ private:
 	float force				= 20;
 	float weight			= 1.f;
 
+	float rotateDegree = 0; // For rotation
+
 	static constexpr float gravity = -9.8f;
 	static const int totalPoints = 30;
 };

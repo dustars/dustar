@@ -71,12 +71,6 @@
     <ClCompile Include="Trajectory.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
-    <ClCompile Include="Lightings\Light.cpp">
-      <Filter>Lightings</Filter>
-    </ClCompile>
-    <ClCompile Include="Lightings\PointLight.cpp">
-      <Filter>Lightings</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -87,9 +81,6 @@
     </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="learningNotes.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>Core</Filter>

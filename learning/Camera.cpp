@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include <cmath>
 
 Camera::Camera(void) {
 	pitch = 0.0f;
