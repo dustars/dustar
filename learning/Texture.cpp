@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "3rdParty/stb_image.h"
 
-bool Texture::SetTexture(string file, unsigned numR)
+bool Texture::SetTexture(const string& file, unsigned numR)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);

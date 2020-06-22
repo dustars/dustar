@@ -71,6 +71,15 @@
     <ClCompile Include="Trajectory.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
+    <ClCompile Include="Cloud.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneralFrameBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mesh.h">
@@ -121,11 +130,20 @@
     <ClInclude Include="Lightings\PointLight.h">
       <Filter>Lightings</Filter>
     </ClInclude>
+    <ClInclude Include="Cloud.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameBuffer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneralFrameBuffer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\BasicColorFShader.glsl">
-      <Filter>shader</Filter>
-    </None>
     <None Include="shader\LearningVShader.glsl">
       <Filter>shader</Filter>
     </None>
@@ -139,12 +157,6 @@
       <Filter>shader</Filter>
     </None>
     <None Include="shader\ParticleBaseVShader.glsl">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\objectVShader.glsl">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\objectFShader.glsl">
       <Filter>shader</Filter>
     </None>
     <None Include="shader\HeightMapFShader.glsl">
@@ -161,5 +173,15 @@
     </None>
     <None Include="shader\PhongShadingFS.glsl" />
     <None Include="shader\PhongShadingVS.glsl" />
+    <None Include="shader\VoxelizationFShader.glsl" />
+    <None Include="shader\VoxelizationVShader.glsl" />
+    <None Include="shader\CloudFShader.glsl" />
+    <None Include="shader\CloudVShader.glsl" />
+    <None Include="shader\TextureOnlyFShader.glsl">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\TextureOnlyVShader.glsl">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

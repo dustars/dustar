@@ -43,7 +43,7 @@ void Trajectory::CreateTrajectory()
 	}
 }
 
-void Trajectory::CreateTrajectory(Vector3 vel)
+void Trajectory::UpdateTrajectory(Vector3 vel)
 {
 	float t = 0;
 	for (auto i = 1; i <= totalPoints; ++i) {
@@ -67,6 +67,15 @@ void Trajectory::Update(float dt)
 	dir.z = cos(rotateDegree);
 	dir.Normalise();
 	//Change dir
-	CreateTrajectory(dir * force);
+	UpdateTrajectory(dir * force);
+	
+	/*
+	//Updating position attributes by using Mapping: (comment the UpdateDataToGPU() method)
+	//Don't know why the recommended version by textbook OpenGL Superbible is not working
+	//void* ptr = glMapNamedBufferRange(vbo[POSITION], 0, numOfVertices * sizeof(Vector3), GL_MAP_READ_BIT & GL_MAP_WRITE_BIT);
+	void* ptr = glMapNamedBuffer(vbo[POSITION], GL_WRITE_ONLY);
+	memcpy(ptr, static_cast<void*>(position.data()), numOfVertices * sizeof(Vector3));
+	glUnmapNamedBuffer(vbo[POSITION]);
+	*/
 	UpdateDataToGPU();
 }

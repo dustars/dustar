@@ -3,6 +3,8 @@
 #include "Window.h"
 #include "../basic/math/Math.h"
 
+constexpr float UPDATE_MULTIPLIER = 100;
+
 class Camera
 {
 public:

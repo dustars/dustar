@@ -158,7 +158,7 @@ void Mesh::Draw()
 {
 	EnableAttribs();
 	if (vbo[INDEX]) {
-		glDrawElements(renderType, numOfIndex, GL_UNSIGNED_INT, (void*)(index.data()));
+		glDrawElements(renderType, numOfIndex, GL_UNSIGNED_INT, static_cast<void*>(index.data()));
 	}
 	else {
 		glDrawArrays(renderType, 0, numOfVertices);
@@ -183,27 +183,28 @@ void Mesh::BufferDataToGPU()
 	}
 	if (!color.empty()) {
 		glCreateBuffers(1, &vbo[COLOR]);
-		glNamedBufferStorage(vbo[COLOR], numOfVertices * sizeof(Vector3), (void*)(color.data()), 0);
+		glNamedBufferStorage(vbo[COLOR], numOfVertices * sizeof(Vector3), static_cast<void*>(color.data()), 0);
 		glVertexArrayVertexBuffer(vao, COLOR, vbo[COLOR], 0, sizeof(Vector3));
 		glVertexArrayAttribFormat(vao, COLOR, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, COLOR, COLOR);
 	}
 	if (!texCoord.empty()) {
 		glCreateBuffers(1, &vbo[TEXTURE]);
-		glNamedBufferStorage(vbo[TEXTURE], numOfVertices * sizeof(Vector2), (void*)(texCoord.data()), 0);
+		glNamedBufferStorage(vbo[TEXTURE], numOfVertices * sizeof(Vector2), static_cast<void*>(texCoord.data()), 0);
 		glVertexArrayVertexBuffer(vao, TEXTURE, vbo[TEXTURE], 0, sizeof(Vector2));
 		glVertexArrayAttribFormat(vao, TEXTURE, 2, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, TEXTURE, TEXTURE);
 	}
 	if (!normal.empty()) {
 		glCreateBuffers(1, &vbo[NORMAL]);
-		glNamedBufferStorage(vbo[NORMAL], numOfVertices * sizeof(Vector3), (void*)(normal.data()), 0);
+		glNamedBufferStorage(vbo[NORMAL], numOfVertices * sizeof(Vector3), static_cast<void*>(normal.data()), 0);
 		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector3)); // 5/11/2020，曾在这里因Vector2而非3发生过血案
 		glVertexArrayAttribFormat(vao, NORMAL, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, NORMAL, NORMAL);
 	}
 	if (!index.empty()) {
 		glCreateBuffers(1, &vbo[INDEX]);
+		//The data is directly fed into GPU by calling glDrawElements()?
 		//lNamedBufferStorage(vbo[INDEX], numOfIndex * sizeof(GLuint), (void*)(index.data()), 0);
 	}
 }
@@ -214,11 +215,6 @@ void Mesh::UpdateDataToGPU()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[POSITION]);
 	if (!position.empty()) {
 		glNamedBufferSubData(vbo[POSITION], 0, numOfVertices * sizeof(Vector3), static_cast<void*>(position.data()));
-	}
-
-	auto error = glGetError();
-	if (error) {
-		cout << "\nError(Code: " << error << "). Update Mesh." << endl;
 	}
 }
 

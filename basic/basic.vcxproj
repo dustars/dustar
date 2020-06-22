@@ -155,6 +155,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\stb_image.h" />
+    <ClInclude Include="3rdParty\stb_image_write.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Keyboard.h" />

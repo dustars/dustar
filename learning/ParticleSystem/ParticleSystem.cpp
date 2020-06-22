@@ -130,11 +130,6 @@ void ParticleSystem::Render()
 	glDisableVertexAttribArray(BASEMESH_BUFFER);
 	glBindVertexArray(0);
 	glUseProgram(0);
-
-	auto error = glGetError();
-	if (error) {
-		cout << "\nError(Code: " << error << "). Particle System." << endl;
-	}
 }
 
 void ParticleSystem::SetShape(const float shape[16]) {

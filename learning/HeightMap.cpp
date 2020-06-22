@@ -25,7 +25,7 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 			//Perlin Noise
 			double n = noise.octavePerlin(i, j, 0.5, octave, lacunarity, persistence) * 3000 - 1500;
 
-			position.push_back(Vector3(x * HEIGHTMAP_X, n, z * HEIGHTMAP_Z));
+			position.push_back(Vector3(x * HEIGHTMAP_X, static_cast<float>(n), z * HEIGHTMAP_Z));
 			GenerateHeightColor(n);
 			texCoord.push_back(Vector2(x * HEIGHTMAP_TEX_X, z * HEIGHTMAP_TEX_Z));
 		}

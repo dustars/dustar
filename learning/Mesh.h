@@ -14,6 +14,7 @@
 using namespace std;
 
 class Mesh {
+protected:
 	enum BufferName {
 		POSITION,
 		COLOR,

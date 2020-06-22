@@ -94,7 +94,7 @@ GLuint Shader::GenerateShader(string from, GLenum type) {
 	glCompileShader(shader);
 
 	GLint status;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status); //verify shader compilation
 
 	if (status == GL_FALSE) {
 		cout << "Compiling failed!" << endl;

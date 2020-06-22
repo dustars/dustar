@@ -143,6 +143,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Cloud.cpp" />
+    <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="GeneralFrameBuffer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -165,6 +168,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Cloud.h" />
+    <ClInclude Include="Debug.h" />
+    <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="GeneralFrameBuffer.h" />
     <ClInclude Include="HeightMap.h" />
     <ClInclude Include="Lightings\Light.h" />
     <ClInclude Include="Lightings\PointLight.h" />
@@ -182,12 +189,13 @@
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shader\CloudFShader.glsl" />
+    <None Include="shader\CloudVShader.glsl" />
     <None Include="shader\HeightMapFShader.glsl" />
     <None Include="shader\HeightMapVShader.glsl" />
     <None Include="shader\LearningVShader.glsl" />
-    <None Include="shader\BasicColorFShader.glsl" />
-    <None Include="shader\objectFShader.glsl" />
-    <None Include="shader\objectVShader.glsl" />
+    <None Include="shader\TextureOnlyFShader.glsl" />
+    <None Include="shader\TextureOnlyVShader.glsl" />
     <None Include="shader\ParticleBaseFShader.glsl" />
     <None Include="shader\ParticleBaseVShader.glsl" />
     <None Include="shader\PhongShadingFS.glsl" />
@@ -196,6 +204,8 @@
     <None Include="shader\SkyBoxVShader.glsl" />
     <None Include="shader\TriangleFShader.glsl" />
     <None Include="shader\TriangleVShader.glsl" />
+    <None Include="shader\VoxelizationFShader.glsl" />
+    <None Include="shader\VoxelizationVShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
