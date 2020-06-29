@@ -31,7 +31,7 @@
 
 #include <memory>
 
-#define TESTING
+//#define TESTING
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
 
