@@ -1,3 +1,10 @@
+# Introduction:
+This is a small renderer I developed through the journey of learning Computer Graphics. Currently there's no specific purpose except experimenting grapchics algorithms in which I'm interested. So, as one may expect, it's a Hodgepodge with various "food" in different quality.
+
+The **ongoing project** is Volumetric Real-time Cloud for my master dissertation in Newcastle University, UK.
+
+
+
 # Current features:
 ### Particle system
 ### Particle System Update: Particle System now supports texture atlas
