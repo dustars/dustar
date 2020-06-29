@@ -88,17 +88,20 @@ float LightCalculation(vec3 pos)
 void main(void)
 {
 	vec3 color = texture(renderFBO, IN.texCoord).xyz;
+	float depth = texture(renderDepth, IN.texCoord).x;
+
+	//Inverse transformation on non-linear depth value to get linear z-value
+	depth = depth * 2.f - 1.f;
+	depth = 30000.f / (15001.f - depth * 14999.f); //harded-code near and far plane, see https://learnopengl.com/Advanced-OpenGL/Depth-testing
 
 	vec2 uv = (gl_FragCoord.xy - .5 * resolution) / resolution.y;
 
 	vec3 rayPos = cameraPos;
-	vec3 rayDir = normalize( ((rotationMatrix* vec4(uv, -1, 1))).xyz );
+	vec3 rayDir = normalize((( rotationMatrix * vec4(uv, -1, 1))).xyz);
 
 	float dis = RayMarch(rayPos, rayDir);
-	//Calculate the depth buffer
-	if (dis > 0)
+	if ( dis > 0 && dis < depth)
 	{
-
 		color = vec3(dis);
 		float cos = LightCalculation(rayPos + dis * rayDir);
 		color = vec3(cos);

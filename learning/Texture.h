@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Perlin.h"
 #include "glew.h"
 
 using namespace std;

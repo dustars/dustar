@@ -1,6 +1,5 @@
 #pragma once
 #include "Texture.h"
-#include "Perlin.h"
 
 class Cloud
 {

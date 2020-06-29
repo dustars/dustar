@@ -53,9 +53,6 @@
     <ClCompile Include="ParticleSystem\ParticleMaster.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Perlin.cpp">
-      <Filter>Others</Filter>
-    </ClCompile>
     <ClCompile Include="RenderObject.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -79,6 +76,15 @@
     </ClCompile>
     <ClCompile Include="GeneralFrameBuffer.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WorleyNoise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PerlinWorleyNoise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PerlinNoise.cpp">
+      <Filter>Others</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -105,9 +111,6 @@
     </ClInclude>
     <ClInclude Include="ParticleSystem\ParticleMaster.h">
       <Filter>ParticleSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Perlin.h">
-      <Filter>Others</Filter>
     </ClInclude>
     <ClInclude Include="RenderObject.h">
       <Filter>Core</Filter>
@@ -141,6 +144,15 @@
     </ClInclude>
     <ClInclude Include="GeneralFrameBuffer.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="WorleyNoise.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PerlinWorleyNoise.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PerlinNoise.h">
+      <Filter>Others</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 #include <string>
 
 #include "Mesh.h"
-#include "Perlin.h"
+#include "PerlinNoise.h"
 
 #define HEIGHTMAP_X 8.0f
 #define HEIGHTMAP_Z 8.0f

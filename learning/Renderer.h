@@ -22,6 +22,7 @@
 
 #include "HeightMap.h"
 #include "Trajectory.h"
+#include "WorleyNoise.h"
 
 #include "Lightings/PointLight.h"
 #include "Cloud.h"
@@ -97,26 +98,16 @@ private:
 
 	//For Cloud
 	RenderObject cloudShader;
-	GLuint worleyTex;
-	//Weather Map
+	GLuint highFreqNoiseTex;
+	GLuint lowFreqNoiseTex;
+	GLuint weatherMapTex;
 
 	void CreateCloud();
 	void RenderCloud();
 	void CreateCloud3DTexture();
-	void CreatePerlinWorleyNoise();
 
 	//Unitiies
 	void SaveAsImage(int w, int h, const void* data, int channels = 3, int quality = 100);
-
-	float Remap(float value, float oldMin, float oldMax, float newMin, float newMax) {
-		return newMin + (((value - oldMin) / (oldMax - oldMin)) * (newMax - newMin));
-	}
-
-	float Clamp(float value, float min, float max) {
-		if (value > max) return max;
-		if (value < min) return min;
-		return value;
-	}
 
 public:
 	//Save the initial frame in "demo/screenshot.jpg"

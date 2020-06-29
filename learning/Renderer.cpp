@@ -127,7 +127,6 @@ void Renderer::Render()
 void Renderer::renderObject()
 {
 	glUseProgram(object->GetShader()->GetProgram());
-	glBindTextureUnit(3, worleyTex);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
@@ -241,57 +240,42 @@ void Renderer::RenderCloud()
 
 void Renderer::CreateCloud3DTexture()
 {
-	int width = 500, height = 500, length = 128; // This resolution is from the GPU PRO
-	int octaves = 4; //FBM
-	float lacunarity = 2;
-	float gain = 2;
-	int MAX_POINTS = 20;
-	unsigned char* data = new unsigned char[width * height];
+	std::size_t octaves = 1; //FBM
+	std::size_t noiseResolution = 256;
 
-	vector<Vector2> featurePoints;
+	unsigned char* data = new unsigned char[noiseResolution * noiseResolution];
 
-	//Generate randomly distributed points.
-	srand(time(NULL));
-	for (int i = 0; i < MAX_POINTS; i++) {
-		featurePoints.push_back(Vector2(static_cast<float>(rand())/(RAND_MAX), static_cast<float>(rand()) / (RAND_MAX)));
+	WorleyNoise worley(noiseResolution, 8);
+
+	for (std::size_t y = 0; y < noiseResolution; y++) {
+		for (std::size_t x = 0; x < noiseResolution; x++) {
+
+			//FBM loop
+			float amplitude = 1.f, frequency = 1.f;
+			float noise = 0.f, maxValue = 0.f;
+			for (std::size_t i = 0; i < octaves; i++) {
+				noise += amplitude * worley.noise(static_cast<float>(x) * frequency, static_cast<float>(y) * frequency, 0);
+				maxValue += amplitude;
+				frequency *= 2.f;		//2 is the lacunarity
+				amplitude *= 0.707f;	//0.707 is "gain", see https://www.iquilezles.org/www/articles/fbm/fbm.htm
+			}
+
+			int color = static_cast<int>(noise/maxValue * 255);
+			data[y * noiseResolution + x] = static_cast<unsigned char>(color);
+		}
 	}
 
-	//lambda to calculate the n-th closest point, given a location.
-	auto dist = [&](Vector2 point) {
-		float min = 1.f;
-		for (int i = 0; i < featurePoints.size(); i++) {
-			auto temp = sqrt(pow((point.x - featurePoints[i].x), 2) + pow((point.y - featurePoints[i].y), 2));
-			if (temp < min) min = temp;
-		}
-		//Currently return inverted distance value. If you want orginal one, delete "1 - ".
-		return 1 - Clamp(Remap(min, 0.f, 0.3f, 0.f, 1.f), 0.f, 1.f);
-	};	
+	//glGenTextures(1, &highFreqNoiseTex);
+	//glBindTexture(GL_TEXTURE_2D, highFreqNoiseTex);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, noiseResolution, noiseResolution, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
 
-	//for(int i = 0; i < octaves; i++){
-	//calculate the distance of the closest feature point to the current pixel.
-		for (int x = 0; x < height; x++) {
-			for (int y = 0; y < width; y++) {
-				int color = dist(Vector2(static_cast<float>(x) / height, static_cast<float>(y) / width)) * 255;
-				data[x * width + y] = static_cast<unsigned char>(color);
-			}
-		}
-	//}
-
-	glGenTextures(1, &worleyTex);
-	glBindTexture(GL_TEXTURE_2D, worleyTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
-	//SaveAsImage(width, height, static_cast<void*>(data), 1);
+	SaveAsImage(noiseResolution, noiseResolution, static_cast<void*>(data), 1);
 
 	delete[] data;
-}
-
-void Renderer::CreatePerlinWorleyNoise()
-{
 }
 
 void Renderer::CreateSkybox()
@@ -325,7 +309,7 @@ void Renderer::CreateVoxelizationResources()
 {
 	glCreateFramebuffers(6, &frameBuffer[0]);
 	glGenTextures(6, &depthTex[0]);
-	for (size_t i = 0; i < 6; i++)
+	for (std::size_t i = 0; i < 6; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D, depthTex[i]);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, 512, 512);
@@ -396,7 +380,7 @@ void Renderer::Voxelization(int size)
 	GLuint frameBuffer;
 
 	glGenTextures(6, depthTex);
-	for (int i = 0; i < 6; i++) {
+	for (std::size_t i = 0; i < 6; i++) {
 		glBindTexture(GL_TEXTURE_2D, depthTex[i]);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, size, size);
 	}
@@ -404,7 +388,7 @@ void Renderer::Voxelization(int size)
 	glCreateFramebuffers(1, &frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
-	for (int i = 0; i < 6; i++) {
+	for (std::size_t i = 0; i < 6; i++) {
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTex[i], 0);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		renderObject();

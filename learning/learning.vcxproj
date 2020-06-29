@@ -152,7 +152,8 @@
     <ClCompile Include="ParticleSystem\Particle.cpp" />
     <ClCompile Include="ParticleSystem\ParticleMaster.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
-    <ClCompile Include="Perlin.cpp" />
+    <ClCompile Include="PerlinNoise.cpp" />
+    <ClCompile Include="PerlinWorleyNoise.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="RenderObjectManager.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Trajectory.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="WorleyNoise.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\basic\basic.vcxproj">
@@ -179,7 +181,8 @@
     <ClInclude Include="ParticleSystem\Particle.h" />
     <ClInclude Include="ParticleSystem\ParticleMaster.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
-    <ClInclude Include="Perlin.h" />
+    <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="PerlinWorleyNoise.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="RenderObjectManager.h" />
@@ -187,6 +190,7 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Trajectory.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="WorleyNoise.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\CloudFShader.glsl" />

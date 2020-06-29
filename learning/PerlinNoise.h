@@ -1,3 +1,8 @@
+/*
+	Description:
+	Perlin noise class.
+*/
+
 #pragma once
 #include <vector>
 

@@ -9,6 +9,4 @@ Cloud::Cloud()
 	glTextureStorage2D(texture, 1, GL_RGBA32F, 256, 256);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	PerlinNoise noise(rand());
-
 }
