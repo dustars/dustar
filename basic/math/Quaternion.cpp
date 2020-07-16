@@ -136,10 +136,10 @@ Quaternion Quaternion::Conjugate() const
 Quaternion Quaternion::FromMatrix(const Matrix4 &m)	{
 	Quaternion q;
 
-	q.w = sqrt(max(0.0f, (1.0f + m.values[0] + m.values[5] + m.values[10]))) / 2.0f;
-	q.x = sqrt(max(0.0f, (1.0f + m.values[0] - m.values[5] - m.values[10]))) / 2.0f;
-	q.y = sqrt(max(0.0f, (1.0f - m.values[0] + m.values[5] - m.values[10]))) / 2.0f;
-	q.z = sqrt(max(0.0f, (1.0f - m.values[0] - m.values[5] + m.values[10]))) / 2.0f;
+	q.w = sqrt(std::max(0.0f, (1.0f + m.values[0] + m.values[5] + m.values[10]))) / 2.0f;
+	q.x = sqrt(std::max(0.0f, (1.0f + m.values[0] - m.values[5] - m.values[10]))) / 2.0f;
+	q.y = sqrt(std::max(0.0f, (1.0f - m.values[0] + m.values[5] - m.values[10]))) / 2.0f;
+	q.z = sqrt(std::max(0.0f, (1.0f - m.values[0] - m.values[5] + m.values[10]))) / 2.0f;
 
 	q.x = (float)_copysign( q.x, m.values[9] - m.values[6] );
 	q.y = (float)_copysign( q.y, m.values[2] - m.values[8] );

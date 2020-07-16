@@ -10,6 +10,8 @@
 
 	1. Get rid of the voxeliazation part (decouple it ASAP!)
 	2. Create a manager class or at least a vector to contain all those RenderObjects.
+	3. Use unique_ptr for all pointer type data members?
+	4. Debugger.
 */
 
 
@@ -30,8 +32,13 @@
 #include "ParticleSystem/ParticleMaster.h"
 
 #include <memory>
+#include <thread>
 
-//#define TESTING
+#define TESTING
+//#define OFFLINE
+#define THREADING
+#define RENDER_CLOUD
+
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
 
@@ -45,6 +52,8 @@ public:
 
 	void Update(float dt) override;
 	void Render() override;
+	//To render specific objects that are still under development/testing.
+	void TestRendering();
 
 	Camera* GetCamera()		const{ return camera; }
 	Matrix4 GetProjMatrix() const{ return projMatrix; }
@@ -78,12 +87,8 @@ protected:
 	Debug debugger;
 
 private:
-	//The FBO contains the final image of the object-based rendering stage.
+	//The FBO contains the result of Rasterization rendering.
 	std::unique_ptr<FrameBuffer> renderFBO;
-
-	//Testing
-	void Testing();
-	void TestRendering();
 
 	//For voxelization
 	//Get rid of them, make them a new class pleaseeeeeeeeeeeeeeeeee, What a mess
@@ -106,12 +111,9 @@ private:
 	void RenderCloud();
 	void CreateCloud3DTexture();
 
-	//Unitiies
-	void SaveAsImage(int w, int h, const void* data, int channels = 3, int quality = 100);
-
 public:
 	//Save the initial frame in "demo/screenshot.jpg"
-	void ScreenShot(); //Shouldn't this method be in the camera class?
+	void ScreenShot(std::string filename = "screenshot"); //Shouldn't this method be in the camera class?
 	void Voxelization(int);
 };
 

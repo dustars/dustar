@@ -9,6 +9,7 @@
 #pragma once
 #include <cstddef>
 #include <math.h>
+#include <algorithm>
 
 //It's better to use define?
 static const float		PI = 3.14159265358979323846f;
@@ -45,17 +46,14 @@ static inline float EulerDistance(float x, float y, float z, float x1, float y1,
 	return sqrt(disX * disX + disY * disY + disZ * disZ);
 }
 
-static inline double Remap(double value, double oldMin, double oldMax, double newMin, double newMax)
+static inline float Remap(float value, float oldMin, float oldMax, float newMin, float newMax)
 {
 	return newMin + (((value - oldMin) / (oldMax - oldMin)) * (newMax - newMin));
 }
 
-static inline double Clamp(double value, double min, double max)
+static inline float Clamp(float value, float min, float max)
 {
 	if (value > max) return max;
 	if (value < min) return min;
 	return value;
 }
-
-#define max(a,b)    (((a) > (b)) ? (a) : (b))
-#define min(a,b)    (((a) < (b)) ? (a) : (b))

@@ -1,18 +1,15 @@
 /*
 	Description:
 	Worley noise class.
-	using normalized value so that all operations are irrelevant to resolution.
+	For the purpose of optimization, this class is tailored for the cloud generation.
+	Modify it if using for other purposes, such as cancelling the invertion.
 
-	2020/6/28
-	So I've decided to implement a simplified version of Worley Noise, from
-	http://webstaff.itn.liu.se/~stegu/GLSL-cellular/GLSL-cellular-notes.pdf
-	I've failed to implement the orginal one, but maybe try it again in the future.
-
-	1. Periodicity? Does the current method of moduling works with FBM?
-
-	2. Use compute shader to calculate the noise (later optimization)
-	3. The distance calculation needs to be optimized (O(n) for a given location, possibly O(logN) can be achieved) (Watch https://www.youtube.com/watch?v=4QOcCGI6xOU&t=269s for a solution)
-	4. Sebtisan 
+	To Do:
+	>Compute Shader. (Require a glsl implementation)
+	>MultiThreading.
+	>Optimization.
+	See http://webstaff.itn.liu.se/~stegu/GLSL-cellular/GLSL-cellular-notes.pdf for
+	possible optimizations.
 */
 
 
@@ -25,13 +22,12 @@ class WorleyNoise
 public:
 	WorleyNoise(std::size_t resolution = 128, std::size_t cellsNums = 6, int seed = 0);
 
-	float noise(float x, float y, float z);
+	float Noise(float x, float y, float z);
+	float FBMNoise(float x, float y, float z, std::size_t octaves, float lacunarity = 2.f, float gain = 0.707f);
 
 private:
-	std::size_t resolution;
-	std::size_t cellsNums;	//the resolution of cells
+	std::size_t resolution; //the resolution of noise
+	std::size_t cellsNums;	//the number of cells
 
 	std::vector<Vector3> featurePoints;
-
-	float InvertNoise(float value) { return 1 - Clamp(Remap(value, 0.f, 1.2f, 0.f, 1.f), 0.f, 1.f); }
 };

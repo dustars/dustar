@@ -11,6 +11,12 @@ Mesh::Mesh() :
 	}
 }
 
+Mesh::Mesh(const string& filename)
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
+}
+
 Mesh::~Mesh()
 {
 	glDeleteVertexArrays(1, &vao);

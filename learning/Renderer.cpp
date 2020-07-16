@@ -3,10 +3,35 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "3rdParty/stb_image_write.h"
 
-Renderer::Renderer(Window& parent) : RenderBase(parent)
+Renderer::Renderer(Window& parent)
+	: RenderBase(parent),
+	renderFBO(new GeneralFrameBuffer(width, height))
 {
 #ifdef TESTING
-	Testing();
+	camera = new Camera(0.f, 180.f, Vector3(0.f, 0.f, -10.f));
+
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+
+	object = new RenderObject();
+	if (!object->SetShader("shader/TextureOnlyVShader.glsl", "shader/TextureOnlyFShader.glsl")){
+		cout << "Shader set up failed!" << endl;
+	}
+	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
+		cout << "Texture set up failed!" << endl;
+	}
+
+	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(10.f, 10.f, 10.f));
+
+	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
+
+	object->GetMesh()->CreatePlane();
+
+	CreateSkybox();
+#ifdef RENDER_CLOUD
+	CreateCloud();
+#endif
+
+	init = true;
 #else
 	// Initialize the basics ( later move to a function )
 	camera = new Camera(-20,-130,Vector3(0,500,200.f));
@@ -27,7 +52,7 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 	pointLight1 = new PointLight(Vector4(2000.f, 1000.f, 2000.f ,1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
 
 	//octave, lacunarity, persistence, width, length
-	object->SetMesh(new HeightMap(5, 3, 0.4, MAPWIDTH, MAPLENGTH));
+	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
 
 	//Particle System Creation
 	//ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
@@ -46,22 +71,12 @@ Renderer::Renderer(Window& parent) : RenderBase(parent)
 }
 
 Renderer::~Renderer() {
-	delete camera;
-	if (object) {
-		delete object;
-	}
-	if (trajectory) {
-		delete trajectory;
-	}
-	if (skybox) {
-		delete skybox;
-	}
-	if (pointLight1) {
-		delete pointLight1;
-	}
-	if (particleMaster) {
-		delete particleMaster;
-	}
+	if(camera)			delete camera;
+	if(object)			delete object;
+	if(trajectory)		delete trajectory;
+	if(skybox)			delete skybox;
+	if(pointLight1)		delete pointLight1;
+	if(particleMaster)	delete particleMaster;
 }
 
 void Renderer::Update(float dt) {
@@ -123,6 +138,32 @@ void Renderer::Render()
 
 	::SwapBuffers(deviceContext);
 }
+
+void Renderer::TestRendering()
+{
+#ifdef RENDER_CLOUD
+	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
+#endif
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	if (skybox) renderSkyBox();
+
+	glEnable(GL_DEPTH_TEST);
+	if (object) renderObject();
+	glDisable(GL_DEPTH_TEST);
+
+#ifdef RENDER_CLOUD
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	RenderCloud();
+#endif
+
+#ifdef OFFLINE
+	ScreenShot("Offline_Rendering");
+#else
+	::SwapBuffers(deviceContext);
+#endif
+}
+
 
 void Renderer::renderObject()
 {
@@ -228,6 +269,7 @@ void Renderer::RenderCloud()
 
 	glBindTextureUnit(0, renderFBO->GetColorTexture());
 	glBindTextureUnit(1, renderFBO->GetDepthTexture());
+	glBindTextureUnit(2, highFreqNoiseTex);
 
 	glUniform2fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "resolution"), 1, (float*)&Vector2(width, height));
 	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());;
@@ -240,41 +282,83 @@ void Renderer::RenderCloud()
 
 void Renderer::CreateCloud3DTexture()
 {
-	std::size_t octaves = 1; //FBM
-	std::size_t noiseResolution = 256;
+	std::size_t noiseResolution = 64;
+	int seed = 0;
 
-	unsigned char* data = new unsigned char[noiseResolution * noiseResolution];
+	unsigned char* data = new unsigned char[noiseResolution * noiseResolution * noiseResolution];
 
-	WorleyNoise worley(noiseResolution, 8);
+	WorleyNoise worley(noiseResolution, 8, seed);
+	PerlinNoise perlin(seed);
 
-	for (std::size_t y = 0; y < noiseResolution; y++) {
-		for (std::size_t x = 0; x < noiseResolution; x++) {
+#ifdef THREADING
+	//Resolution of 128 currently takes 31 seconds.
+	int numThreads = 4; //4 or 8, why 8 is not working?
+	std::vector<std::thread> tp;
 
-			//FBM loop
-			float amplitude = 1.f, frequency = 1.f;
-			float noise = 0.f, maxValue = 0.f;
-			for (std::size_t i = 0; i < octaves; i++) {
-				noise += amplitude * worley.noise(static_cast<float>(x) * frequency, static_cast<float>(y) * frequency, 0);
-				maxValue += amplitude;
-				frequency *= 2.f;		//2 is the lacunarity
-				amplitude *= 0.707f;	//0.707 is "gain", see https://www.iquilezles.org/www/articles/fbm/fbm.htm
+	//thread execution block (any possile optimizations?)
+	static auto NoiseCalculation = [&](std::size_t z) {
+		for (std::size_t y = 0; y < noiseResolution; y++) {
+			for (std::size_t x = 0; x < noiseResolution; x++) {
+				float worleyNoise = worley.FBMNoise(x, y, z, 3, 2.f, 0.707f);
+				float perlinNoise = perlin.FBMPerlin(static_cast<double>(x) / noiseResolution * 3.0,
+					static_cast<double>(y) / noiseResolution * 3.0,
+					static_cast<double>(z) / noiseResolution * 3.0,
+					7, 2, 0.707);
+				perlinNoise = Clamp(Remap(perlinNoise, 0.0, 1.0, -0.3f, 1.0f), 0.f, 1.f);
+
+
+				//float perlinWorleyNoise = (perlinNoise + worleyNoise) / 2;
+				float perlinWorleyNoise = Remap(perlinNoise, 1.f - worleyNoise, 1.f, 0.f, 1.f);
+
+				data[z * noiseResolution * noiseResolution + y * noiseResolution + x] = static_cast<unsigned char>(perlinWorleyNoise * 255);
 			}
-
-			int color = static_cast<int>(noise/maxValue * 255);
-			data[y * noiseResolution + x] = static_cast<unsigned char>(color);
 		}
+	};
+
+	for (std::size_t z = 0; z < noiseResolution / numThreads; z++) {
+
+		for (std::size_t i = 0; i < numThreads; i++) {
+			tp.push_back(thread(NoiseCalculation, z * numThreads + i));
+		}
+
+		for (std::size_t i = 0; i < numThreads; i++) {
+			tp[i].join();
+		}
+		tp.clear();
 	}
 
-	//glGenTextures(1, &highFreqNoiseTex);
-	//glBindTexture(GL_TEXTURE_2D, highFreqNoiseTex);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, noiseResolution, noiseResolution, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
+#else
+	for (std::size_t z = 0; z < noiseResolution; z++) {
+		for (std::size_t y = 0; y < noiseResolution; y++) {
+			for (std::size_t x = 0; x < noiseResolution; x++) {
 
-	SaveAsImage(noiseResolution, noiseResolution, static_cast<void*>(data), 1);
+				//Create both perlin noise and worley noise
+				float worleyNoise = worley.FBMNoise(x, y, z, 3, 2.f, 0.707f);
+				float perlinNoise = perlin.FBMPerlin(static_cast<double>(x) / noiseResolution * 3.0,
+													 static_cast<double>(y) / noiseResolution * 3.0,
+													 static_cast<double>(z) / noiseResolution * 3.0,
+													 7, 2, 0.707);
+				perlinNoise = Clamp(Remap(perlinNoise, 0.0, 1.0, -0.3f, 1.0f), 0.f, 1.f);
 
+				float perlinWorleyNoise = (perlinNoise + worleyNoise) / 2; //Need a better way
+
+				data[z * noiseResolution * noiseResolution + y * noiseResolution + x] = static_cast<unsigned char>(perlinWorleyNoise * 255);
+			}
+		}
+	}
+#endif
+
+	glGenTextures(1, &highFreqNoiseTex);
+	glBindTexture(GL_TEXTURE_3D, highFreqNoiseTex);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, noiseResolution, noiseResolution, noiseResolution, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
+
+	//stbi_flip_vertically_on_write(TRUE);
+	//stbi_write_jpg("../demo/test.jpg", noiseResolution, noiseResolution, 1, data, 100);
+	//possible memory leak?
 	delete[] data;
 }
 
@@ -322,8 +406,9 @@ void Renderer::CreateVoxelizationResources()
 	glGenTextures(1, &voxel3DTexture);
 	glBindTexture(GL_TEXTURE_3D, voxel3DTexture);
 	glTextureStorage3D(voxel3DTexture, 1, GL_R8UI, 512, 512, 2); //one channel, unsigned integer
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
 	glTextureParameteri(voxel3DTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTextureParameteri(voxel3DTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -333,28 +418,7 @@ void Renderer::CreateVoxelizationResources()
 	voxelShader.GetMesh()->CreateCube();
 }
 
-void Renderer::TestRendering()
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	
-	if (skybox) {
-		renderSkyBox();
-	}
-	
-	glEnable(GL_DEPTH_TEST);
-	if (object) {
-		renderObject();
-	}
-	glDisable(GL_DEPTH_TEST);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	RenderCloud();
-
-	::SwapBuffers(deviceContext);
-}
-
-void Renderer::ScreenShot()
+void Renderer::ScreenShot(std::string filename)
 {
 	int row_size = ((width * 3 + 3) & ~3);
 	int data_size = row_size * height;
@@ -363,8 +427,9 @@ void Renderer::ScreenShot()
 	glReadPixels(0,0,width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
 	
 	stbi_flip_vertically_on_write(TRUE);
-	stbi_write_jpg("../demo/screenshot.jpg", width, height, 3, data, 100);
+	stbi_write_jpg(("../demo/" + filename + ".jpg").c_str(), width, height, 3, data, 100);
 
+	//possible memory leak?
 	delete[] data;
 }
 
@@ -408,38 +473,3 @@ void Renderer::Voxelization(int size)
 	object->Draw();
 	glUseProgram(0);
 }
-
-void Renderer::SaveAsImage(int w, int h, const void* data, int channels, int quality)
-{
-	stbi_write_jpg("../demo/test.jpg", w, h, channels, data, quality);
-}
-
-void Renderer::Testing()
-{
-	camera = new Camera(0.f, 0.f, Vector3(0.f, 0.f, -10.f));
-
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
-
-	object = new RenderObject();
-	if (!object->SetShader("shader/TextureOnlyVShader.glsl", "shader/TextureOnlyFShader.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
-		cout << "Texture set up failed!" << endl;
-	}
-
-	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(10.f, 10.f, 10.f));
-
-	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
-
-	object->GetMesh()->CreatePlane();
-
-	renderFBO.reset(new GeneralFrameBuffer(width, height));
-
-	CreateSkybox();
-	CreateCloud();
-
-	init = true;
-	glEnable(GL_DEPTH_TEST);
-}
-

@@ -5,7 +5,7 @@
 #include <random>
 #include <time.h>
 
-HeightMap::HeightMap(int octave, double lacunarity, double persistence, int width, int length) : Mesh(){
+HeightMap::HeightMap(int octave, double lacunarity, double gain, int width, int length) : Mesh(){
 	// Should have a setter for these values.
 	
 	numOfVertices = width * length;
@@ -23,7 +23,9 @@ HeightMap::HeightMap(int octave, double lacunarity, double persistence, int widt
 			double j = (double)z / ((double)length);
 
 			//Perlin Noise
-			double n = noise.octavePerlin(i, j, 0.5, octave, lacunarity, persistence) * 3000 - 1500;
+			double n = noise.FBMPerlin(i, j, 0, octave, lacunarity, gain);
+
+			n = n * 2000 - 1000;
 
 			position.push_back(Vector3(x * HEIGHTMAP_X, static_cast<float>(n), z * HEIGHTMAP_Z));
 			GenerateHeightColor(n);

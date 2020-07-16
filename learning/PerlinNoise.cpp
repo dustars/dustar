@@ -76,19 +76,15 @@ double PerlinNoise::noise(double x, double y, double z) {
 	return (res + 1.0) / 2.0;
 }
 
-double PerlinNoise::octavePerlin(double x, double y, double z, int octaves, double lacunarity, double persistence) {
-	double total = 0, frequency = 1, amplitude = 1, maxValue = 0;
-	for (int i = 0; i < octaves-1; ++i) {
-
-		frequency = pow(lacunarity, i);
-		amplitude = pow(persistence, i);
-
-		total += noise(x * frequency, y * frequency, z * frequency) * amplitude;
-
+double PerlinNoise::FBMPerlin(double x, double y, double z, int octaves, double lacunarity, double gain) {
+	double noise = 0.0, frequency = 1.0, amplitude = 1.0, maxValue = 0.0;
+	for (int i = 0; i < octaves; i++) {
+		noise += PerlinNoise::noise(x * frequency, y * frequency, z * frequency) * amplitude;
+		frequency *= lacunarity;
+		amplitude *= gain;
 		maxValue += amplitude;
 	}
-
-	return total / maxValue;
+	return noise / maxValue;
 }
 
 double PerlinNoise::fade(double t) {

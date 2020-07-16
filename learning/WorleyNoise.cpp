@@ -13,7 +13,7 @@ WorleyNoise::WorleyNoise(std::size_t resolution, std::size_t cellsNums, int seed
 	}
 }
 
-float WorleyNoise::noise(float x, float y, float z)
+float WorleyNoise::Noise(float x, float y, float z)
 {
 	//Relative position of point in a cube
 	x /= (resolution / cellsNums);
@@ -30,20 +30,49 @@ float WorleyNoise::noise(float x, float y, float z)
 	y -= floor(y);
 	z -= floor(z);
 
-	std::vector<float> disArray;
-	//Calculating distances in neighboring cubes, 3 x 3 x 3  = 27 in totals.
-	for (int i = -1; i <= 1; i++) {
-		if (cZ + i < 0 || cZ + i >= cellsNums) continue;
-		for (int j = -1; j <= 1; j++) {
-			if (cY + j < 0 || cY + j >= cellsNums) continue;
-			for (int k = -1; k <= 1; k++) {
-				if (cX + k < 0 || cX + k >= cellsNums) continue;
-				Vector3 fp = featurePoints[(cZ + i) * cellsNums * cellsNums + (cY + j) * cellsNums + (cX + k)];
-				disArray.push_back(EulerDistance(x, y, z, fp.x + k, fp.y + j, fp.z + i));
-			}
-		}
-	}
-
+	std::vector<float> disArray; //Store distance from feature point.
+	//2x2x2 = 8 cubes searching, see Class description for detail.
+	int i = floor(z - 0.5f);
+	int j = floor(y - 0.5f);
+	int k = floor(x - 0.5f);
+	int ii = 0, jj = 0, kk = 0; //for noise repetition/mirror
+	if (cZ + i < 0) ii = cellsNums;
+	else if (cZ + i == cellsNums) ii = 0 - cellsNums;
+	if (cY + j < 0) jj = cellsNums;
+	else if (cY + j == cellsNums) jj = 0 - cellsNums;
+	if (cX + k < 0) kk = cellsNums;
+	else if (cX + k == cellsNums) kk = 0 - cellsNums;
+	//Calculation of indices is a huge waste.
+	Vector3 fp = featurePoints[cZ * cellsNums * cellsNums + cY * cellsNums + cX];
+	disArray.push_back(EulerDistance(x, y, z, fp.x, fp.y, fp.z));
+	fp = featurePoints[cZ * cellsNums * cellsNums + cY * cellsNums + (cX + k + kk)];
+	disArray.push_back(EulerDistance(x, y, z, fp.x + k, fp.y, fp.z));
+	fp = featurePoints[cZ * cellsNums * cellsNums + (cY + j + jj) * cellsNums + cX];
+	disArray.push_back(EulerDistance(x, y, z, fp.x, fp.y + j, fp.z));
+	fp = featurePoints[(cZ + i + ii) * cellsNums * cellsNums + cY * cellsNums + cX];
+	disArray.push_back(EulerDistance(x, y, z, fp.x, fp.y, fp.z + i));
+	fp = featurePoints[(cZ + i + ii) * cellsNums * cellsNums + (cY + j + jj) * cellsNums + cX];
+	disArray.push_back(EulerDistance(x, y, z, fp.x, fp.y + j, fp.z + i));
+	fp = featurePoints[(cZ + i + ii) * cellsNums * cellsNums + cY * cellsNums + (cX + k + kk)];
+	disArray.push_back(EulerDistance(x, y, z, fp.x + k, fp.y, fp.z + i));
+	fp = featurePoints[cZ * cellsNums * cellsNums + (cY + j + jj) * cellsNums + (cX + k + kk)];
+	disArray.push_back(EulerDistance(x, y, z, fp.x + k, fp.y + j, fp.z));
+	fp = featurePoints[(cZ + i + ii) * cellsNums * cellsNums + (cY + j + jj) * cellsNums + (cX + k + kk)];
+	disArray.push_back(EulerDistance(x, y, z, fp.x + k, fp.y + j, fp.z + i));
+	
 	std::sort(disArray.begin(), disArray.end());
-	return InvertNoise(disArray[0]);
+	return Clamp((1 - disArray[0]) * 1.5, 0.f, 1.f);
+}
+
+float WorleyNoise::FBMNoise(float x, float y, float z, std::size_t octaves, float lacunarity, float gain)
+{
+	float amplitude = 1.f, frequency = 1.f, worleyNoise = 0.f, maxValue = 0.f;
+	for (std::size_t i = 0; i < octaves; i++) {
+		worleyNoise += amplitude * Noise(x * frequency, y * frequency, z * frequency);
+		maxValue += amplitude;
+
+		frequency *= lacunarity;
+		amplitude *= gain;
+	}
+	return worleyNoise / maxValue;
 }

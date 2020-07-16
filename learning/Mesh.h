@@ -11,6 +11,11 @@
 #include "../basic/math/Math.h"
 #include "glew.h"
 
+//Assimp
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 using namespace std;
 
 class Mesh {
@@ -26,7 +31,7 @@ protected:
 
 public:
 	Mesh();
-	Mesh(string filename);
+	explicit Mesh(const string& filename); //using Assimp as model loader
 	virtual ~Mesh();
 
 	void CreatePlane();
