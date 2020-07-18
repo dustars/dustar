@@ -1,5 +1,10 @@
 # Introduction:
-This is a small renderer I developed through the journey of learning Computer Graphics. Currently there's no specific purpose except experimenting grapchics algorithms in which I'm interested. So, as one may expect, it's a Hodgepodge with various "food" in different quality.
+A small renderer I developed through the journey of learning Computer Graphics. Currently there's no specific purpose except experimenting grapchics algorithms. So, in a sense, it's just a Hodgepodge with various "food" in different quality.
+
+**Update 7/17/2020**
+
+To make project well-organized and clean, all dependencies will be removed to [vcpkg](https://github.com/microsoft/vcpkg), which is a very convenient tool to manage C and C++ libraries cross-platform.
+
 
 The **ongoing project** is Volumetric Real-time Cloud for my master dissertation in Newcastle University, UK.
 
