@@ -72,8 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\GLEW\include\GL;$(IncludePath)</IncludePath>
-    <LibraryPath>..\;..\Debug;..\GLEW\lib\Release\Win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>..\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,6 +95,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -143,13 +145,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cloud.cpp" />
-    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GeneralFrameBuffer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="ParticleSystem\Particle.cpp" />
     <ClCompile Include="ParticleSystem\ParticleMaster.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
@@ -158,10 +157,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="RenderObjectManager.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Trajectory.cpp" />
-    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="WorleyNoise.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -170,15 +166,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="Cloud.h" />
-    <ClInclude Include="Debug.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GeneralFrameBuffer.h" />
     <ClInclude Include="HeightMap.h" />
     <ClInclude Include="Lightings\Light.h" />
     <ClInclude Include="Lightings\PointLight.h" />
-    <ClInclude Include="Mesh.h" />
     <ClInclude Include="ParticleSystem\Particle.h" />
     <ClInclude Include="ParticleSystem\ParticleMaster.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
@@ -187,10 +180,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="RenderObjectManager.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="Texture.h" />
     <ClInclude Include="Trajectory.h" />
-    <ClInclude Include="Transform.h" />
     <ClInclude Include="WorleyNoise.h" />
   </ItemGroup>
   <ItemGroup>

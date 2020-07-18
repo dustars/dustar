@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Window.h"
-#include "../core/math/Math.h"
+#include "math/Math.h"
 
 constexpr float UPDATE_MULTIPLIER = 100;
 

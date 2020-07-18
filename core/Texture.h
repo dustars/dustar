@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "glew.h"
+#include <GL/glew.h>
 
 using namespace std;
 

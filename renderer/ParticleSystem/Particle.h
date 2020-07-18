@@ -1,9 +1,8 @@
 #pragma once
 
-#include "glew.h"
+#include <GL/glew.h>
 #include <list>
-#include "../core/math/Vector3.h"
-#include "../core/math/Vector2.h"
+#include "math/math.h"
 
 constexpr auto GRAVITY = -10.f;
 

@@ -32,21 +32,6 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Others</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="ParticleSystem\Particle.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
@@ -71,9 +56,6 @@
     <ClCompile Include="Cloud.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Debug.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GeneralFrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -88,23 +70,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Mesh.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Others</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystem\Particle.h">
       <Filter>ParticleSystem</Filter>
@@ -134,9 +101,6 @@
       <Filter>Lightings</Filter>
     </ClInclude>
     <ClInclude Include="Cloud.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Debug.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="FrameBuffer.h">

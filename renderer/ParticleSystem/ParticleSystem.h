@@ -3,13 +3,12 @@
 	2. The Renderer here makes a circular dependence (As a pointer)
 */
 
-
 #pragma once
 #include "Particle.h"
 #include "../Renderer.h"
-#include "../Texture.h"
-#include "../Shader.h"
-#include "../Camera.h"
+#include "Texture.h"
+#include "Shader.h"
+#include "Camera.h"
 #include <list>
 
 using namespace std;

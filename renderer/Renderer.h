@@ -14,7 +14,6 @@
 	4. Debugger.
 */
 
-
 #pragma once
 #include "RenderBase.h"
 #include "RenderObject.h"
@@ -37,7 +36,7 @@
 #define TESTING
 //#define OFFLINE
 #define THREADING
-#define RENDER_CLOUD
+//#define RENDER_CLOUD
 
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;

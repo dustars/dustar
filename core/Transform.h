@@ -1,5 +1,5 @@
 #pragma once
-#include "../core/math/Math.h"
+#include "math/Math.h"
 
 class Transform
 {

@@ -1,29 +1,23 @@
+/*
+	Transplant from the NCLGL Graphics module
+*/
+
 #pragma once
-
-// Transplant from the NCLGL Graphics module
-
 #include <string>
 #include <fstream>
 #include <vector>
 
-#include "glew.h"
-#include "wglew.h"
-
-//Math
-#include "math/Vector4.h"
-#include "math/Vector3.h"
-#include "math/Vector2.h"
-#include "math/Quaternion.h"
-#include "math/Matrix4.h"
+#include <GL/glew.h>
+#include <GL/wglew.h>
 
 //basic funtionalities
+#include "math/math.h"
 #include "Window.h"
 
 using namespace std;
 using std::vector;
 
 #pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glew32s.lib")
 
 class RenderBase
 {

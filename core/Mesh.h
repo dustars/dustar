@@ -8,13 +8,13 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "../core/math/Math.h"
-#include "glew.h"
+#include "math/Math.h"
 
 //Assimp
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <GL/glew.h>
 
 using namespace std;
 
