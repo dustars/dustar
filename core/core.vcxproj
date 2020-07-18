@@ -156,8 +156,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="3rdParty\stb_image.h" />
-    <ClInclude Include="3rdParty\stb_image_write.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="GameTimer.h" />

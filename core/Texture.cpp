@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "3rdParty/stb_image.h"
+#include <stb_image.h>
 
 bool Texture::SetTexture(const string& file, unsigned numR)
 {

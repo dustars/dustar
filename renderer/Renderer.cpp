@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "3rdParty/stb_image_write.h"
+#include <stb_image_write.h>
 
 Renderer::Renderer(Window& parent)
 	: RenderBase(parent),
