@@ -1,5 +1,5 @@
 # Introduction:
-A small renderer I developed through the journey of learning Computer Graphics. Currently there's no specific purpose except experimenting grapchics algorithms. So, in a sense, it's just a Hodgepodge with various "food" in different quality.
+A small renderer developed through my journey of learning Computer Graphics.
 
 The **ongoing project** is Volumetric Real-time Cloud for my master dissertation in Newcastle University, UK.
 
