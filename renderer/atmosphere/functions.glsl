@@ -55,60 +55,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*<h2>atmosphere/functions.glsl</h2>
-
-<p>This GLSL file contains the core functions that implement our atmosphere
-model. It provides functions to compute the transmittance, the single scattering
-and the second and higher orders of scattering, the ground irradiance, as well
-as functions to store these in textures and to read them back. It uses physical
-types and constants which are provided in two versions: a
-<a href="definitions.glsl.html">GLSL version</a> and a
-<a href="reference/definitions.h.html">C++ version</a>. This allows this file to
-be compiled either with a GLSL compiler or with a C++ compiler (see the
-<a href="../index.html">Introduction</a>).
-
-<p>The functions provided in this file are organized as follows:
-<ul>
-<li><a href="#transmittance">Transmittance</a>
-<ul>
-<li><a href="#transmittance_computation">Computation</a></li>
-<li><a href="#transmittance_precomputation">Precomputation</a></li>
-<li><a href="#transmittance_lookup">Lookup</a></li>
-</ul>
-</li>
-<li><a href="#single_scattering">Single scattering</a>
-<ul>
-<li><a href="#single_scattering_computation">Computation</a></li>
-<li><a href="#single_scattering_precomputation">Precomputation</a></li>
-<li><a href="#single_scattering_lookup">Lookup</a></li>
-</ul>
-</li>
-<li><a href="#multiple_scattering">Multiple scattering</a>
-<ul>
-<li><a href="#multiple_scattering_computation">Computation</a></li>
-<li><a href="#multiple_scattering_precomputation">Precomputation</a></li>
-<li><a href="#multiple_scattering_lookup">Lookup</a></li>
-</ul>
-</li>
-<li><a href="#irradiance">Ground irradiance</a>
-<ul>
-<li><a href="#irradiance_computation">Computation</a></li>
-<li><a href="#irradiance_precomputation">Precomputation</a></li>
-<li><a href="#irradiance_lookup">Lookup</a></li>
-</ul>
-</li>
-<li><a href="#rendering">Rendering</a>
-<ul>
-<li><a href="#rendering_sky">Sky</a></li>
-<li><a href="#rendering_aerial_perspective">Aerial perspective</a></li>
-<li><a href="#rendering_ground">Ground</a></li>
-</ul>
-</li>
-</ul>
-
-<p>They use the following utility functions to avoid NaNs due to floating point
-values slightly outside their theoretical bounds:
-*/
 
 Number ClampCosine(Number mu) {
   return clamp(mu, Number(-1.0), Number(1.0));

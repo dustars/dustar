@@ -27,17 +27,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*<h2>atmosphere/constants.h</h2>
-
-<p>This file defines the size of the precomputed texures used in our atmosphere
-model. It also provides tabulated values of the <a href=
-"https://en.wikipedia.org/wiki/CIE_1931_color_space#Color_matching_functions"
->CIE color matching functions</a> and the conversion matrix from the <a href=
-"https://en.wikipedia.org/wiki/CIE_1931_color_space">XYZ</a> to the
-<a href="https://en.wikipedia.org/wiki/SRGB">sRGB</a> color spaces (which are
-needed to convert the spectral radiance samples computed by our algorithm to
-sRGB luminance values).
-*/
 
 #ifndef ATMOSPHERE_CONSTANTS_H_
 #define ATMOSPHERE_CONSTANTS_H_

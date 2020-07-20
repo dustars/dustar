@@ -24,6 +24,7 @@
 #include "HeightMap.h"
 #include "Trajectory.h"
 #include "WorleyNoise.h"
+#include "atmosphere/model.h"
 
 #include "Lightings/PointLight.h"
 #include "Cloud.h"
@@ -37,6 +38,8 @@
 //#define OFFLINE
 #define THREADING
 //#define RENDER_CLOUD
+#define ATMOSPHERE
+//#define TESTING_OBJECT
 
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
@@ -57,8 +60,8 @@ public:
 	Camera* GetCamera()		const{ return camera; }
 	Matrix4 GetProjMatrix() const{ return projMatrix; }
 
-protected:
-	
+private:
+	//Render Objects
 	RenderObject*		object			= nullptr;
 	RenderObject*		trajectory		= nullptr;
 	RenderObject*		skybox			= nullptr;
@@ -85,7 +88,6 @@ protected:
 	float oneFrame = 0;
 	Debug debugger;
 
-private:
 	//The FBO contains the result of Rasterization rendering.
 	std::unique_ptr<FrameBuffer> renderFBO;
 
@@ -109,6 +111,14 @@ private:
 	void CreateCloud();
 	void RenderCloud();
 	void CreateCloud3DTexture();
+
+	//For atmospheic scattering
+	std::unique_ptr<atmosphere::Model> atmosphereScattering;
+	RenderObject atmosphereScatteringShader;
+	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
+	//into these two methods (model initialization and rendering)
+	void CreateAtmosphericScatteringModel();
+	void RenderAtmosphericScatteringModel();
 
 public:
 	//Save the initial frame in "demo/screenshot.jpg"

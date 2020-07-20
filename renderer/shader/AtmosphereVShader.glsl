@@ -27,31 +27,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*<h2>atmosphere/reference/functions.cc</h2>
+#version 450 core
 
-<p>This file "provides" the C++ implementation of our atmosphere model. In fact
-the real implementation is provided in the
-<a href="../functions.glsl">corresponding GLSL file</a>, which is included here,
-after the definition of the macros which are needed to be able to compile this
-GLSL code as C++.
-*/
+uniform mat4 model_from_view;
+uniform mat4 view_from_clip;
 
-#include "atmosphere/reference/functions.h"
+layout(location = 0) in vec3 position;
 
-#include <cassert>
+out vec3 view_ray;
 
-#define IN(x) const x&
-#define OUT(x) x&
-#define TEMPLATE(x) template<class x>
-#define TEMPLATE_ARGUMENT(x) <x>
-
-namespace atmosphere {
-namespace reference {
-
-using std::max;
-using std::min;
-
-#include "atmosphere/functions.glsl"
-
-}  // namespace reference
-}  // namespace atmosphere
+void main() {
+    //interpolated view ray?
+    view_ray = (model_from_view * vec4((view_from_clip * vec4(position, 1.0)).xyz, 0.0)).xyz;
+    gl_Position = vec4(position * 2.0, 1.0);
+}

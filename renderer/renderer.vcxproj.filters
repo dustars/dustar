@@ -68,6 +68,9 @@
     <ClCompile Include="PerlinNoise.cpp">
       <Filter>Others</Filter>
     </ClCompile>
+    <ClCompile Include="atmosphere\model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -118,6 +121,12 @@
     <ClInclude Include="PerlinNoise.h">
       <Filter>Others</Filter>
     </ClInclude>
+    <ClInclude Include="atmosphere\constants.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="atmosphere\model.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\LearningVShader.glsl">
@@ -159,5 +168,15 @@
     <None Include="shader\TextureOnlyVShader.glsl">
       <Filter>shader</Filter>
     </None>
+    <None Include="atmosphere\definitions.glsl" />
+    <None Include="atmosphere\functions.glsl" />
+    <None Include="atmosphere\definitions.glsl.inc">
+      <Filter>Core</Filter>
+    </None>
+    <None Include="atmosphere\functions.glsl.inc">
+      <Filter>Core</Filter>
+    </None>
+    <None Include="shader\AtmosphereFShader.glsl" />
+    <None Include="shader\AtmosphereVShader.glsl" />
   </ItemGroup>
 </Project>
