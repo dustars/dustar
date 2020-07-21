@@ -18,7 +18,7 @@
 #include "RenderBase.h"
 #include "RenderObject.h"
 #include "Camera.h"
-#include "Debug.h"
+#include "tools/Debug.h"
 #include "GeneralFrameBuffer.h"
 
 #include "HeightMap.h"
@@ -38,7 +38,7 @@
 //#define OFFLINE
 #define THREADING
 //#define RENDER_CLOUD
-#define ATMOSPHERE
+//#define ATMOSPHERE
 //#define TESTING_OBJECT
 
 constexpr auto MAPWIDTH = 500;
@@ -85,8 +85,12 @@ private:
 
 	//Utility
 	const float renderFrames = 1000.f / 60.f;
-	float oneFrame = 0;
+	float oneFramePerMilliSecond = 0;
+	float oneFramePerSecond;
+	std::size_t frameCount = 0;
+	std::size_t fps = 0;
 	Debug debugger;
+	TextRenderer textRenderer;
 
 	//The FBO contains the result of Rasterization rendering.
 	std::unique_ptr<FrameBuffer> renderFBO;

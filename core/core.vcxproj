@@ -157,7 +157,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Debug.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Keyboard.h" />
@@ -172,13 +171,14 @@
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="RenderBase.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="tools\TextRenderer.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="tools\Debug.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="math\Matrix4.cpp" />
@@ -187,7 +187,9 @@
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="tools\TextRenderer.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="tools\Debug.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>

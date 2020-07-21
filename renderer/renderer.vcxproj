@@ -198,6 +198,8 @@
     <None Include="shader\HeightMapFShader.glsl" />
     <None Include="shader\HeightMapVShader.glsl" />
     <None Include="shader\LearningVShader.glsl" />
+    <None Include="shader\TextRenderingFShader.glsl" />
+    <None Include="shader\TextRenderingVShader.glsl" />
     <None Include="shader\TextureOnlyFShader.glsl" />
     <None Include="shader\TextureOnlyVShader.glsl" />
     <None Include="shader\ParticleBaseFShader.glsl" />

@@ -5,7 +5,8 @@
 
 Renderer::Renderer(Window& parent)
 	: RenderBase(parent),
-	renderFBO(new GeneralFrameBuffer(width, height))
+	renderFBO(new GeneralFrameBuffer(width, height)),
+	textRenderer(TextRenderer(width, height))
 {
 #ifdef TESTING
 	camera = new Camera(0.f, 180.f, Vector3(0.f, 0.f, -10.f));
@@ -90,17 +91,17 @@ void Renderer::Update(float dt) {
 	camera->UpdateCamera(dt);
 
 	// Temporary method to limit frame rate at 60FPS
-	oneFrame += dt;
-	if (oneFrame > renderFrames) {
+	oneFramePerMilliSecond += dt;
+	if (oneFramePerMilliSecond > renderFrames) {
 		////////////////////////
 		//  Locations Update  //
 		////////////////////////
 		if (particleMaster) {
-			particleMaster->Update(oneFrame);
+			particleMaster->Update(oneFramePerMilliSecond);
 		}
 
 		if (trajectory) {
-			trajectory->GetMesh()->Update(oneFrame);
+			trajectory->GetMesh()->Update(oneFramePerMilliSecond);
 		}
 
 		////////////////////////
@@ -112,7 +113,14 @@ void Renderer::Update(float dt) {
 #else
 		Render();
 #endif
-		oneFrame = 0;
+		oneFramePerSecond += oneFramePerMilliSecond;
+		frameCount++;
+		oneFramePerMilliSecond = 0;
+		if (oneFramePerSecond > 1000.f) {
+			oneFramePerSecond = 0;
+			fps = frameCount;
+			frameCount = 0;
+		}
 	}
 }
 
@@ -169,6 +177,7 @@ void Renderer::TestRendering()
 #ifdef OFFLINE
 	ScreenShot("Offline_Rendering");
 #else
+	textRenderer.RenderText("FPS: " + to_string(fps), 10.0f, height - 25.f);
 	::SwapBuffers(deviceContext);
 #endif
 }
@@ -386,13 +395,6 @@ void Renderer::CreateAtmosphericScatteringModel()
 	bool	use_half_precision_ = true;
 	bool	use_luminance_ = NONE;
 	bool	do_white_balance_ = false;
-	bool	show_help_ = true;
-	float	view_distance_meters_ = 9000.0;
-	float	view_zenith_angle_radians_ = 1.47;
-	float	view_azimuth_angle_radians_ = -0.1;
-	float	sun_zenith_angle_radians_ = 1.3;
-	float	sun_azimuth_angle_radians_ = 2.9;
-	float	exposure_ = 10.0;
 
 	constexpr int kLambdaMin = 360;
 	constexpr int kLambdaMax = 830;
@@ -537,8 +539,10 @@ void Renderer::RenderAtmosphericScatteringModel()
 	constexpr double kLengthUnitInMeters = 1000.0;
 	bool	use_luminance_ = NONE;
 	float	view_distance_meters_ = 9000.0;
-	float	view_zenith_angle_radians_ = 1.47;
-	float	view_azimuth_angle_radians_ = -0.1;
+
+
+	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch());		//1.47
+	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());		//-0.1
 	float	sun_zenith_angle_radians_ = 1.3;
 	float	sun_azimuth_angle_radians_ = 2.9;
 	float	exposure_ = 10.0;
@@ -563,10 +567,13 @@ void Renderer::RenderAtmosphericScatteringModel()
 	};
 
 	glUseProgram(atmosphereScatteringShader.GetShader()->GetProgram());
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "viewMatrix"),1, GL_FALSE,
+		(float*)&camera->BuildViewMatrix());
+	
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
-		model_from_view[3],
-		model_from_view[7],
-		model_from_view[11]);
+		camera->GetPosition().x,
+		camera->GetPosition().z,
+		camera->GetPosition().y);
 	glUniform1f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "exposure"),
 		use_luminance_ != NONE ? exposure_ * 1e-5 : exposure_);
 	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "model_from_view"),

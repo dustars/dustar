@@ -31,6 +31,7 @@
 
 uniform mat4 model_from_view;
 uniform mat4 view_from_clip;
+uniform mat4 viewMatrix;
 
 layout(location = 0) in vec3 position;
 

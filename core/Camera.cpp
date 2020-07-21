@@ -1,15 +1,10 @@
 #include "Camera.h"
 
-Camera::Camera(void) {
-	pitch = 0.0f;
-	yaw = 0.0f;
-}
-
-Camera::Camera(float pitch, float yaw, Vector3 position) {
-	this->pitch = pitch;
-	this->yaw = yaw;
-	this->position = position;
-}
+Camera::Camera(float pitch, float yaw, Vector3 position):
+	pitch(pitch),
+	yaw(yaw),
+	position(position)
+{}
 
 void Camera::UpdateCamera(float msec) {
 	//Update the mouse by how much
@@ -26,8 +21,6 @@ void Camera::UpdateCamera(float msec) {
 	if (yaw > 360.0f) {
 		yaw -= 360.0f;
 	}
-
-	//msec *= 30.0f;
 
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
 		position += (Matrix4::Rotation(yaw, Vector3(0, 1, 0)) * Vector3(0, 0, -1) * msec) / UPDATE_MULTIPLIER;

@@ -37,9 +37,7 @@ uniform vec3 white_point;
 uniform vec3 earth_center;
 uniform vec3 sun_direction;
 uniform vec2 sun_size;
-
 in vec3 view_ray;
-
 layout(location = 0) out vec4 color;
 
 const float PI = 3.14159265;
@@ -71,6 +69,9 @@ float GetSunVisibility(vec3 point, vec3 sun_direction) {
     float distance_to_intersection = -p_dot_v - sqrt(
         kSphereRadius * kSphereRadius - ray_sphere_center_squared_distance);
     if (distance_to_intersection > 0.0) {
+        // Compute the distance between the view ray and the sphere, and the
+        // corresponding (tangent of the) subtended angle. Finally, use this to
+        // compute an approximate sun visibility.
         float ray_sphere_distance =
             kSphereRadius - sqrt(ray_sphere_center_squared_distance);
         float ray_sphere_angular_distance = -ray_sphere_distance / p_dot_v;
@@ -102,6 +103,7 @@ void GetSphereShadowInOut(vec3 view_direction, vec3 sun_direction,
     if (discriminant > 0.0) {
         d_in = max(0.0, (-b - sqrt(discriminant)) / a);
         d_out = (-b + sqrt(discriminant)) / a;
+        // The values of d for which delta is equal to 0 and kSphereRadius / k.
         float d_base = -pos_dot_sun / view_dot_sun;
         float d_apex = -(pos_dot_sun + kSphereRadius / k) / view_dot_sun;
         if (view_dot_sun > 0.0) {
@@ -120,35 +122,53 @@ void GetSphereShadowInOut(vec3 view_direction, vec3 sun_direction,
 }
 
 void main() {
+    // Normalized view direction vector.
     vec3 view_direction = normalize(view_ray);
+    // Tangent of the angle subtended by this fragment.
     float fragment_angular_size =
         length(dFdx(view_ray) + dFdy(view_ray)) / length(view_ray);
+
     float shadow_in;
     float shadow_out;
     GetSphereShadowInOut(view_direction, sun_direction, shadow_in, shadow_out);
+
+    // Hack to fade out light shafts when the Sun is very close to the horizon.
     float lightshaft_fadein_hack = smoothstep(
         0.02, 0.04, dot(normalize(camera - earth_center), sun_direction));
+
+    // Compute the distance between the view ray line and the sphere center,
+    // and the distance between the camera and the intersection of the view
+    // ray with the sphere (or NaN if there is no intersection).
     vec3 p = camera - kSphereCenter;
     float p_dot_v = dot(p, view_direction);
     float p_dot_p = dot(p, p);
     float ray_sphere_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
     float distance_to_intersection = -p_dot_v - sqrt(
         kSphereRadius * kSphereRadius - ray_sphere_center_squared_distance);
+
+    // Compute the radiance reflected by the sphere, if the ray intersects it.
     float sphere_alpha = 0.0;
     vec3 sphere_radiance = vec3(0.0);
     if (distance_to_intersection > 0.0) {
+        // Compute the distance between the view ray and the sphere, and the
+        // corresponding (tangent of the) subtended angle. Finally, use this to
+        // compute the approximate analytic antialiasing factor sphere_alpha.
         float ray_sphere_distance =
             kSphereRadius - sqrt(ray_sphere_center_squared_distance);
         float ray_sphere_angular_distance = -ray_sphere_distance / p_dot_v;
         sphere_alpha =
             min(ray_sphere_angular_distance / fragment_angular_size, 1.0);
+
         vec3 point = camera + view_direction * distance_to_intersection;
         vec3 normal = normalize(point - kSphereCenter);
+
+        // Compute the radiance reflected by the sphere.
         vec3 sky_irradiance;
         vec3 sun_irradiance = GetSunAndSkyIrradiance(
             point - earth_center, normal, sun_direction, sky_irradiance);
         sphere_radiance =
             kSphereAlbedo * (1.0 / PI) * (sun_irradiance + sky_irradiance);
+
         float shadow_length =
             max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) *
             lightshaft_fadein_hack;
@@ -157,23 +177,32 @@ void main() {
             point - earth_center, shadow_length, sun_direction, transmittance);
         sphere_radiance = sphere_radiance * transmittance + in_scatter;
     }
+
+    // Compute the distance between the view ray line and the Earth center,
+    // and the distance between the camera and the intersection of the view
+    // ray with the ground (or NaN if there is no intersection).
     p = camera - earth_center;
     p_dot_v = dot(p, view_direction);
     p_dot_p = dot(p, p);
     float ray_earth_center_squared_distance = p_dot_p - p_dot_v * p_dot_v;
     distance_to_intersection = -p_dot_v - sqrt(
         earth_center.z * earth_center.z - ray_earth_center_squared_distance);
+
+    // Compute the radiance reflected by the ground, if the ray intersects it.
     float ground_alpha = 0.0;
     vec3 ground_radiance = vec3(0.0);
     if (distance_to_intersection > 0.0) {
         vec3 point = camera + view_direction * distance_to_intersection;
         vec3 normal = normalize(point - earth_center);
+
+        // Compute the radiance reflected by the ground.
         vec3 sky_irradiance;
         vec3 sun_irradiance = GetSunAndSkyIrradiance(
             point - earth_center, normal, sun_direction, sky_irradiance);
         ground_radiance = kGroundAlbedo * (1.0 / PI) * (
             sun_irradiance * GetSunVisibility(point, sun_direction) +
             sky_irradiance * GetSkyVisibility(point));
+
         float shadow_length =
             max(0.0, min(shadow_out, distance_to_intersection) - shadow_in) *
             lightshaft_fadein_hack;
@@ -183,12 +212,16 @@ void main() {
         ground_radiance = ground_radiance * transmittance + in_scatter;
         ground_alpha = 1.0;
     }
+
+    // Compute the radiance of the sky.
     float shadow_length = max(0.0, shadow_out - shadow_in) *
         lightshaft_fadein_hack;
     vec3 transmittance;
     vec3 radiance = GetSkyRadiance(
         camera - earth_center, view_direction, shadow_length, sun_direction,
         transmittance);
+
+    // If the view ray intersects the Sun, add the Sun radiance.
     if (dot(view_direction, sun_direction) > sun_size.y) {
         radiance = radiance + transmittance * GetSolarRadiance();
     }

@@ -1,34 +1,33 @@
 #pragma once
 
 #include "Window.h"
-#include "math/Math.h"
-
-constexpr float UPDATE_MULTIPLIER = 100;
+#include "math/CommonOps.h"
 
 class Camera
 {
 public:
-	Camera(void);
-	Camera(float pitch, float yaw, Vector3 position);
-
+	Camera(float pitch = 0, float yaw = 0, Vector3 position = Vector3(0, 0, 0));
 	~Camera(void) {};
 
 	void UpdateCamera(float msec);
 
 	Matrix4 BuildViewMatrix();
 
-	inline Vector3	GetPosition() const { return position; }
-	inline void		SetPosition(Vector3 val) { position = val; }
+	Vector3	GetPosition() const { return position; }
+	void	SetPosition(Vector3 val) { position = val; }
 
-	inline float	GetYaw()   const { return yaw; }
-	inline void		SetYaw(float y) { yaw = y; }
+	float	GetYaw()   const { return yaw; }
+	void	SetYaw(float y) { yaw = y; }
 
-	inline float	GetPitch() const { return pitch; }
-	inline void		SetPitch(float p) { pitch = p; }
+	float	GetPitch() const { return pitch; }
+	void	SetPitch(float p) { pitch = p; }
 
-protected:
+private:
 	float	yaw;
 	float	pitch;
 	Vector3 position;
+
+	//Camera update speed
+	static constexpr float UPDATE_MULTIPLIER = 100.f;
 };
 
