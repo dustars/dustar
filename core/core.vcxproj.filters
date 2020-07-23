@@ -116,4 +116,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="tools\fonts\arial.ttf" />
+  </ItemGroup>
 </Project>

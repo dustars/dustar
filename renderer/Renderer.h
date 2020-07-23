@@ -38,8 +38,8 @@
 //#define OFFLINE
 #define THREADING
 //#define RENDER_CLOUD
-//#define ATMOSPHERE
-//#define TESTING_OBJECT
+#define ATMOSPHERE
+#define TESTING_OBJECT
 
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
@@ -59,6 +59,9 @@ public:
 
 	Camera* GetCamera()		const{ return camera; }
 	Matrix4 GetProjMatrix() const{ return projMatrix; }
+
+	//Utility
+	void SwitchIsRenderingText() { isRenderingText = !isRenderingText; }
 
 private:
 	//Render Objects
@@ -91,6 +94,8 @@ private:
 	std::size_t fps = 0;
 	Debug debugger;
 	TextRenderer textRenderer;
+	bool isRenderingText = true;
+	void RenderText();
 
 	//The FBO contains the result of Rasterization rendering.
 	std::unique_ptr<FrameBuffer> renderFBO;

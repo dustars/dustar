@@ -79,7 +79,7 @@ TextRenderer::TextRenderer(std::size_t width, std::size_t height, std::size_t fo
     glUseProgram(0);
 }
 
-void TextRenderer::RenderText(std::string text, float x, float y, float scale, Vector3 color)
+void TextRenderer::RenderText(const std::string& text, float x, float y, float scale, Vector3 color)
 {
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);

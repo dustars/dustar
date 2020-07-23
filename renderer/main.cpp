@@ -26,7 +26,8 @@ int main() {
 
 		renderer.Update(w.GetTimer()->GetTimedMS());
 
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_P)) renderer.ScreenShot(); // ScreenShot, saved in "demo/screenshot.jpg"
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_P)) renderer.ScreenShot(); // ScreenShot, saved in "demo/screenshot.jpg"
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_T)) renderer.SwitchIsRenderingText();
 	}
 #endif
 	return 0;

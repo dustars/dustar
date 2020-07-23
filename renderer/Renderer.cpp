@@ -159,7 +159,11 @@ void Renderer::TestRendering()
 #endif
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+#ifdef ATMOSPHERE
+	if (atmosphereScattering.get()) RenderAtmosphericScatteringModel();
+#else
 	if (skybox) renderSkyBox();
+#endif // ATMOSPHERE
 
 	if (object) {
 		glEnable(GL_DEPTH_TEST);
@@ -172,12 +176,10 @@ void Renderer::TestRendering()
 	RenderCloud();
 #endif
 
-	if( atmosphereScattering.get() ) RenderAtmosphericScatteringModel();
-
 #ifdef OFFLINE
 	ScreenShot("Offline_Rendering");
 #else
-	textRenderer.RenderText("FPS: " + to_string(fps), 10.0f, height - 25.f);
+	if (isRenderingText) RenderText();
 	::SwapBuffers(deviceContext);
 #endif
 }
@@ -213,6 +215,18 @@ void Renderer::renderSkyBox()
 
 	glDepthMask(GL_TRUE);
 	glUseProgram(0);
+}
+
+void Renderer::RenderText()
+{
+	textRenderer.RenderText("FPS: " + to_string(fps), 10.0f, height - 25.f);
+	string CameraPositionText = "Camera Position: " +
+		to_string(camera->GetPosition().x) + ", " +
+		to_string(camera->GetPosition().y) + ", " +
+		to_string(camera->GetPosition().z);
+	textRenderer.RenderText(CameraPositionText, 10.0f, height - 45.f);
+	textRenderer.RenderText("Camera Pitch: " + to_string(camera->GetPitch()), 10.0f, height - 65.f);
+	textRenderer.RenderText("Camera Yaw: " + to_string(camera->GetYaw()), 10.0f, height - 85.f);
 }
 
 void Renderer::RealTimeVoxelization()
@@ -541,8 +555,10 @@ void Renderer::RenderAtmosphericScatteringModel()
 	float	view_distance_meters_ = 9000.0;
 
 
-	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch());		//1.47
+	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch() + 90.f);		//1.47
+	//float	view_zenith_angle_radians_ = 1.47;		//1.47
 	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());		//-0.1
+	//float	view_azimuth_angle_radians_ = -0.1;
 	float	sun_zenith_angle_radians_ = 1.3;
 	float	sun_azimuth_angle_radians_ = 2.9;
 	float	exposure_ = 10.0;
@@ -567,9 +583,10 @@ void Renderer::RenderAtmosphericScatteringModel()
 	};
 
 	glUseProgram(atmosphereScatteringShader.GetShader()->GetProgram());
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "viewMatrix"),1, GL_FALSE,
-		(float*)&camera->BuildViewMatrix());
-	
+	//glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
+	//	model_from_view[3],
+	//	model_from_view[7],
+	//	model_from_view[11]);
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
 		camera->GetPosition().x,
 		camera->GetPosition().z,
