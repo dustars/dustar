@@ -32,6 +32,7 @@ float eccentricityG = 0.2f;
 
 in VS{
 	vec2 texCoord;
+	//vec3 viewRay;
 }IN;
 
 out vec4 FragColor;
@@ -155,6 +156,7 @@ void main(void)
 	vec2 uv = (gl_FragCoord.xy - .5 * resolution) / resolution;
 	vec3 rayPos = cameraPos;
 	vec3 rayDir = normalize(((rotationMatrix * vec4(normalize(vec3(uv, -1)), 1))).xyz);
+	//vec3 rayDir = normalize(IN.viewRay);
 
 	//Ray marching
 	//vec2 rayInfo = BoxRayMarching(rayPos, rayDir);

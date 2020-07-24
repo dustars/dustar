@@ -145,11 +145,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="atmosphere\Cloud.cpp" />
     <ClCompile Include="atmosphere\model.cpp" />
-    <ClCompile Include="Cloud.cpp" />
     <ClCompile Include="GeneralFrameBuffer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Others\Voxelization.cpp" />
     <ClCompile Include="ParticleSystem\Particle.cpp" />
     <ClCompile Include="ParticleSystem\ParticleMaster.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
@@ -167,14 +168,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="atmosphere\Cloud.h" />
     <ClInclude Include="atmosphere\constants.h" />
     <ClInclude Include="atmosphere\model.h" />
-    <ClInclude Include="Cloud.h" />
+    <ClInclude Include="Configuration.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GeneralFrameBuffer.h" />
     <ClInclude Include="HeightMap.h" />
     <ClInclude Include="Lightings\Light.h" />
     <ClInclude Include="Lightings\PointLight.h" />
+    <ClInclude Include="Others\Voxelization.h" />
     <ClInclude Include="ParticleSystem\Particle.h" />
     <ClInclude Include="ParticleSystem\ParticleMaster.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />

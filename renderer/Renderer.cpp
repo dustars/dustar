@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
+extern inline void SaveAsPicture(const char* filename, std::size_t width, std::size_t height, std::size_t comp, const void* data);
 
 Renderer::Renderer(Window& parent)
 	: RenderBase(parent),
@@ -229,62 +228,6 @@ void Renderer::RenderText()
 	textRenderer.RenderText("Camera Yaw: " + to_string(camera->GetYaw()), 10.0f, height - 85.f);
 }
 
-void Renderer::RealTimeVoxelization()
-{
-	for (int i = 0; i < 6; i++) {
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer[i]);
-
-		switch (i)
-		{
-		case 0:
-			glClearDepth(1.0);
-			glDepthFunc(GL_LESS);
-			camera->SetPosition(Vector3(0.f, 0.f, 20.f)); camera->SetYaw(0.0f); camera->SetPitch(0.f);
-			break;
-		case 1:
-			glClearDepth(0.0);
-			glDepthFunc(GL_GREATER);
-			camera->SetPosition(Vector3(0.f, 0.f, -20.f)); camera->SetYaw(180.0f); camera->SetPitch(0.f);
-			break;
-		case 2:
-			glClearDepth(1.0);
-			glDepthFunc(GL_LESS);
-			camera->SetPosition(Vector3(20.f, 0.f, 0.f)); camera->SetYaw(90.0f); camera->SetPitch(0.f);
-			break;
-		case 3:
-			glClearDepth(0.0);
-			glDepthFunc(GL_GREATER);
-			camera->SetPosition(Vector3(-20.f, 0.f, 0.f)); camera->SetYaw(270.0f); camera->SetPitch(0.f);
-			break;
-		case 4:
-			glClearDepth(1.0);
-			glDepthFunc(GL_LESS);
-			camera->SetPosition(Vector3(0.f, 20.f, 0.f)); camera->SetPitch(-90.f); camera->SetYaw(0.f);
-			break;
-		case 5:
-			glClearDepth(0.0);
-			glDepthFunc(GL_GREATER);
-			camera->SetPosition(Vector3(0.f, -20.f, 0.f)); camera->SetPitch(90.0f); camera->SetYaw(0.f);
-			break;
-		}
-
-		TestRendering();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-	::SwapBuffers(deviceContext);
-
-	//Generate voxel
-
-	//Bind texture, need to be improved
-	glBindTextures(0, 6, depthTex);
-	glUseProgram(voxelShader.GetShader()->GetProgram());
-	glUniform1i(glGetUniformLocation(voxelShader.GetShader()->GetProgram(), "size"), 512);
-	voxelShader.Draw();
-	glUseProgram(0);
-	::SwapBuffers(deviceContext);
-}
-
 void Renderer::CreateCloud()
 {
 	if (!cloudShader.SetShader("shader/CloudVShader.glsl", "shader/CloudFShader.glsl")) {
@@ -292,7 +235,29 @@ void Renderer::CreateCloud()
 	}
 	cloudShader.GetMesh()->CreatePlane(); //ray marching plane
 
-	CreateCloud3DTexture();
+	cloudModel.reset(new atmosphere::Cloud(64, true));
+
+	glUseProgram(cloudShader.GetShader()->GetProgram());
+
+	constexpr double kPi = 3.1415926;
+	const float kFovY = 45.0 / 180.0 * kPi;
+	const float kTanFovY = tan(kFovY / 2.0);
+	float aspect_ratio = static_cast<float>(width) / height;
+
+	// Transform matrix from clip space to camera space (i.e. the inverse of a
+	// GL_PROJECTION matrix).
+	float view_from_clip[16] = {
+	  kTanFovY * aspect_ratio, 0.0, 0.0, 0.0,
+	  0.0, kTanFovY, 0.0, 0.0,
+	  0.0, 0.0, 0.0, -1.0,
+	  0.0, 0.0, 1.0, 1.0
+	};
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, true,
+		view_from_clip);
+
+	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+
+	glUseProgram(0);
 }
 
 void Renderer::RenderCloud()
@@ -301,7 +266,30 @@ void Renderer::RenderCloud()
 
 	glBindTextureUnit(0, renderFBO->GetColorTexture());
 	glBindTextureUnit(1, renderFBO->GetDepthTexture());
-	glBindTextureUnit(2, highFreqNoiseTex);
+	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
+
+
+	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch() + 90.f);
+	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());
+	float cos_z = cos(view_zenith_angle_radians_);
+	float sin_z = sin(view_zenith_angle_radians_);
+	float cos_a = cos(view_azimuth_angle_radians_);
+	float sin_a = sin(view_azimuth_angle_radians_);
+	float ux[3] = { -sin_a, cos_a, 0.0 };
+	float uy[3] = { -cos_z * cos_a, -cos_z * sin_a, sin_z };
+	float uz[3] = { sin_z * cos_a, sin_z * sin_a, cos_z };
+	float model_from_view[16] = {
+	  ux[0], uy[0], uz[0], uz[0],
+	  ux[1], uy[1], uz[1], uz[1],
+	  ux[2], uy[2], uz[2], uz[2],
+	  0.0, 0.0, 0.0, 1.0
+	};
+
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "modelViewMatrix"),
+		1, true, model_from_view);
+
+	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&viewMatrix);
 
 	glUniform2fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "resolution"), 1, (float*)&Vector2(width, height));
 	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());;
@@ -310,88 +298,6 @@ void Renderer::RenderCloud()
 
 	cloudShader.Draw();
 	glUseProgram(0);
-}
-
-void Renderer::CreateCloud3DTexture()
-{
-	std::size_t noiseResolution = 64;
-	int seed = 0;
-
-	unsigned char* data = new unsigned char[noiseResolution * noiseResolution * noiseResolution];
-
-	WorleyNoise worley(noiseResolution, 8, seed);
-	PerlinNoise perlin(seed);
-
-#ifdef THREADING
-	//Resolution of 128 currently takes 31 seconds.
-	int numThreads = 4; //4 or 8, why 8 is not working?
-	std::vector<std::thread> tp;
-
-	//thread execution block (any possile optimizations?)
-	static auto NoiseCalculation = [&](std::size_t z) {
-		for (std::size_t y = 0; y < noiseResolution; y++) {
-			for (std::size_t x = 0; x < noiseResolution; x++) {
-				float worleyNoise = worley.FBMNoise(x, y, z, 3, 2.f, 0.707f);
-				float perlinNoise = perlin.FBMPerlin(static_cast<double>(x) / noiseResolution * 3.0,
-					static_cast<double>(y) / noiseResolution * 3.0,
-					static_cast<double>(z) / noiseResolution * 3.0,
-					7, 2, 0.707);
-				perlinNoise = Clamp(Remap(perlinNoise, 0.0, 1.0, -0.3f, 1.0f), 0.f, 1.f);
-
-
-				//float perlinWorleyNoise = (perlinNoise + worleyNoise) / 2;
-				float perlinWorleyNoise = Remap(perlinNoise, 1.f - worleyNoise, 1.f, 0.f, 1.f);
-
-				data[z * noiseResolution * noiseResolution + y * noiseResolution + x] = static_cast<unsigned char>(perlinWorleyNoise * 255);
-			}
-		}
-	};
-
-	for (std::size_t z = 0; z < noiseResolution / numThreads; z++) {
-
-		for (std::size_t i = 0; i < numThreads; i++) {
-			tp.push_back(thread(NoiseCalculation, z * numThreads + i));
-		}
-
-		for (std::size_t i = 0; i < numThreads; i++) {
-			tp[i].join();
-		}
-		tp.clear();
-	}
-
-#else
-	for (std::size_t z = 0; z < noiseResolution; z++) {
-		for (std::size_t y = 0; y < noiseResolution; y++) {
-			for (std::size_t x = 0; x < noiseResolution; x++) {
-
-				//Create both perlin noise and worley noise
-				float worleyNoise = worley.FBMNoise(x, y, z, 3, 2.f, 0.707f);
-				float perlinNoise = perlin.FBMPerlin(static_cast<double>(x) / noiseResolution * 3.0,
-													 static_cast<double>(y) / noiseResolution * 3.0,
-													 static_cast<double>(z) / noiseResolution * 3.0,
-													 7, 2, 0.707);
-				perlinNoise = Clamp(Remap(perlinNoise, 0.0, 1.0, -0.3f, 1.0f), 0.f, 1.f);
-
-				float perlinWorleyNoise = (perlinNoise + worleyNoise) / 2; //Need a better way
-
-				data[z * noiseResolution * noiseResolution + y * noiseResolution + x] = static_cast<unsigned char>(perlinWorleyNoise * 255);
-			}
-		}
-	}
-#endif
-
-	glGenTextures(1, &highFreqNoiseTex);
-	glBindTexture(GL_TEXTURE_3D, highFreqNoiseTex);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, noiseResolution, noiseResolution, noiseResolution, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
-
-	//stbi_flip_vertically_on_write(TRUE);
-	//stbi_write_jpg("../demo/test.jpg", noiseResolution, noiseResolution, 1, data, 100);
-	//possible memory leak?
-	delete[] data;
 }
 
 void Renderer::CreateAtmosphericScatteringModel()
@@ -527,21 +433,26 @@ void Renderer::CreateAtmosphericScatteringModel()
 		tan(kSunAngularRadius),
 		cos(kSunAngularRadius));
 
-	//Originally this is for resizing windows, but I hardcoded here anyway
+	//Don't know why it is needed, probably due to precomputation
 	glViewport(0, 0, width, height);
 
-	const float kFovY = 50.0 / 180.0 * kPi;
+	const float kFovY = 45.0 / 180.0 * kPi;
 	const float kTanFovY = tan(kFovY / 2.0);
 	float aspect_ratio = static_cast<float>(width) / height;
 
+	// Transform matrix from clip space to camera space (i.e. the inverse of a
+	// GL_PROJECTION matrix).
 	float view_from_clip[16] = {
 	  kTanFovY * aspect_ratio, 0.0, 0.0, 0.0,
 	  0.0, kTanFovY, 0.0, 0.0,
 	  0.0, 0.0, 0.0, -1.0,
 	  0.0, 0.0, 1.0, 1.0
 	};
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "view_from_clip"), 1, true,
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, true,
 		view_from_clip);
+
+	//glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, GL_FALSE,
+	//	(float*)&projMatrix);
 
 	glUseProgram(0);
 }
@@ -550,20 +461,13 @@ void Renderer::RenderAtmosphericScatteringModel()
 {
 	//Redundant parameter data similar to the CreateAtmosphericScatteringModel()
 	enum Luminance {NONE, APPROXIMATE, PRECOMPUTED};
-	constexpr double kLengthUnitInMeters = 1000.0;
 	bool	use_luminance_ = NONE;
-	float	view_distance_meters_ = 9000.0;
-
-
-	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch() + 90.f);		//1.47
-	//float	view_zenith_angle_radians_ = 1.47;		//1.47
-	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());		//-0.1
-	//float	view_azimuth_angle_radians_ = -0.1;
+	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch() + 90.f);	//1.47
+	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());			//-0.1
 	float	sun_zenith_angle_radians_ = 1.3;
 	float	sun_azimuth_angle_radians_ = 2.9;
 	float	exposure_ = 10.0;
 	
-	// Unit vectors of the camera frame, expressed in world space.
 	float cos_z = cos(view_zenith_angle_radians_);
 	float sin_z = sin(view_zenith_angle_radians_);
 	float cos_a = cos(view_azimuth_angle_radians_);
@@ -571,22 +475,17 @@ void Renderer::RenderAtmosphericScatteringModel()
 	float ux[3] = { -sin_a, cos_a, 0.0 };
 	float uy[3] = { -cos_z * cos_a, -cos_z * sin_a, sin_z };
 	float uz[3] = { sin_z * cos_a, sin_z * sin_a, cos_z };
-	float l = view_distance_meters_ / kLengthUnitInMeters;
 
 	// Transform matrix from camera frame to world space (i.e. the inverse of a
 	// GL_MODELVIEW matrix).
 	float model_from_view[16] = {
-	  ux[0], uy[0], uz[0], uz[0] * l,
-	  ux[1], uy[1], uz[1], uz[1] * l,
-	  ux[2], uy[2], uz[2], uz[2] * l,
+	  ux[0], uy[0], uz[0], uz[0],
+	  ux[1], uy[1], uz[1], uz[1],
+	  ux[2], uy[2], uz[2], uz[2],
 	  0.0, 0.0, 0.0, 1.0
 	};
 
 	glUseProgram(atmosphereScatteringShader.GetShader()->GetProgram());
-	//glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
-	//	model_from_view[3],
-	//	model_from_view[7],
-	//	model_from_view[11]);
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
 		camera->GetPosition().x,
 		camera->GetPosition().z,
@@ -631,87 +530,12 @@ void Renderer::CreateTrajectory()
 	trajectory->SetMesh(new Trajectory());
 }
 
-void Renderer::CreateVoxelizationResources()
-{
-	glCreateFramebuffers(6, &frameBuffer[0]);
-	glGenTextures(6, &depthTex[0]);
-	for (std::size_t i = 0; i < 6; i++)
-	{
-		glBindTexture(GL_TEXTURE_2D, depthTex[i]);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, 512, 512);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer[i]);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTex[i], 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	glGenTextures(1, &voxel3DTexture);
-	glBindTexture(GL_TEXTURE_3D, voxel3DTexture);
-	glTextureStorage3D(voxel3DTexture, 1, GL_R8UI, 512, 512, 2); //one channel, unsigned integer
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTextureParameteri(voxel3DTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glBindImageTexture(0, voxel3DTexture, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R8UI);
-
-	voxelShader.SetShader("shader/VoxelizationVShader.glsl", "shader/VoxelizationFShader.glsl");
-	voxelShader.GetMesh()->CreateCube();
-}
-
 void Renderer::ScreenShot(std::string filename)
 {
 	int row_size = ((width * 3 + 3) & ~3);
 	int data_size = row_size * height;
 	unsigned char* data = new unsigned char[data_size];
-
 	glReadPixels(0,0,width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-	
-	stbi_flip_vertically_on_write(TRUE);
-	stbi_write_jpg(("../demo/" + filename + ".jpg").c_str(), width, height, 3, data, 100);
-
-	//possible memory leak?
+	SaveAsPicture(("../demo/" + filename + ".jpg").c_str(), width, height, 3, data);
 	delete[] data;
-}
-
-void Renderer::Voxelization(int size)
-{
-	// 1. Do we get depth value correctly (method)
-	// 2. Do we have all 6 depth textures correct (data)
-	// 3. Do we have correct format for textures, both Zbuffer and voxel?
-	// 4. Do we generate voxel data correctly?
-	// 5. How can I visualize the voxel?
-
-	GLuint depthTex[6];
-	GLuint frameBuffer;
-
-	glGenTextures(6, depthTex);
-	for (std::size_t i = 0; i < 6; i++) {
-		glBindTexture(GL_TEXTURE_2D, depthTex[i]);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, size, size);
-	}
-
-	glCreateFramebuffers(1, &frameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-	for (std::size_t i = 0; i < 6; i++) {
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTex[i], 0);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		renderObject();
-		// Rotate camera
-		::SwapBuffers(deviceContext);
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	if (!object->SetShader("shader/VoxelizationVShader.glsl", "shader/VoxelizationFShader.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-	//Bind texture, need to be improved
-	glBindTexture(GL_TEXTURE_2D, depthTex[0]);
-
-	glUseProgram(object->GetShader()->GetProgram());
-	glUniform1i(glGetUniformLocation(object->GetShader()->GetProgram(), "size"), size);
-	object->Draw();
-	glUseProgram(0);
 }

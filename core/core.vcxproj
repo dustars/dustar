@@ -175,6 +175,7 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="tools\Debug.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Utility.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

@@ -30,13 +30,13 @@
 #version 450 core
 
 uniform mat4 model_from_view;
-uniform mat4 view_from_clip;
+uniform mat4 projMatrix;
 
 layout(location = 0) in vec3 position;
 
 out vec3 view_ray;
 
 void main() {
-    view_ray = (model_from_view * vec4((view_from_clip * vec4(position, 1.0)).xyz, 0.0)).xyz;
+    view_ray = (model_from_view * vec4((projMatrix * vec4(position * 2.0, 1.0)).xyz, 0.0)).xyz;
     gl_Position = vec4(position * 2.0, 1.0);
 }

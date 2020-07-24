@@ -15,6 +15,7 @@
 */
 
 #pragma once
+#include "Configuration.h"
 #include "RenderBase.h"
 #include "RenderObject.h"
 #include "Camera.h"
@@ -23,23 +24,13 @@
 
 #include "HeightMap.h"
 #include "Trajectory.h"
-#include "WorleyNoise.h"
 #include "atmosphere/model.h"
-
+#include "atmosphere/Cloud.h"
 #include "Lightings/PointLight.h"
-#include "Cloud.h"
-
 #include "ParticleSystem/ParticleMaster.h"
 
 #include <memory>
 #include <thread>
-
-#define TESTING
-//#define OFFLINE
-#define THREADING
-//#define RENDER_CLOUD
-#define ATMOSPHERE
-#define TESTING_OBJECT
 
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
@@ -69,6 +60,10 @@ private:
 	RenderObject*		trajectory		= nullptr;
 	RenderObject*		skybox			= nullptr;
 
+	//The FBO contains the result of Rasterization rendering.
+	std::unique_ptr<FrameBuffer> renderFBO;
+
+	//Coordinate related
 	Camera*		camera					= nullptr;
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
@@ -76,6 +71,7 @@ private:
 	//Lightings
 	PointLight*			pointLight1		= nullptr;
 
+	//Particle System
 	ParticleMaster*		particleMaster	= nullptr;
 
 	//Temp creations
@@ -85,6 +81,20 @@ private:
 	//Rendering
 	void renderObject();
 	void renderSkyBox();
+
+	//For Cloud
+	std::unique_ptr<atmosphere::Cloud> cloudModel;
+	RenderObject cloudShader;
+	void CreateCloud();
+	void RenderCloud();
+
+	//For atmospheic scattering
+	std::unique_ptr<atmosphere::Model> atmosphereScattering;
+	RenderObject atmosphereScatteringShader;
+	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
+	//into these two methods (model initialization and rendering)
+	void CreateAtmosphericScatteringModel();
+	void RenderAtmosphericScatteringModel();
 
 	//Utility
 	const float renderFrames = 1000.f / 60.f;
@@ -97,42 +107,9 @@ private:
 	bool isRenderingText = true;
 	void RenderText();
 
-	//The FBO contains the result of Rasterization rendering.
-	std::unique_ptr<FrameBuffer> renderFBO;
-
-	//For voxelization
-	//Get rid of them, make them a new class pleaseeeeeeeeeeeeeeeeee, What a mess
-	GLuint depthTex[6];
-	GLuint frameBuffer[6];
-
-	RenderObject voxelShader;
-	GLuint voxel3DTexture;
-
-	void CreateVoxelizationResources();
-	void RealTimeVoxelization(); //I know this is a unacceptably stupid idea....
-
-	//For Cloud
-	RenderObject cloudShader;
-	GLuint highFreqNoiseTex;
-	GLuint lowFreqNoiseTex;
-	GLuint weatherMapTex;
-
-	void CreateCloud();
-	void RenderCloud();
-	void CreateCloud3DTexture();
-
-	//For atmospheic scattering
-	std::unique_ptr<atmosphere::Model> atmosphereScattering;
-	RenderObject atmosphereScatteringShader;
-	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
-	//into these two methods (model initialization and rendering)
-	void CreateAtmosphericScatteringModel();
-	void RenderAtmosphericScatteringModel();
-
 public:
 	//Save the initial frame in "demo/screenshot.jpg"
-	void ScreenShot(std::string filename = "screenshot"); //Shouldn't this method be in the camera class?
-	void Voxelization(int);
+	void ScreenShot(std::string filename = "Screenshot");
 };
 
 
