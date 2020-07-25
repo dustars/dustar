@@ -43,7 +43,11 @@ static inline float EulerDistance(float x, float y, float z, float x1, float y1,
 	float disX = x1 - x;
 	float disY = y1 - y;
 	float disZ = z1 - z;
-	return sqrt(disX * disX + disY * disY + disZ * disZ);
+	disX *= disX;
+	disY *= disY;
+	disZ *= disZ;
+	disX += disY + disZ;
+	return sqrt(disX);
 }
 
 static inline float Remap(float value, float oldMin, float oldMax, float newMin, float newMax)

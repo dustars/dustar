@@ -21,6 +21,8 @@ Renderer::Renderer(Window& parent)
 		cout << "Texture set up failed!" << endl;
 	}
 	object->GetMesh()->CreatePlane();
+	//noiseGeneration();
+	//object->GetTexture()->SetTexture(noiseTex);
 #endif // TESTING_OBJECT
 
 	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(10.f, 10.f, 10.f));
@@ -235,29 +237,11 @@ void Renderer::CreateCloud()
 	}
 	cloudShader.GetMesh()->CreatePlane(); //ray marching plane
 
-	cloudModel.reset(new atmosphere::Cloud(64, true));
+	cloudModel.reset(new atmosphere::Cloud(128, true));
 
-	glUseProgram(cloudShader.GetShader()->GetProgram());
-
-	constexpr double kPi = 3.1415926;
-	const float kFovY = 45.0 / 180.0 * kPi;
-	const float kTanFovY = tan(kFovY / 2.0);
-	float aspect_ratio = static_cast<float>(width) / height;
-
-	// Transform matrix from clip space to camera space (i.e. the inverse of a
-	// GL_PROJECTION matrix).
-	float view_from_clip[16] = {
-	  kTanFovY * aspect_ratio, 0.0, 0.0, 0.0,
-	  0.0, kTanFovY, 0.0, 0.0,
-	  0.0, 0.0, 0.0, -1.0,
-	  0.0, 0.0, 1.0, 1.0
-	};
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, true,
-		view_from_clip);
-
+	//glUseProgram(cloudShader.GetShader()->GetProgram());
 	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-
-	glUseProgram(0);
+	//glUseProgram(0);
 }
 
 void Renderer::RenderCloud()
@@ -267,26 +251,7 @@ void Renderer::RenderCloud()
 	glBindTextureUnit(0, renderFBO->GetColorTexture());
 	glBindTextureUnit(1, renderFBO->GetDepthTexture());
 	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
-
-
-	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch() + 90.f);
-	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());
-	float cos_z = cos(view_zenith_angle_radians_);
-	float sin_z = sin(view_zenith_angle_radians_);
-	float cos_a = cos(view_azimuth_angle_radians_);
-	float sin_a = sin(view_azimuth_angle_radians_);
-	float ux[3] = { -sin_a, cos_a, 0.0 };
-	float uy[3] = { -cos_z * cos_a, -cos_z * sin_a, sin_z };
-	float uz[3] = { sin_z * cos_a, sin_z * sin_a, cos_z };
-	float model_from_view[16] = {
-	  ux[0], uy[0], uz[0], uz[0],
-	  ux[1], uy[1], uz[1], uz[1],
-	  ux[2], uy[2], uz[2], uz[2],
-	  0.0, 0.0, 0.0, 1.0
-	};
-
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "modelViewMatrix"),
-		1, true, model_from_view);
+	glBindTextureUnit(3, cloudModel->GetDetailShapeNoiseTex());
 
 	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&viewMatrix);
@@ -528,6 +493,41 @@ void Renderer::CreateTrajectory()
 	}
 
 	trajectory->SetMesh(new Trajectory());
+}
+
+void Renderer::noiseGeneration()
+{
+	glGenTextures(1, &noiseTex);
+	glBindTexture(GL_TEXTURE_2D, noiseTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	std::size_t res = 512;
+	PerlinNoise perlin;
+	WorleyNoise worley(res, 8);
+
+	unsigned char* data = new unsigned char[res * res];
+
+
+	for (std::size_t y = 0; y < res; y++) {
+		for (std::size_t x = 0; x < res; x++) {
+			float worleyNoise = worley.FBMNoise(x, y, 0, 3, 2.f, 0.707f);
+			float perlinNoise = perlin.FBMPerlin( static_cast<double>(x) / res * 3.0,
+				static_cast<double>(y) / res * 3.0, 0, 7, 2, 0.707);
+
+			perlinNoise = Remap(perlinNoise, 0, 1.2, 0, 1);
+			float temp = Clamp(Remap(perlinNoise, worleyNoise, 1.f, 0.f, 1.f), 0.f, 1.f);
+
+			data[y * res + x] = static_cast<unsigned char>(temp * 255);
+		}
+	}
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, res, res, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
+	SaveAsPicture("../demo/PerlinWorleyNoise.jpg", res, res, 1, static_cast<void*>(data));
+
+	delete[] data;
 }
 
 void Renderer::ScreenShot(std::string filename)

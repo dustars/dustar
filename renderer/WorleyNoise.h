@@ -1,15 +1,17 @@
 /*
 	Description:
 	Worley noise class.
-	For the purpose of optimization, this class is tailored for the cloud generation.
-	Modify it if using for other purposes, such as cancelling the invertion.
+
+	Created:
+	6/27/2020
+	Last Updated:
+	7/25/2020
 
 	To Do:
-	>Compute Shader. (Require a glsl implementation)
-	>MultiThreading.
+	>Compute Shader. (Optional)
 	>Optimization.
 	See http://webstaff.itn.liu.se/~stegu/GLSL-cellular/GLSL-cellular-notes.pdf for
-	possible optimizations.
+	possible optimizations. (2x2x2 search region is not applicable to my program)
 */
 
 

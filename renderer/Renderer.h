@@ -29,6 +29,8 @@
 #include "Lightings/PointLight.h"
 #include "ParticleSystem/ParticleMaster.h"
 
+#include "WorleyNoise.h"
+
 #include <memory>
 #include <thread>
 
@@ -106,6 +108,11 @@ private:
 	TextRenderer textRenderer;
 	bool isRenderingText = true;
 	void RenderText();
+	
+
+	//Temp
+	GLuint noiseTex;
+	void noiseGeneration();
 
 public:
 	//Save the initial frame in "demo/screenshot.jpg"

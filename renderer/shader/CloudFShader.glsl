@@ -12,6 +12,7 @@ layout(binding = 1) uniform sampler2D renderDepth;
 
 //Cloud textures
 layout(binding = 2) uniform sampler3D cloudBaseTexture;
+layout(binding = 3) uniform sampler3D cloudDetailTexture;
 
 uniform vec3 cameraPos;
 uniform vec2 resolution;
@@ -100,7 +101,7 @@ float SampleDensity(vec3 pos)
 {
 	vec3 uvw = pos * CloudScale * 0.0001; // how to get uvw?
 	float density = texture(cloudBaseTexture, uvw).x; //Only got red channel, is .x needed?
-	return max(0, density - 0.6)*3.f;
+	return max(0, density - 0.3)*3.f;
 }
 
 float HenyeyGreenstein(vec3 inLightVector, vec3 inViewVector, float inG)

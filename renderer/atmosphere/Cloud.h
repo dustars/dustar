@@ -24,7 +24,7 @@ namespace atmosphere {
 class Cloud
 {
 public:
-	Cloud(std::size_t resolution = 64, bool isSavetoFile = false);
+	Cloud(std::size_t resolution = 128, bool isSavetoFile = false);
 	~Cloud();
 
 	GLuint GetBaseShapeTex() { return baseShapeTex; }
@@ -42,7 +42,8 @@ private:
 	float CreatePerlinWorleyNoise(std::size_t x, std::size_t y, std::size_t z );
 
 	//Resolution
-	std::size_t res;
+	std::size_t res_B; //resolution for base shape texture
+	std::size_t res_D = 32; //for detail shape texture
 	//Random seed number to generate noise
 	int seed = 0;
 
@@ -54,6 +55,7 @@ private:
 
 	//temp
 	bool isSavetoFile = false;
+	void CreateNoiseImageSlice();
 };
 
 } //namespace atmosphere
