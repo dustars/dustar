@@ -8,9 +8,9 @@ Renderer::Renderer(Window& parent)
 	textRenderer(TextRenderer(width, height))
 {
 #ifdef TESTING
-	camera = new Camera(0.f, 180.f, Vector3(0.f, 0.f, -10.f));
+	camera = new Camera(0.f, 0.f, Vector3(0.f, 0.f, 10.f));
 
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 #ifdef TESTING_OBJECT
 	object = new RenderObject();
@@ -237,11 +237,16 @@ void Renderer::CreateCloud()
 	}
 	cloudShader.GetMesh()->CreatePlane(); //ray marching plane
 
-	cloudModel.reset(new atmosphere::Cloud(128, true));
+	cloudModel.reset(new atmosphere::Cloud(128));
 
-	//glUseProgram(cloudShader.GetShader()->GetProgram());
+	glUseProgram(cloudShader.GetShader()->GetProgram());
+	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
+	glBindTextureUnit(3, cloudModel->GetDetailShapeNoiseTex());
+	glBindTextureUnit(4, cloudModel->GetWeatherMapTex());
+	glUniform2f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudMaxMinHeight"),
+		cloudModel->GetCloudMaxHeight(), cloudModel->GetCloudMinHeight());
 	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-	//glUseProgram(0);
+	glUseProgram(0);
 }
 
 void Renderer::RenderCloud()
@@ -250,12 +255,11 @@ void Renderer::RenderCloud()
 
 	glBindTextureUnit(0, renderFBO->GetColorTexture());
 	glBindTextureUnit(1, renderFBO->GetDepthTexture());
-	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
-	glBindTextureUnit(3, cloudModel->GetDetailShapeNoiseTex());
-
 	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&viewMatrix);
 
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalCoverage"), cloudModel->GetGlobalCoverage());
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalDensity"), cloudModel->GetGlobalDensity());
 	glUniform2fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "resolution"), 1, (float*)&Vector2(width, height));
 	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());;
 	Matrix4 rotationMatrix = Matrix4::Rotation(camera->GetYaw(), Vector3(0, 1, 0)) * Matrix4::Rotation(camera->GetPitch(), Vector3(1, 0, 0));
@@ -505,8 +509,8 @@ void Renderer::noiseGeneration()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	std::size_t res = 512;
-	PerlinNoise perlin;
-	WorleyNoise worley(res, 8);
+	PerlinNoise perlin(129999);
+	WorleyNoise worley(res, 8, 129999);
 
 	unsigned char* data = new unsigned char[res * res];
 
@@ -517,15 +521,18 @@ void Renderer::noiseGeneration()
 			float perlinNoise = perlin.FBMPerlin( static_cast<double>(x) / res * 3.0,
 				static_cast<double>(y) / res * 3.0, 0, 7, 2, 0.707);
 
-			perlinNoise = Remap(perlinNoise, 0, 1.2, 0, 1);
-			float temp = Clamp(Remap(perlinNoise, worleyNoise, 1.f, 0.f, 1.f), 0.f, 1.f);
+			worleyNoise = Clamp(worleyNoise * 1.5 - 0.2, 0, 1);
+			perlinNoise = Clamp(perlinNoise * 1.4 - 0.4, 0, 1);
+			float temp;
+
+			temp = Clamp(Remap(perlinNoise, worleyNoise, 1.f, 0.f, 1.f), 0.f, 1.f);
 
 			data[y * res + x] = static_cast<unsigned char>(temp * 255);
 		}
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, res, res, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
-	SaveAsPicture("../demo/PerlinWorleyNoise.jpg", res, res, 1, static_cast<void*>(data));
+	SaveAsPicture("../demo/NoiseTest.jpg", res, res, 1, static_cast<void*>(data));
 
 	delete[] data;
 }

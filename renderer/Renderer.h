@@ -4,14 +4,16 @@
 	It manages resources, is reponsible for updating, maintains all
 	unitity methods, has debugger, has temporary testing code, and of
 	course the rendering!
-	In a word, it's a mess.
-	It needs to be refactored in the near future.
-	6/15/2020
+	
+	Created:
+	2/12/2020
+	Last Updated:
+	7/25/2020
 
-	1. Get rid of the voxeliazation part (decouple it ASAP!)
-	2. Create a manager class or at least a vector to contain all those RenderObjects.
-	3. Use unique_ptr for all pointer type data members?
-	4. Debugger.
+	TODO:
+	1. Create a manager class or at least a vector to contain all those RenderObjects.
+	2. Use unique_ptr for all pointer type data members?
+	3. Debugger.
 */
 
 #pragma once

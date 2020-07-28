@@ -28,6 +28,6 @@ private:
 	Vector3 position;
 
 	//Camera update speed
-	static constexpr float UPDATE_MULTIPLIER = 100.f;
+	static constexpr float UPDATE_MULTIPLIER = 1.f;
 };
 

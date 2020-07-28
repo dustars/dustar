@@ -24,11 +24,17 @@ namespace atmosphere {
 class Cloud
 {
 public:
-	Cloud(std::size_t resolution = 128, bool isSavetoFile = false);
+	Cloud(std::size_t resolution = 128);
 	~Cloud();
 
 	GLuint GetBaseShapeTex() { return baseShapeTex; }
 	GLuint GetDetailShapeNoiseTex() { return detailShapeTex; }
+	GLuint GetWeatherMapTex() { return weatherMapTex; }
+
+	float GetGlobalCoverage()	{ return globalCoverage;  }
+	float GetGlobalDensity()	{ return globalDensity;  }
+	float GetCloudMaxHeight() { return cloudMaxHeight; }
+	float GetCloudMinHeight() { return cloudMinHeight; }
 
 private:
 	void CreateBaseShapeTexture();
@@ -42,19 +48,22 @@ private:
 	float CreatePerlinWorleyNoise(std::size_t x, std::size_t y, std::size_t z );
 
 	//Resolution
-	std::size_t res_B; //resolution for base shape texture
-	std::size_t res_D = 32; //for detail shape texture
+	std::size_t res_B;			//resolution for base shape texture
+	std::size_t res_D = 32;		//for detail shape texture
+	std::size_t res_W = 512;	//for weather map
 	//Random seed number to generate noise
 	int seed = 0;
 
 	PerlinNoise perlin;
 	WorleyNoise worley;
 
-	float globalCoverage;
-	float globalDensity;
+	float globalCoverage	= 0.9f;
+	float globalDensity		= 1.0f;
+
+	float cloudMaxHeight = 4000.f;
+	float cloudMinHeight = 2000.f;
 
 	//temp
-	bool isSavetoFile = false;
 	void CreateNoiseImageSlice();
 };
 
