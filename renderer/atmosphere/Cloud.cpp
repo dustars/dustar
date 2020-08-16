@@ -10,10 +10,11 @@ Cloud::Cloud(std::size_t resolution) :
 	perlin(PerlinNoise(seed)),
 	worley(WorleyNoise(res_B * 4, 32, seed))
 {
-	//CreateNoiseImageSlice();
-	CreateBaseShapeTexture();		//Take around 17s to calculate, 9s without FBM for gba channels
+	CreateNoiseImageSlice();
+	CreateBaseShapeTexture();		//Take around 10s to calculate
 	CreateDetailShapeTexture();
 	CreateWeatherMapTexture();
+	CreateBlueNoiseTexture();
 }
 
 Cloud::~Cloud()
@@ -21,6 +22,7 @@ Cloud::~Cloud()
 	glDeleteTextures(1, &baseShapeTex);
 	glDeleteTextures(1, &detailShapeTex);
 	glDeleteTextures(1, &weatherMapTex);
+	glDeleteTextures(1, &blueNoiseTex);
 }
 
 
@@ -29,8 +31,9 @@ void Cloud::CreateBaseShapeTexture()
 	//Create high frequency texture
 	glGenTextures(1, &baseShapeTex);
 	glBindTexture(GL_TEXTURE_3D, baseShapeTex);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -45,9 +48,9 @@ void Cloud::CreateBaseShapeTexture()
 		for (std::size_t y = 0; y < res_B; y++) {
 			for (std::size_t x = 0; x < res_B; x++) {
 				data[(z * res_B * res_B + y * res_B + x) * 4    ] = static_cast<unsigned char>(CreatePerlinWorleyNoise(x, y, z) * 255);
-				data[(z * res_B * res_B + y * res_B + x) * 4 + 1] = static_cast<unsigned char>(worley.Noise(x, y, z) * 255);
-				data[(z * res_B * res_B + y * res_B + x) * 4 + 2] = static_cast<unsigned char>(worley.Noise(x * 1.5, y * 1.5, z * 1.5) * 255);
-				data[(z * res_B * res_B + y * res_B + x) * 4 + 3] = static_cast<unsigned char>(worley.Noise(x * 2, y * 2, z * 2) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 1] = static_cast<unsigned char>(1 - worley.Noise(x, y, z) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 2] = static_cast<unsigned char>(1 - worley.Noise(x * 1.5, y * 1.5, z * 1.5) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 3] = static_cast<unsigned char>(1 - worley.Noise(x * 2, y * 2, z * 2) * 255);
 			}
 		}
 	};
@@ -83,6 +86,7 @@ void Cloud::CreateDetailShapeTexture()
 	glBindTexture(GL_TEXTURE_3D, detailShapeTex);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -100,9 +104,9 @@ void Cloud::CreateDetailShapeTexture()
 	for (std::size_t z = 0; z < res_D; z++) {
 		for (std::size_t y = 0; y < res_D; y++) {
 			for (std::size_t x = 0; x < res_D; x++) {
-				data[(z * res_D * res_D + y * res_D + x) * 3] = static_cast<unsigned char>(worley1.Noise(x, y, z) * 255);
-				data[(z * res_D * res_D + y * res_D + x) * 3 + 1] = static_cast<unsigned char>(worley2.Noise(x, y, z) * 255);
-				data[(z * res_D * res_D + y * res_D + x) * 3 + 2] = static_cast<unsigned char>(worley3.Noise(x, y, z) * 255);
+				data[(z * res_D * res_D + y * res_D + x) * 3] = static_cast<unsigned char>(1 - worley1.Noise(x, y, z) * 255);
+				data[(z * res_D * res_D + y * res_D + x) * 3 + 1] = static_cast<unsigned char>(1 - worley2.Noise(x, y, z) * 255);
+				data[(z * res_D * res_D + y * res_D + x) * 3 + 2] = static_cast<unsigned char>(1 - worley3.Noise(x, y, z) * 255);
 			}
 		}
 	}
@@ -116,33 +120,47 @@ void Cloud::CreateWeatherMapTexture()
 	//Create high frequency texture
 	glGenTextures(1, &weatherMapTex);
 	glBindTexture(GL_TEXTURE_2D, weatherMapTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//stbi_set_flip_vertically_on_load(true);
 	int width, height, nChannels;
-	unsigned char* data = stbi_load("../assets/Textures/WeatherMapRedChannel.png", &width, &height, &nChannels, 0);
+	unsigned char* data = stbi_load("../assets/Textures/WeatherMapRedChannel_02.png", &width, &height, &nChannels, 0);
 	assert(data != NULL && "Data not loaded by stbi_load");
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	
 	stbi_image_free(data);
 }
 
+void Cloud::CreateBlueNoiseTexture()
+{
+	glGenTextures(1, &blueNoiseTex);
+	glBindTexture(GL_TEXTURE_2D, blueNoiseTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	int width, height, nChannels;
+	unsigned char* data = stbi_load("../assets/Textures/blueNoise.png", &width, &height, &nChannels, 0);
+	assert(data != NULL && "Blue Noise data loading fails");
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+	stbi_image_free(data);
+}
+
 float Cloud::CreatePerlinWorleyNoise(std::size_t x, std::size_t y, std::size_t z)
 {
-	float worleyNoise = worley.FBMNoise(x, y, z, 3, 2.f, 0.707f);
+	float worleyNoise = 1 - worley.FBMNoise(x, y, z, 3, 2.f, 0.707f);
 	float perlinNoise = perlin.FBMPerlin(
 		static_cast<double>(x) / res_B * 3.0f,
 		static_cast<double>(y) / res_B * 3.0f,
 		static_cast<double>(z) / res_B * 3.0f,
 		3, 2, 0.707);
 
-	worleyNoise = Clamp(worleyNoise * 1.5f - 0.2f, 0.f, 1.f);
-	perlinNoise = Clamp(perlinNoise * 1.4f - 0.4f, 0.f, 1.f);
+	worleyNoise = Clamp(Remap(worleyNoise, 0.1f, 0.9f, 0.f, 1.f), 0.f, 1.f);
+	perlinNoise = Clamp(Remap(perlinNoise, 0.3f, 0.7f, 0.f, 1.1f), 0.f, 1.f);
 
-	return Clamp(perlinNoise * worleyNoise * 1.2f, 0.f, 1.f);
-	//return Clamp(Remap(perlinNoise, worleyNoise, 1.f, 0.f, 1.f) , 0.f, 1.f);
+	return Clamp(Remap(perlinNoise * worleyNoise, 0.f, 1.f, 0.2f, 1.7f), 0.f, 1.f);
 }
 
 void Cloud::CreateNoiseImageSlice()

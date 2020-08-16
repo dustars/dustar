@@ -36,10 +36,10 @@ void Mesh::CreatePlane()
 	numOfIndex = 6;
 	renderType = GL_TRIANGLES;
 
-	position.push_back(Vector3(-0.5f, 0.5f, 0.0f));
-	position.push_back(Vector3(-0.5f, -0.5f, 0.0f));
-	position.push_back(Vector3(0.5f, 0.5f, 0.0f));
-	position.push_back(Vector3(0.5f, -0.5f, 0.0f));
+	position.push_back(Vector3(-1.0f, 1.0f, 0.0f));
+	position.push_back(Vector3(-1.0f, -1.0f, 0.0f));
+	position.push_back(Vector3(1.0f, 1.0f, 0.0f));
+	position.push_back(Vector3(1.0f, -1.0f, 0.0f));
 
 	color.push_back(Vector3(1.0f, 0.0f, 0.0f));
 	color.push_back(Vector3(0.0f, 1.0f, 0.0f));

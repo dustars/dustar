@@ -51,8 +51,7 @@ float WorleyNoise::Noise(float x, float y, float z)
 		}
 		ii = 0;
 	}
-
-	return Clamp(1 - min, 0, 1);
+	return min;
 }
 
 float WorleyNoise::FBMNoise(float x, float y, float z, std::size_t octaves, float lacunarity, float gain)

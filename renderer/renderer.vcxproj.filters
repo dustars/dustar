@@ -44,9 +44,6 @@
     <ClCompile Include="HeightMap.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
-    <ClCompile Include="RenderObjectManager.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
@@ -57,9 +54,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WorleyNoise.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PerlinWorleyNoise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PerlinNoise.cpp">
@@ -91,9 +85,6 @@
     <ClInclude Include="HeightMap.h">
       <Filter>StaticObjects</Filter>
     </ClInclude>
-    <ClInclude Include="RenderObjectManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleSystem\ParticleSystem.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
@@ -113,9 +104,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="WorleyNoise.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="PerlinWorleyNoise.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="PerlinNoise.h">

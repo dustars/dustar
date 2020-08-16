@@ -80,9 +80,10 @@ double PerlinNoise::FBMPerlin(double x, double y, double z, int octaves, double 
 	double noise = 0.0, frequency = 1.0, amplitude = 1.0, maxValue = 0.0;
 	for (int i = 0; i < octaves; i++) {
 		noise += PerlinNoise::noise(x * frequency, y * frequency, z * frequency) * amplitude;
+		maxValue += amplitude;
+
 		frequency *= lacunarity;
 		amplitude *= gain;
-		maxValue += amplitude;
 	}
 	return noise / maxValue;
 }

@@ -11,6 +11,8 @@ HeightMap::HeightMap(int octave, double lacunarity, double gain, int width, int 
 	numOfVertices = width * length;
 	numOfIndex = (width - 1) * (length - 1) * 6;
 
+	Vector2 centerOffset = Vector2(HEIGHTMAP_X * width * 0.5, HEIGHTMAP_Z * length * 0.5);
+
 	//Warning conversion
 	srand(time(NULL));
 
@@ -27,7 +29,10 @@ HeightMap::HeightMap(int octave, double lacunarity, double gain, int width, int 
 
 			n = n * 2000 - 1000;
 
-			position.push_back(Vector3(x * HEIGHTMAP_X, static_cast<float>(n), z * HEIGHTMAP_Z));
+			position.push_back(Vector3(
+				x * HEIGHTMAP_X - centerOffset.x, 
+				static_cast<float>(n),
+				z * HEIGHTMAP_Z - centerOffset.y));
 			GenerateHeightColor(n);
 			texCoord.push_back(Vector2(x * HEIGHTMAP_TEX_X, z * HEIGHTMAP_TEX_Z));
 		}

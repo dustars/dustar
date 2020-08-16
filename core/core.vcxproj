@@ -158,6 +158,8 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="tools\Imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="tools\Imgui\imgui_impl_win32.h" />
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="math\CommonOps.h" />
@@ -181,6 +183,8 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="tools\Imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="tools\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="math\Matrix4.cpp" />
     <ClCompile Include="math\Quaternion.cpp" />

@@ -7,26 +7,35 @@ Renderer::Renderer(Window& parent)
 	renderFBO(new GeneralFrameBuffer(width, height)),
 	textRenderer(TextRenderer(width, height))
 {
-#ifdef TESTING
-	camera = new Camera(0.f, 0.f, Vector3(0.f, 0.f, 10.f));
-
+	//Pre-defined values to take screenshot at the same position and orientaion.
+	camera = new Camera(parent, 30.f, 220.f, Vector3(0.f, 250.f, 5.f));
+	//camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 #ifdef TESTING_OBJECT
 	object = new RenderObject();
-	if (!object->SetShader("shader/TextureOnlyVShader.glsl", "shader/TextureOnlyFShader.glsl")) {
+	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
 		cout << "Texture set up failed!" << endl;
 	}
 	object->GetMesh()->CreatePlane();
+#else
+	object = new RenderObject();
+	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
+		cout << "Texture set up failed!" << endl;
+	}
+	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
+#endif
+
 	//noiseGeneration();
 	//object->GetTexture()->SetTexture(noiseTex);
-#endif // TESTING_OBJECT
 
-	modelMatrix = modelMatrix * Matrix4::Scale(Vector3(10.f, 10.f, 10.f));
-	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
+	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(1.0f, 0.9f, 0.9f, 1.f));
 
 #ifdef ATMOSPHERE
 	CreateAtmosphericScatteringModel();
@@ -38,43 +47,10 @@ Renderer::Renderer(Window& parent)
 	CreateCloud();
 #endif // RENDER_CLOUD
 
+#ifdef IMGUI
+	ImGUIInit(parent);
+#endif // IMGUI
 	init = true;
-#else
-	// Initialize the basics ( later move to a function )
-	camera = new Camera(-20,-130,Vector3(0,500,200.f));
-	//camera = new Camera(0,0,Vector3(0,0,0));
-	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
-
-	// Map
-	object = new RenderObject();
-	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-
-	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
-		cout << "Texture set up failed!" << endl;
-	}
-
-	// Lightings
-	pointLight1 = new PointLight(Vector4(2000.f, 1000.f, 2000.f ,1.f), Vector4(0.9f, 0.8f, 0.4f, 1.f));
-
-	//octave, lacunarity, persistence, width, length
-	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
-
-	//Particle System Creation
-	//ParticleSystem::renderer = this; // Let all particle systems be able to access the resources
-	//particleMaster = new ParticleMaster();
-	//particleMaster->AddSystem(new ParticleSystem(60, { 350,100,350 }, 5.f, 1, 100));
-	//particleMaster->AddSystem(new ParticleSystem(10, { 300,100,300 }, 5.f, 0, 25, EmitType::TRAJECTORY));
-
-	CreateSkybox();
-	//CreateTrajectory();
-
-	init = true;
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-#endif // TESTING
 }
 
 Renderer::~Renderer() {
@@ -84,81 +60,37 @@ Renderer::~Renderer() {
 	if (skybox)						delete skybox;
 	if (pointLight1)				delete pointLight1;
 	if (particleMaster)				delete particleMaster;
+#ifdef IMGUI
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+#endif
 }
 
 void Renderer::Update(float dt) {
 
-	// Todo: Put into the 60 fps loop
 	camera->UpdateCamera(dt);
 
-	// Temporary method to limit frame rate at 60FPS
+	//Temporary method to limit frame rate at 60FPS
 	oneFramePerMilliSecond += dt;
 	if (oneFramePerMilliSecond > renderFrames) {
-		////////////////////////
-		//  Locations Update  //
-		////////////////////////
-		if (particleMaster) {
-			particleMaster->Update(oneFramePerMilliSecond);
-		}
+		//Update
+		if (particleMaster) particleMaster->Update(oneFramePerMilliSecond);
+		if (trajectory) trajectory->GetMesh()->Update(oneFramePerMilliSecond);
+		UtilityUpdate();
 
-		if (trajectory) {
-			trajectory->GetMesh()->Update(oneFramePerMilliSecond);
-		}
-
-		////////////////////////
-		// Graphics Rendering //
-		////////////////////////
-#ifdef TESTING
-		//RealTimeVoxelization();
-		TestRendering();
-#else
+		//Render
 		Render();
-#endif
-		oneFramePerSecond += oneFramePerMilliSecond;
-		frameCount++;
-		oneFramePerMilliSecond = 0;
-		if (oneFramePerSecond > 1000.f) {
-			oneFramePerSecond = 0;
-			fps = frameCount;
-			frameCount = 0;
-		}
 	}
 }
 
 void Renderer::Render()
 {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	if (skybox) {
-		renderSkyBox();
-	}
-	
-	if (object) {
-		renderObject();
-	}
-
-	if (trajectory) {
-		glUseProgram(trajectory->GetShader()->GetProgram());
-		glUniformMatrix4fv(glGetUniformLocation(trajectory->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
-		glUniformMatrix4fv(glGetUniformLocation(trajectory->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-		glUniformMatrix4fv(glGetUniformLocation(trajectory->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
-		trajectory->Draw();
-		glUseProgram(0);
-	}
-
-	if (particleMaster) {
-		particleMaster->Render();
-	}
-
-	::SwapBuffers(deviceContext);
-}
-
-void Renderer::TestRendering()
-{
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
-#endif
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+#endif
 
 #ifdef ATMOSPHERE
 	if (atmosphereScattering.get()) RenderAtmosphericScatteringModel();
@@ -166,35 +98,60 @@ void Renderer::TestRendering()
 	if (skybox) renderSkyBox();
 #endif // ATMOSPHERE
 
-	if (object) {
-		glEnable(GL_DEPTH_TEST);
-		renderObject();
-		glDisable(GL_DEPTH_TEST);
-	}
-
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderCloud();
 #endif
 
+#ifdef TESTING_OBJECT
+	if (object) renderObject();
+#else
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	if (object) renderObject();
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+#endif // TESTING_OBJECT
+
 #ifdef OFFLINE
 	ScreenShot("Offline_Rendering");
 #else
-	if (isRenderingText) RenderText();
+	UtilityRender();
 	::SwapBuffers(deviceContext);
 #endif
 }
 
+void Renderer::UtilityUpdate()
+{
+	oneFramePerSecond += oneFramePerMilliSecond;
+	frameCount++;
+	oneFramePerMilliSecond = 0;
+	if (oneFramePerSecond > 1000.f) {
+		oneFramePerSecond = 0;
+		fps = frameCount;
+		frameCount = 0;
+	}
+}
+
+void Renderer::UtilityRender()
+{
+#ifdef IMGUI
+	if (camera->GetShowGUI()) RenderImGUI();
+#endif // IMGUI
+	if (isRenderingText) RenderText();
+}
 
 void Renderer::renderObject()
 {
 	glUseProgram(object->GetShader()->GetProgram());
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE,
+		(float*)&(modelMatrix * Matrix4::Scale(Vector3(scaleTemp, scaleTemp, scaleTemp))));
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	if (pointLight1) {
 		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
-		//pointLight1->SetPosition(Vector4(camera->GetPosition(), 1.0));
+		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "sunDir"), 1, (float*)&camera->GetSunDirection());
 		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&pointLight1->GetPosition());
 		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&pointLight1->GetColor());
 	}
@@ -228,6 +185,8 @@ void Renderer::RenderText()
 	textRenderer.RenderText(CameraPositionText, 10.0f, height - 45.f);
 	textRenderer.RenderText("Camera Pitch: " + to_string(camera->GetPitch()), 10.0f, height - 65.f);
 	textRenderer.RenderText("Camera Yaw: " + to_string(camera->GetYaw()), 10.0f, height - 85.f);
+	textRenderer.RenderText("Sun Zenith : " + to_string(camera->GetSunZenithDegree()), 10.0f, height - 105.f);
+	textRenderer.RenderText("Sun Azimuth: " + to_string(camera->GetSunAzimuthDegree()), 10.0f, height - 125.f);
 }
 
 void Renderer::CreateCloud()
@@ -243,9 +202,14 @@ void Renderer::CreateCloud()
 	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
 	glBindTextureUnit(3, cloudModel->GetDetailShapeNoiseTex());
 	glBindTextureUnit(4, cloudModel->GetWeatherMapTex());
-	glUniform2f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudMaxMinHeight"),
-		cloudModel->GetCloudMaxHeight(), cloudModel->GetCloudMinHeight());
-	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+	glBindTextureUnit(5, cloudModel->GetBlueNoiseTex());
+
+	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "projMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
+
 	glUseProgram(0);
 }
 
@@ -254,17 +218,21 @@ void Renderer::RenderCloud()
 	glUseProgram(cloudShader.GetShader()->GetProgram());
 
 	glBindTextureUnit(0, renderFBO->GetColorTexture());
-	glBindTextureUnit(1, renderFBO->GetDepthTexture());
-	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
-	//glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&viewMatrix);
 
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalCoverage"), cloudModel->GetGlobalCoverage());
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalDensity"), cloudModel->GetGlobalDensity());
-	glUniform2fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "resolution"), 1, (float*)&Vector2(width, height));
+	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "viewMatrix"), 1, true, (float*)&camera->BuildViewMatrix());
 	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());;
-	Matrix4 rotationMatrix = Matrix4::Rotation(camera->GetYaw(), Vector3(0, 1, 0)) * Matrix4::Rotation(camera->GetPitch(), Vector3(1, 0, 0));
-	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "rotationMatrix"), 1, GL_FALSE, (float*)&rotationMatrix);
-
+	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sunDirection"), 1, (float*)&camera->GetSunDirection());
+	//Control parameters
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalCoverage"), cloudModel->globalCoverage);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalDensity"), cloudModel->globalDensity);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudScale"), cloudModel->cloudScale);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudOffset"), cloudModel->cloudOffset);
+	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
+	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
+	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "debugScale"), cloudModel->debugScale);
+	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "debugSwitch"), cloudModel->debugSwitch);
+	
 	cloudShader.Draw();
 	glUseProgram(0);
 }
@@ -282,7 +250,7 @@ void Renderer::CreateAtmosphericScatteringModel()
 	bool	use_ozone_ = true;
 	bool	use_combined_textures_ = true;
 	bool	use_half_precision_ = true;
-	bool	use_luminance_ = NONE;
+	bool	use_luminance_ = APPROXIMATE;
 	bool	do_white_balance_ = false;
 
 	constexpr int kLambdaMin = 360;
@@ -397,7 +365,7 @@ void Renderer::CreateAtmosphericScatteringModel()
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "white_point"),
 		white_point_r, white_point_g, white_point_b);
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "earth_center"),
-		0.0, 0.0, -kBottomRadius / kLengthUnitInMeters);
+		0.0, 0.0, -kBottomRadius / kLengthUnitInMeters );
 	glUniform2f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "sun_size"),
 		tan(kSunAngularRadius),
 		cos(kSunAngularRadius));
@@ -405,23 +373,8 @@ void Renderer::CreateAtmosphericScatteringModel()
 	//Don't know why it is needed, probably due to precomputation
 	glViewport(0, 0, width, height);
 
-	const float kFovY = 45.0 / 180.0 * kPi;
-	const float kTanFovY = tan(kFovY / 2.0);
-	float aspect_ratio = static_cast<float>(width) / height;
-
-	// Transform matrix from clip space to camera space (i.e. the inverse of a
-	// GL_PROJECTION matrix).
-	float view_from_clip[16] = {
-	  kTanFovY * aspect_ratio, 0.0, 0.0, 0.0,
-	  0.0, kTanFovY, 0.0, 0.0,
-	  0.0, 0.0, 0.0, -1.0,
-	  0.0, 0.0, 1.0, 1.0
-	};
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, true,
-		view_from_clip);
-
-	//glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, GL_FALSE,
-	//	(float*)&projMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, GL_FALSE,
+		(float*)&projMatrix);
 
 	glUseProgram(0);
 }
@@ -431,42 +384,23 @@ void Renderer::RenderAtmosphericScatteringModel()
 	//Redundant parameter data similar to the CreateAtmosphericScatteringModel()
 	enum Luminance {NONE, APPROXIMATE, PRECOMPUTED};
 	bool	use_luminance_ = NONE;
-	float	view_zenith_angle_radians_ = DegToRad(camera->GetPitch() + 90.f);	//1.47
-	float	view_azimuth_angle_radians_ = DegToRad(camera->GetYaw());			//-0.1
-	float	sun_zenith_angle_radians_ = 1.3;
-	float	sun_azimuth_angle_radians_ = 2.9;
 	float	exposure_ = 10.0;
-	
-	float cos_z = cos(view_zenith_angle_radians_);
-	float sin_z = sin(view_zenith_angle_radians_);
-	float cos_a = cos(view_azimuth_angle_radians_);
-	float sin_a = sin(view_azimuth_angle_radians_);
-	float ux[3] = { -sin_a, cos_a, 0.0 };
-	float uy[3] = { -cos_z * cos_a, -cos_z * sin_a, sin_z };
-	float uz[3] = { sin_z * cos_a, sin_z * sin_a, cos_z };
 
-	// Transform matrix from camera frame to world space (i.e. the inverse of a
-	// GL_MODELVIEW matrix).
-	float model_from_view[16] = {
-	  ux[0], uy[0], uz[0], uz[0],
-	  ux[1], uy[1], uz[1], uz[1],
-	  ux[2], uy[2], uz[2], uz[2],
-	  0.0, 0.0, 0.0, 1.0
-	};
+	Vector3 sunDir = camera->GetSunDirection();
+	Vector3 cameraPos = camera->GetPosition();
 
 	glUseProgram(atmosphereScatteringShader.GetShader()->GetProgram());
+	//For some reasons, coordinate system in Bruneton's model is in order z,x,y
+	//whereas OpenGL has x,y,z order.
+	//PS: This adjustment also applies to the vertex shader when generating view ray.
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
-		camera->GetPosition().x,
-		camera->GetPosition().z,
-		camera->GetPosition().y);
+		cameraPos.z, cameraPos.x, cameraPos.y);
 	glUniform1f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "exposure"),
 		use_luminance_ != NONE ? exposure_ * 1e-5 : exposure_);
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "model_from_view"),
-		1, true, model_from_view);
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "viewMatrix"),
+		1, true, (float*)&camera->BuildViewMatrix());
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "sun_direction"),
-		cos(sun_azimuth_angle_radians_) * sin(sun_zenith_angle_radians_),
-		sin(sun_azimuth_angle_radians_) * sin(sun_zenith_angle_radians_),
-		cos(sun_zenith_angle_radians_));
+		sunDir.z, sunDir.x, sunDir.y);
 
 	atmosphereScatteringShader.Draw();
 	glUseProgram(0);
@@ -509,32 +443,75 @@ void Renderer::noiseGeneration()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	std::size_t res = 512;
-	PerlinNoise perlin(129999);
-	WorleyNoise worley(res, 8, 129999);
+	PerlinNoise perlin;
+	WorleyNoise worley(res, 8, 199999);
 
 	unsigned char* data = new unsigned char[res * res];
 
-
 	for (std::size_t y = 0; y < res; y++) {
 		for (std::size_t x = 0; x < res; x++) {
-			float worleyNoise = worley.FBMNoise(x, y, 0, 3, 2.f, 0.707f);
-			float perlinNoise = perlin.FBMPerlin( static_cast<double>(x) / res * 3.0,
-				static_cast<double>(y) / res * 3.0, 0, 7, 2, 0.707);
+			float worleyNoise = 1 - worley.FBMNoise(x, y, 0, 3, 2.f, 0.707f); //Invert the noise here.
+			float perlinNoise = perlin.FBMPerlin( static_cast<double>(x) / res *  4.0,
+				static_cast<double>(y) / res * 4.0, 0, 2, 2, 0.707);
 
-			worleyNoise = Clamp(worleyNoise * 1.5 - 0.2, 0, 1);
-			perlinNoise = Clamp(perlinNoise * 1.4 - 0.4, 0, 1);
+			//Since FBM has the the effect of shrinking the range of noise,
+			//it's necessary to remap them back. In my case, the shrinked range
+			//appears to be around 0.3~0.7 for Perlin, 0.1~0.9 for Worley (based
+			//on number of octaves apparently).
+			perlinNoise = Clamp(Remap(perlinNoise, 0.1f, 0.9f, -0.2f, 1.0f), 0.f, 1.f);
+			//worleyNoise = Clamp(Remap(worleyNoise, 0.1f, 0.9f, 0.f, 1.f), 0.f, 1.f);
+
 			float temp;
-
-			temp = Clamp(Remap(perlinNoise, worleyNoise, 1.f, 0.f, 1.f), 0.f, 1.f);
+			temp = perlinNoise;
+			//temp = Clamp(Remap(perlinNoise * worleyNoise, 0.f, 1.f, 0.2f, 1.7f), 0.f, 1.f);
 
 			data[y * res + x] = static_cast<unsigned char>(temp * 255);
 		}
 	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, res, res, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
-	SaveAsPicture("../demo/NoiseTest.jpg", res, res, 1, static_cast<void*>(data));
+	SaveAsPicture("../demo/PerlinNoise.jpg", res, res, 1, static_cast<void*>(data));
 
 	delete[] data;
+}
+
+void Renderer::ImGUIInit(Window& parent)
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplWin32_Init(parent.GetHandle());
+	ImGui_ImplOpenGL3_Init();
+}
+
+void Renderer::RenderImGUI()
+{	
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	//This demo showcases most of the features of Dear ImGUI
+	//ImGui::ShowDemoWindow((bool*)true);
+
+	ImGui::SliderFloat("Scale", &scaleTemp, 0.0f, 100.0f);
+	ImGui::SliderFloat("Cloud global coverage", &cloudModel->globalCoverage, 0.0f, 1.0f);
+	ImGui::SliderFloat("Cloud global density", &cloudModel->globalDensity, 0.0f, 1.0f);
+	ImGui::SliderFloat("Cloud scale", &cloudModel->cloudScale, 0.1f, 10.f);
+	ImGui::SliderFloat("Cloud offset", &cloudModel->cloudOffset, 0.f, 5.f);
+
+	ImGui::SliderInt("Sample steps", &cloudModel->sampleSteps, 1, 128);
+	ImGui::SliderInt("Light sample steps", &cloudModel->lightSampleSteps, 1, 10);
+
+	//ImGui::SliderFloat("light absorption factor", &cloudModel->lightAbsorptionFactor, 0.1f, 10.f);
+
+	ImGui::InputFloat("Debug scale", &cloudModel->debugScale, 0.01f, 100.0f, "%.3f");
+	ImGui::Checkbox("debug switch", &cloudModel->debugSwitch);
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Renderer::ScreenShot(std::string filename)

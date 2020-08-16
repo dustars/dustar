@@ -46,7 +46,7 @@ public:
 
 	//Determines the maximum amount of ms that can pass between
 	//2 mouse presses while still counting as a 'double click'
-	void	SetDoubleClickLimit(float msec);
+	void	SetDoubleClickLimit(float msec) { clickLimit = msec; }
 	
 	//Has the mouse wheel moved since the last update?
 	bool	WheelMoved();

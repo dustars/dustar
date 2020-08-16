@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "Mouse.h"
 #include "Keyboard.h"
+#include <imgui.h>
 
 Window* Window::window;
 
@@ -125,17 +126,16 @@ void	Window::SetRenderer(RenderBase* r)	{
 	}
 }
 
-bool	Window::UpdateWindow() {
-	MSG		msg;
+bool Window::UpdateWindow() {
+	MSG	msg;
 
 	float diff = timer->GetMS()-elapsedMS;
 
 	Window::GetMouse()->UpdateDoubleClick(diff);
-
 	Window::GetKeyboard()->UpdateHolds();
 	Window::GetMouse()->UpdateHolds();
 
-	while(PeekMessage(&msg,windowHandle,0,0,PM_REMOVE)) {
+	while(PeekMessage(&msg, windowHandle,0,0,PM_REMOVE)) {
 		CheckMessages(msg); 
 	}
 
@@ -168,7 +168,7 @@ void Window::CheckMessages(MSG &msg)	{
 			if (mouse && raw->header.dwType == RIM_TYPEMOUSE) {
 				Window::GetMouse()->Update(raw);
 			}
-			delete lpb;
+			delete[] lpb;
 		}break;
 
 		default: {								// If Not, Deal With Window Messages
@@ -178,91 +178,113 @@ void Window::CheckMessages(MSG &msg)	{
 	}
 }
 
-LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)	{
-    switch(message)	 {
-        case(WM_DESTROY):	{
-			window->ShowOSPointer(true);
-			window->LockMouseToWindow(false);
+/*
+	A short history to celebrate the release of pain to do more research on this!
+	This following part of "extern LRESULT ImGui_.... balabala" is originally from the modification
+	made by one of my teammate in a game project. We need to integrate ImGui into our rendering
+	framework, and this is her part. Luckily I'm able to find it so that a copy-paste is just good
+	enough to solve my headache!
 
-			PostQuitMessage(0);
-			window->forceQuit = true;
-		} break;
-		case (WM_ACTIVATE): {
-			//int fMinimized	= (BOOL) HIWORD(wParam);
-			if(LOWORD(wParam) == WA_INACTIVE)	{
-				ReleaseCapture();
-				ClipCursor(NULL);
-				mouse->Sleep();
-				keyboard->Sleep();			
-			}
-			else{
-				if(window->init) {
-					mouse->Wake();	
-					keyboard->Wake();
+	Girl, you are amazing! Thank you for your previous work.
+*/
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	//This following part.
+	if (ImGui::GetCurrentContext() != NULL) {
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.WantCaptureKeyboard || io.WantCaptureMouse) {
+			ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
 
-					POINT pt;
-					GetCursorPos(&pt);
-					ScreenToClient(window->windowHandle, &pt);
-					mouse->SetAbsolutePosition(pt.x,pt.y);
+			// FIXME: We didn't used to need this?
+			window->LockMouseToWindow(true);
+			return true;
+		}
+	}
 
-					if(window->lockMouse) {
-						window->LockMouseToWindow(true);
-					}
-				}
-			}
-			return 0;
-		}break;
-		case (WM_LBUTTONDOWN): {
-			if(window->lockMouse) {
-				window->LockMouseToWindow(true);
-			}
+	switch (message) {
+	case(WM_DESTROY): {
+		window->ShowOSPointer(true);
+		window->LockMouseToWindow(false);
 
-		}break;
-
-		case (WM_MOUSEMOVE): {
-			TRACKMOUSEEVENT tme;
-			tme.cbSize = sizeof(TRACKMOUSEEVENT);
-			tme.dwFlags = TME_LEAVE;
-			tme.hwndTrack = window->windowHandle;
-			TrackMouseEvent(&tme);
-
-			if(window->mouseLeftWindow) {
-				window->mouseLeftWindow = false;
+		PostQuitMessage(0);
+		window->forceQuit = true;
+	} break;
+	case (WM_ACTIVATE): {
+		//int fMinimized	= (BOOL) HIWORD(wParam);
+		if (LOWORD(wParam) == WA_INACTIVE) {
+			ReleaseCapture();
+			ClipCursor(NULL);
+			mouse->Sleep();
+			keyboard->Sleep();
+		}
+		else {
+			if (window->init) {
 				mouse->Wake();
 				keyboard->Wake();
 
 				POINT pt;
 				GetCursorPos(&pt);
 				ScreenToClient(window->windowHandle, &pt);
-				mouse->SetAbsolutePosition(pt.x,pt.y);
+				mouse->SetAbsolutePosition(pt.x, pt.y);
+
+				if (window->lockMouse) {
+					window->LockMouseToWindow(true);
+				}
 			}
+		}
+		return 0;
+	}break;
+	case (WM_LBUTTONDOWN): {
+		if (window->lockMouse) {
+			window->LockMouseToWindow(true);
+		}
 
-		}break;
-		case(WM_MOUSELEAVE):{
-			window->mouseLeftWindow = true;
-			mouse->Sleep();
-			keyboard->Sleep();
-		}break;
-		case(WM_SIZE): {
-			window->size.x = (float)LOWORD(lParam);
-			window->size.y = (float)HIWORD(lParam);
-			if(window->renderer) {
-				window->renderer->Resize(LOWORD(lParam),HIWORD(lParam));				
-			}
+	}break;
 
-			if(window->init) {
-				mouse->SetAbsolutePositionBounds(LOWORD(lParam),HIWORD(lParam));
+	case (WM_MOUSEMOVE): {
+		TRACKMOUSEEVENT tme;
+		tme.cbSize = sizeof(TRACKMOUSEEVENT);
+		tme.dwFlags = TME_LEAVE;
+		tme.hwndTrack = window->windowHandle;
+		TrackMouseEvent(&tme);
 
-				POINT pt;
-				GetCursorPos(&pt);
-				ScreenToClient(window->windowHandle, &pt);
-				mouse->SetAbsolutePosition(pt.x,pt.y);
+		if (window->mouseLeftWindow) {
+			window->mouseLeftWindow = false;
+			mouse->Wake();
+			keyboard->Wake();
 
-				window->LockMouseToWindow(window->lockMouse);
-			}
-		}break;
-    }
-    return DefWindowProc (hWnd, message, wParam, lParam);
+			POINT pt;
+			GetCursorPos(&pt);
+			ScreenToClient(window->windowHandle, &pt);
+			mouse->SetAbsolutePosition(pt.x, pt.y);
+		}
+
+	}break;
+	case(WM_MOUSELEAVE): {
+		window->mouseLeftWindow = true;
+		mouse->Sleep();
+		keyboard->Sleep();
+	}break;
+	case(WM_SIZE): {
+		window->size.x = (float)LOWORD(lParam);
+		window->size.y = (float)HIWORD(lParam);
+		if (window->renderer) {
+			window->renderer->Resize(LOWORD(lParam), HIWORD(lParam));
+		}
+
+		if (window->init) {
+			mouse->SetAbsolutePositionBounds(LOWORD(lParam), HIWORD(lParam));
+
+			POINT pt;
+			GetCursorPos(&pt);
+			ScreenToClient(window->windowHandle, &pt);
+			mouse->SetAbsolutePosition(pt.x, pt.y);
+
+			window->LockMouseToWindow(window->lockMouse);
+		}
+	}break;
+	}
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 void	Window::LockMouseToWindow(bool lock)	{

@@ -32,7 +32,7 @@ public:
 	float y;
 	float z;
 
-	void			Normalise() {
+	void Normalise() {
 		float length = Length();
 
 		if(length != 0.0f)	{

@@ -6,6 +6,7 @@ uniform sampler2D ourTexture;
 uniform vec3 cameraPos;
 uniform vec4 LightPos;
 uniform vec4 LightColor;
+uniform vec3 sunDir;
 
 in VS {
 	vec3 color;
@@ -21,7 +22,8 @@ void main() {
 
 	vec3 n = normalize(IN.vNormal);
 	vec3 v = normalize(cameraPos - IN.vPos);
-	vec3 l = normalize(LightPos.xyz - IN.vPos);
+	//vec3 l = normalize(LightPos.xyz - IN.vPos);
+	vec3 l = sunDir;
 	vec3 halfDir = normalize(l + v);
 
 	//How much diffuse reflection

@@ -1,15 +1,51 @@
 #include "Camera.h"
 
-Camera::Camera(float pitch, float yaw, Vector3 position):
+Camera::Camera(Window& w, float pitch, float yaw, Vector3 position):
+	w(w),
 	pitch(pitch),
 	yaw(yaw),
 	position(position)
 {}
 
 void Camera::UpdateCamera(float msec) {
-	//Update the mouse by how much
-	pitch -= (Window::GetMouse()->GetRelativePosition().y);
-	yaw -= (Window::GetMouse()->GetRelativePosition().x);
+
+	if (showCursor) CursorUpdate(msec);
+	else CameraControlUpdate(msec);
+
+	//Enable/disable debug mode
+	if (Window::GetKeyboard()->KeyHeld(KEYBOARD_CONTROL)) {
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_C)) {
+			showCursor = !showCursor;
+			showGUI = !showGUI;
+			w.ShowOSPointer(showCursor);
+		}
+	}
+}
+
+Matrix4 Camera::BuildViewMatrix() {
+	//Why do a complicated matrix inversion, when we can just generate the matrix
+	//using the negative values ;). The matrix multiplication order is important!
+	return	Matrix4::Rotation(-pitch, Vector3(1, 0, 0)) *
+		Matrix4::Rotation(-yaw, Vector3(0, 1, 0)) *
+		Matrix4::Translation(-position);
+}
+void Camera::CameraControlUpdate(float msec)
+{
+	if (Window::GetMouse()->ButtonHeld(MouseButtons::MOUSE_LEFT)) {
+		sunZenith += (Window::GetMouse()->GetRelativePosition().y);
+		sunAzimuth -= (Window::GetMouse()->GetRelativePosition().x);
+
+		if (sunZenith < 0) sunZenith += 360.0f;
+		if (sunZenith > 360.0f) sunZenith -= 360.0f;
+		//sunZenith = min(sunZenith, 0.0f);
+		//sunZenith = max(sunZenith, 180.0f);
+		if (sunAzimuth < 0) sunAzimuth += 360.0f;
+		if (sunAzimuth > 360.0f) sunAzimuth -= 360.0f;
+	}
+	else {
+		pitch -= (Window::GetMouse()->GetRelativePosition().y);
+		yaw -= (Window::GetMouse()->GetRelativePosition().x);
+	}
 
 	//Bounds check the pitch, to be between straight up and straight down ;)
 	pitch = min(pitch, 90.0f);
@@ -44,10 +80,7 @@ void Camera::UpdateCamera(float msec) {
 	}
 }
 
-Matrix4 Camera::BuildViewMatrix() {
-	//Why do a complicated matrix inversion, when we can just generate the matrix
-	//using the negative values ;). The matrix multiplication order is important!
-	return	Matrix4::Rotation(-pitch, Vector3(1, 0, 0)) *
-		Matrix4::Rotation(-yaw, Vector3(0, 1, 0)) *
-		Matrix4::Translation(-position);
-};
+void Camera::CursorUpdate(float msec)
+{
+
+}

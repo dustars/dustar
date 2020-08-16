@@ -2,6 +2,9 @@
 Class:Window
 Author:Rich Davison
 Description:Creates and handles the Window, including the initialisation of the mouse and keyboard.
+
+Last Updated:
+7/31/2020: Add the ImGui messange handler function for win32 into the class to be able to get ImGui work.
 */
 #pragma once
 #pragma warning( disable : 4099 )
