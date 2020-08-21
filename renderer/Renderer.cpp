@@ -1,6 +1,5 @@
 #include "Renderer.h"
-
-extern inline void SaveAsPicture(const char* filename, std::size_t width, std::size_t height, std::size_t comp, const void* data);
+#include <stb_image_write.h>
 
 Renderer::Renderer(Window& parent)
 	: RenderBase(parent),
@@ -8,7 +7,7 @@ Renderer::Renderer(Window& parent)
 	textRenderer(TextRenderer(width, height))
 {
 	//Pre-defined values to take screenshot at the same position and orientaion.
-	camera = new Camera(parent, 30.f, 220.f, Vector3(0.f, 250.f, 5.f));
+	camera = new Camera(parent, 12.78f, 172.82f, Vector3(0.f, 250.f, 5.f));
 	//camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
@@ -31,9 +30,6 @@ Renderer::Renderer(Window& parent)
 	}
 	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
 #endif
-
-	//noiseGeneration();
-	//object->GetTexture()->SetTexture(noiseTex);
 
 	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(1.0f, 0.9f, 0.9f, 1.f));
 
@@ -145,8 +141,7 @@ void Renderer::UtilityRender()
 void Renderer::renderObject()
 {
 	glUseProgram(object->GetShader()->GetProgram());
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE,
-		(float*)&(modelMatrix * Matrix4::Scale(Vector3(scaleTemp, scaleTemp, scaleTemp))));
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	if (pointLight1) {
@@ -230,8 +225,6 @@ void Renderer::RenderCloud()
 	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
 	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
 	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "debugScale"), cloudModel->debugScale);
-	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "debugSwitch"), cloudModel->debugSwitch);
 	
 	cloudShader.Draw();
 	glUseProgram(0);
@@ -433,48 +426,6 @@ void Renderer::CreateTrajectory()
 	trajectory->SetMesh(new Trajectory());
 }
 
-void Renderer::noiseGeneration()
-{
-	glGenTextures(1, &noiseTex);
-	glBindTexture(GL_TEXTURE_2D, noiseTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	std::size_t res = 512;
-	PerlinNoise perlin;
-	WorleyNoise worley(res, 8, 199999);
-
-	unsigned char* data = new unsigned char[res * res];
-
-	for (std::size_t y = 0; y < res; y++) {
-		for (std::size_t x = 0; x < res; x++) {
-			float worleyNoise = 1 - worley.FBMNoise(x, y, 0, 3, 2.f, 0.707f); //Invert the noise here.
-			float perlinNoise = perlin.FBMPerlin( static_cast<double>(x) / res *  4.0,
-				static_cast<double>(y) / res * 4.0, 0, 2, 2, 0.707);
-
-			//Since FBM has the the effect of shrinking the range of noise,
-			//it's necessary to remap them back. In my case, the shrinked range
-			//appears to be around 0.3~0.7 for Perlin, 0.1~0.9 for Worley (based
-			//on number of octaves apparently).
-			perlinNoise = Clamp(Remap(perlinNoise, 0.1f, 0.9f, -0.2f, 1.0f), 0.f, 1.f);
-			//worleyNoise = Clamp(Remap(worleyNoise, 0.1f, 0.9f, 0.f, 1.f), 0.f, 1.f);
-
-			float temp;
-			temp = perlinNoise;
-			//temp = Clamp(Remap(perlinNoise * worleyNoise, 0.f, 1.f, 0.2f, 1.7f), 0.f, 1.f);
-
-			data[y * res + x] = static_cast<unsigned char>(temp * 255);
-		}
-	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, res, res, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<void*>(data));
-	SaveAsPicture("../demo/PerlinNoise.jpg", res, res, 1, static_cast<void*>(data));
-
-	delete[] data;
-}
-
 void Renderer::ImGUIInit(Window& parent)
 {
 	IMGUI_CHECKVERSION();
@@ -495,8 +446,6 @@ void Renderer::RenderImGUI()
 
 	//This demo showcases most of the features of Dear ImGUI
 	//ImGui::ShowDemoWindow((bool*)true);
-
-	ImGui::SliderFloat("Scale", &scaleTemp, 0.0f, 100.0f);
 	ImGui::SliderFloat("Cloud global coverage", &cloudModel->globalCoverage, 0.0f, 1.0f);
 	ImGui::SliderFloat("Cloud global density", &cloudModel->globalDensity, 0.0f, 1.0f);
 	ImGui::SliderFloat("Cloud scale", &cloudModel->cloudScale, 0.1f, 10.f);
@@ -504,11 +453,6 @@ void Renderer::RenderImGUI()
 
 	ImGui::SliderInt("Sample steps", &cloudModel->sampleSteps, 1, 128);
 	ImGui::SliderInt("Light sample steps", &cloudModel->lightSampleSteps, 1, 10);
-
-	//ImGui::SliderFloat("light absorption factor", &cloudModel->lightAbsorptionFactor, 0.1f, 10.f);
-
-	ImGui::InputFloat("Debug scale", &cloudModel->debugScale, 0.01f, 100.0f, "%.3f");
-	ImGui::Checkbox("debug switch", &cloudModel->debugSwitch);
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -520,6 +464,7 @@ void Renderer::ScreenShot(std::string filename)
 	int data_size = row_size * height;
 	unsigned char* data = new unsigned char[data_size];
 	glReadPixels(0,0,width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-	SaveAsPicture(("../demo/" + filename + ".jpg").c_str(), width, height, 3, data);
+	stbi_flip_vertically_on_write(true);
+	stbi_write_jpg(("../demo/" + filename + ".jpg").c_str(), width, height, 3, data, 100);
 	delete[] data;
 }

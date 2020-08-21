@@ -10,6 +10,7 @@
 	P:		ScreenShot
 	T:		Enable/Disable text rendeing.
 	Ctrl+C:	Enable/Disable cursor and ImGUI (essentially serves as debugger)
+	Press mouse left button + move mouse: move sun direction.
 
 	TODO:
 	--------------------------------------------------------------------------------------
@@ -42,9 +43,6 @@
 #include "tools/Imgui/imgui_impl_opengl3.h"
 #include "tools/Imgui/imgui_impl_win32.h"
 
-//temp
-#include "WorleyNoise.h"
-
 #include <memory>
 #include <thread>
 
@@ -67,7 +65,6 @@ public:
 	//Get called by update()
 	void Render() override;
 
-	//I don't even when I write this
 	Camera* GetCamera()		const{ return camera; }
 	Matrix4 GetProjMatrix() const{ return projMatrix; }
 
@@ -129,12 +126,6 @@ private:
 	void RenderText();
 	void ImGUIInit(Window& parent);
 	void RenderImGUI();
-
-	//Temp
-	GLuint noiseTex;
-	void noiseGeneration();
-	float scaleTemp = 1.f;
-
 
 //Some public utility methods may be helpful.
 public:

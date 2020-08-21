@@ -5,12 +5,13 @@
 
 namespace atmosphere {
 
-Cloud::Cloud(std::size_t resolution) :
-	res_B(resolution),
+Cloud::Cloud(std::size_t res_Base, std::size_t res_Detail, std::size_t res_WM) :
+	res_B(res_Base),
+	res_D(res_Detail),
+	res_W(res_WM),
 	perlin(PerlinNoise(seed)),
 	worley(WorleyNoise(res_B * 4, 32, seed))
 {
-	CreateNoiseImageSlice();
 	CreateBaseShapeTexture();		//Take around 10s to calculate
 	CreateDetailShapeTexture();
 	CreateWeatherMapTexture();
@@ -48,9 +49,9 @@ void Cloud::CreateBaseShapeTexture()
 		for (std::size_t y = 0; y < res_B; y++) {
 			for (std::size_t x = 0; x < res_B; x++) {
 				data[(z * res_B * res_B + y * res_B + x) * 4    ] = static_cast<unsigned char>(CreatePerlinWorleyNoise(x, y, z) * 255);
-				data[(z * res_B * res_B + y * res_B + x) * 4 + 1] = static_cast<unsigned char>(1 - worley.Noise(x, y, z) * 255);
-				data[(z * res_B * res_B + y * res_B + x) * 4 + 2] = static_cast<unsigned char>(1 - worley.Noise(x * 1.5, y * 1.5, z * 1.5) * 255);
-				data[(z * res_B * res_B + y * res_B + x) * 4 + 3] = static_cast<unsigned char>(1 - worley.Noise(x * 2, y * 2, z * 2) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 1] = static_cast<unsigned char>(1 - worley.Noise(x * 0.5, y * 0.5, z * 0.5) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 2] = static_cast<unsigned char>(1 - worley.Noise(x, y, z) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 3] = static_cast<unsigned char>(1 - worley.Noise(x * 1.5, y * 1.5, z * 1.5) * 255);
 			}
 		}
 	};
@@ -68,7 +69,10 @@ void Cloud::CreateBaseShapeTexture()
 	for (std::size_t z = 0; z < res_B; z++) {
 		for (std::size_t y = 0; y < res_B; y++) {
 			for (std::size_t x = 0; x < res_B; x++) {
-				data[z * res_B * res_B + y * res_B + x] = static_cast<unsigned char>(CreatePerlinWorleyNoise(x, y, z) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4    ] = static_cast<unsigned char>(CreatePerlinWorleyNoise(x, y, z) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 1] = static_cast<unsigned char>(1 - worley.Noise(x * 0.5, y * 0.5, z * 0.5) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 2] = static_cast<unsigned char>(1 - worley.Noise(x, y, z) * 255);
+				data[(z * res_B * res_B + y * res_B + x) * 4 + 3] = static_cast<unsigned char>(1 - worley.Noise(x * 1.5, y * 1.5, z * 1.5) * 255);
 			}
 		}
 	}
@@ -161,36 +165,6 @@ float Cloud::CreatePerlinWorleyNoise(std::size_t x, std::size_t y, std::size_t z
 	perlinNoise = Clamp(Remap(perlinNoise, 0.3f, 0.7f, 0.f, 1.1f), 0.f, 1.f);
 
 	return Clamp(Remap(perlinNoise * worleyNoise, 0.f, 1.f, 0.2f, 1.7f), 0.f, 1.f);
-}
-
-void Cloud::CreateNoiseImageSlice()
-{
-	unsigned char* data = new unsigned char[32 * 32];
-	WorleyNoise worley1(32, 4, 0);
-	for (std::size_t y = 0; y < 32; y++) {
-		for (std::size_t x = 0; x < 32; x++) {
-			data[y * 32 + x] = static_cast<unsigned char>(worley1.Noise(x, y, 0) * 255);
-		}
-	}
-	SaveAsPicture("../demo/noise/HighFreqNoiseRedChannel.jpg", res_D, res_D, 1, static_cast<void*>(data));
-
-	WorleyNoise worley2(32, 8, 0);
-	for (std::size_t y = 0; y < res_D; y++) {
-		for (std::size_t x = 0; x < res_D; x++) {
-			data[y * 32 + x] = static_cast<unsigned char>(worley2.Noise(x, y, 0) * 255);
-		}
-	}
-	SaveAsPicture("../demo/noise/HighFreqNoiseGreenChannel.jpg", res_D, res_D, 1, static_cast<void*>(data));
-
-	WorleyNoise worley3(32, 16, 0);
-	for (std::size_t y = 0; y < res_D; y++) {
-		for (std::size_t x = 0; x < res_D; x++) {
-			data[y * 32 + x] = static_cast<unsigned char>(worley3.Noise(x, y, 0) * 255);
-		}
-	}
-	SaveAsPicture("../demo/noise/HighFreqNoiseBlueChannel.jpg", res_D, res_D, 1, static_cast<void*>(data));
-
-	delete[] data;
 }
 
 

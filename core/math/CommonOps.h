@@ -30,12 +30,9 @@ static inline double DegToRad(const double rad)
 };
 
 //Just an int type, thus it won't be THAT large. Keep this in mind when x is big.
-static inline int Factorial(int x)
-{
+static inline int Factorial(int x) {
 	if (!x) return 1;
-	for (std::size_t i = x - 1; i > 0; i--) {
-		x *= i;
-	}
+	for (std::size_t i = x - 1; i > 0; i--) x *= i;
 	return x;
 }
 

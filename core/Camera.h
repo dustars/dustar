@@ -54,9 +54,8 @@ private:
 	bool showCursor = false;
 	bool showGUI = false;
 
-	//in radian
-	float sunZenith = 0.f;
-	float sunAzimuth = 0.f;
+	float sunZenith = 87.64f;
+	float sunAzimuth = 342.5f;
 
 	//Camera update speed
 	static constexpr float UPDATE_MULTIPLIER = 1.f;

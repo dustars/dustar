@@ -37,10 +37,6 @@ uniform int lightSampleSteps;
 uniform vec3 sunDirection;
 uniform float lightAbsorptionFactor;
 
-//Debug values for testing purposes.
-uniform float debugScale;
-uniform int debugSwitch;
-
 //Light parameters
 vec3 lightRay = normalize(vec3(10.f, 10.f, 10.f));
 vec3 lightColor = vec3(1.f, 1.0f, 1.0f);
@@ -59,8 +55,8 @@ bool RaySphereIntersectionTest(vec3 rayDir, out vec3 intersecPoint, out float in
 	if (length(L) > cloudInnerSphere.w) return false;
 	float projLength = dot(L, rayDir);
 	float cToRay2 = dot(L,L) - projLength * projLength;
-	//the ray doesn't hit the sphere
-	if (cToRay2 > (cloudInnerSphere.w * cloudInnerSphere.w)) return false;
+	//if the ray doesn't hit the sphere
+	//if (cToRay2 > (cloudInnerSphere.w * cloudInnerSphere.w)) return false;
 
 	//Inner sphere intersection point
 	float tempInner = sqrt(cloudInnerSphere.w * cloudInnerSphere.w - cToRay2);
@@ -101,7 +97,7 @@ float DensityHeightFunc(float ph, float a) {
 //Sample the FBM detail noise.
 //The maximum influence it has is limited to 0.35, with a natural
 //number to exert the effect of globalCoverage as well.
-//The interpolation at last is for a more "rounded" shape.
+//The interpolation at return is for a more "rounded" shape.
 float SampleDetailNoise(vec3 uvw, float pHeight) {
 	vec3 rawDetailNoise = texture(cloudDetailTexture, uvw).rgb;
 	float fbmDetail = rawDetailNoise.r * 0.625f + rawDetailNoise.g * 0.25f + rawDetailNoise.b * 0.125f;
@@ -131,7 +127,6 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
 		//Use Weather map to control the coverage of cloud
 		float weatherMapFactor = globalCoverage * max(wm.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * wm.g * 2.f);
-		//max(wm.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * wm.g * 2.f);
 
 		float wmModified = clamp(map(heightModified, 1.f - weatherMapFactor, 1.f, 0.f, 1.f), 0.f, 1.f);
 		
@@ -169,7 +164,6 @@ void main(void)
 	float intervalDist;						//Length to march
 
 	if (RaySphereIntersectionTest(rayDir, pos, intervalDist)) {
-		vec3 rayPos = pos;
 		//Accumulated density for ray marching
 		float density = 0.f;
 		//Accumulated denstiy along the light ray.
@@ -188,15 +182,15 @@ void main(void)
 		int zeroDensityCount = 0;
 
 		//Adding a little noise to reduce banding
-		float blueNoise = texture(blueNoiseTexture, rayPos.xz / 10.f).x;
-		rayPos += (blueNoise - 0.5) * 2 * stepDir;
+		float blueNoise = texture(blueNoiseTexture, pos.xz / 10.f).x;
+		pos += (blueNoise - 0.5) * 2 * stepDir;
 
 		for (int i = 0; i < totalSteps; i++) {
 			//Calculate the current height percentage in cloud layer.
 			float pHeight = float(i) / totalSteps;
 
 			if (cloud_test > 0.f) {
-				float fullSample = SampleDensity(rayPos, pHeight, true);
+				float fullSample = SampleDensity(pos, pHeight, true);
 				if (fullSample == 0) {
 					zeroDensityCount++;
 				}
@@ -206,7 +200,7 @@ void main(void)
 					density += fullSample;
 					//Light calculation
 					if (fullSample != 0) {
-						vec3 lightSamplePos = rayPos;
+						vec3 lightSamplePos = pos;
 						vec3 sunStepLength = (cloudLayerLength * 0.5f / lightSampleSteps) * sunDirection;
 						//Accumulate the density along the light ray
 						for (int j = 0; j < lightSampleSteps; j++) {
@@ -214,14 +208,14 @@ void main(void)
 							lightSamplePos += sunStepLength;
 						}
 
-						transmittance *= exp(-density * debugScale);
+						transmittance *= exp(-density);
 						lightEnergy += density * lightCalculation(densityAloneLightRay, sunDirection, blueNoise) * transmittance;
 						
 						//When the effect of continuing ray marching is trivial, break;
 						if (transmittance < 0.01f) break;
 						densityAloneLightRay = 0;
 					}
-					rayPos += stepDir;
+					pos += stepDir;
 				}
 				else {
 					cloud_test = 0.f;
@@ -230,13 +224,13 @@ void main(void)
 			}
 			else {
 				//Cheap sampling
-				cloud_test = SampleDensity(rayPos, pHeight, false);
+				cloud_test = SampleDensity(pos, pHeight, false);
 				if (cloud_test == 0) {
-					rayPos += stepDir;
+					pos += stepDir;
 				}
 				//Cloud boundary found, step one back to do full sampling
 				//else {
-				//	rayPos -= stepDir;
+				//	pos -= stepDir;
 				//}
 			}
 		} //end of ray marching
@@ -247,42 +241,3 @@ void main(void)
 
 	FragColor = vec4(color, 1);
 }
-
-//float InOutScatter(float cos_angle) {
-//	float first_hg = HenyeyGreenstein(cos_angle, 0.2);
-//	float second_hg = 2.5 * pow(clamp(cos_angle, 0.f, 1.f), 2);
-//	float in_scatter_hg = max(first_hg, second_hg);
-//	float out_scatter_hg = HenyeyGreenstein(cos_angle, -0.1);
-//	return mix(in_scatter_hg, out_scatter_hg, 0.5);
-//}
-//
-//float Attenuation(float density_to_sun, float cos_angle) {
-//	float prim = exp(-6 * density_to_sun);
-//	float scnd = exp(-6 * 0.2) * 0.7;
-//	float checkval = map(cos_angle, 0.0, 1.0, scnd, scnd * 0.5);
-//	return max(checkval, prim);
-//}
-//
-//float OutScatterAmbient(float density, float pHeight) {
-//	float depth = 0.9 * pow(density, map(pHeight, 0.3, 0.9, 0.5, 1.0));
-//	float vertical = pow(clamp(map(pHeight, 0.0, 0.3, 0.8, 1.0), 0.0, 1.0), 0.8);
-//	float out_scatter = depth * vertical;
-//	return 1.f - clamp(out_scatter, 0.f, 1.f);
-//}
-//
-//vec3 CalculateLight(float density, float density_to_sun, float cos_angle,
-//	float pHeight, float bluenoise, float dist_along_ray) {
-//
-//	float attenuation_prob = Attenuation(density_to_sun, cos_angle);
-//	float ambient_out_scatter = OutScatterAmbient(density, pHeight);
-//
-//	const float sun_highlight = InOutScatter(cos_angle);
-//
-//	float attenuation = attenuation_prob * sun_highlight * 0.9;
-//
-//	attenuation = max(density * 0.2 * (1 - pow(clamp(dist_along_ray / 4000, 0.0, 1.0), 2)), attenuation);
-//
-//	attenuation += bluenoise * 0.003;
-//
-//	return attenuation * lightColor;
-//}
