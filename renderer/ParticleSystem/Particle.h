@@ -10,9 +10,8 @@ class Particle
 {
 	friend class ParticleSystem;
 public:
-	Particle();
-	Particle(Vector3 position, Vector3 velocity, float life, float rotation, float scale, float weight);
-	~Particle();
+	Particle(Vector3 position = Vector3(0,0,0), Vector3 velocity = Vector3(0, 0, 0),
+			 float life = 0.f, float rotation = 0.f, float scale = 0.f, float weight = 0.f);
 	// Update a single particle
 	bool Update(float dt);
 

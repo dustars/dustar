@@ -1,6 +1,5 @@
 #include "TextRenderer.h"
 #include <assert.h>
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -12,7 +11,7 @@ TextRenderer::TextRenderer(std::size_t width, std::size_t height, std::size_t fo
 
     FT_Face face;
     
-    assert(FT_New_Face(ft, "C://Users/auty7/source/repos/dustar/core/tools/fonts/arial.ttf", 0, &face) == 0
+    assert(FT_New_Face(ft, "../core/tools/fonts/arial.ttf", 0, &face) == 0
         && "ERROR::FREETYPE: Failed to load font");
 
     FT_Set_Pixel_Sizes(face, 0, fontSize); //hardcoded font size

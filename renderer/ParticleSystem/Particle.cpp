@@ -1,18 +1,5 @@
 #include "Particle.h"
 
-Particle::Particle() :
-	position({ 0,0,0 }),
-	velocity({ 0,0,0 }),
-	life(0),
-	rotation(0),
-	scale(0),
-	weight(0),
-	elapsedTime(0),
-	distanceFromCamera(0),
-	blendFactor(0)
-{
-}
-
 Particle::Particle(Vector3 position, Vector3 velocity, float life, float rotation, float scale, float weight) :
 	position(position),
 	velocity(velocity),
@@ -23,12 +10,7 @@ Particle::Particle(Vector3 position, Vector3 velocity, float life, float rotatio
 	elapsedTime(0),
 	distanceFromCamera(0),
 	blendFactor(0)
-{
-}
-
-Particle::~Particle()
-{
-}
+{}
 
 bool Particle::Update(float dt)
 {
