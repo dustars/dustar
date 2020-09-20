@@ -32,13 +32,6 @@ bool RenderObject::SetShader(string vs, string fs, string gs, string cs, string 
 
 void RenderObject::Draw()
 {
-	if (texture->GetTexture()) {
-		glBindTexture(GL_TEXTURE_2D, GetTexture()->GetTexture());
-		glUniform1i(glGetUniformLocation(GetShader()->GetProgram(), "UseTexture"), 1);
-	}
-	if (!mesh->GetColor().empty()) {
-		glUniform1i(glGetUniformLocation(GetShader()->GetProgram(), "HaveColor"), 1);
-	}
-	
+	glBindTextureUnit(0, GetTexture()->GetTexture());
 	GetMesh()->Draw();
 }

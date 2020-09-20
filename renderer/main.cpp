@@ -6,7 +6,7 @@
 
 int main() {
 
-	Window w("OpenGL", 1920, 1080, false); // -16 for viewport size, 528 for 512 dimension
+	Window w("OpenGL", 1280, 720, false); // -16 for viewport size, 528 for 512 dimension
 
 	if (!w.HasInitialised()) return -1;
 

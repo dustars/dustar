@@ -1,6 +1,6 @@
 #version 450 core
 
-uniform samplerCube skybox;
+layout(location = 0) uniform samplerCube skybox;
 
 in vec3 TexCoord;
 

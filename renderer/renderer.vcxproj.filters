@@ -50,9 +50,6 @@
     <ClCompile Include="Trajectory.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
-    <ClCompile Include="GeneralFrameBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WorleyNoise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,6 +63,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="atmosphere\Cloud.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -98,9 +98,6 @@
       <Filter>Lightings</Filter>
     </ClInclude>
     <ClInclude Include="FrameBuffer.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="GeneralFrameBuffer.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="WorleyNoise.h">
@@ -153,7 +150,6 @@
     <None Include="shader\SkyBoxVShader.glsl">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\PhongShadingFS.glsl" />
     <None Include="shader\PhongShadingVS.glsl" />
     <None Include="shader\VoxelizationFShader.glsl" />
     <None Include="shader\VoxelizationVShader.glsl" />
@@ -178,5 +174,9 @@
     <None Include="shader\TextRenderingFShader.glsl" />
     <None Include="shader\TextRenderingVShader.glsl" />
     <None Include="imgui.ini" />
+    <None Include="shader\ShadowMapFShader.glsl" />
+    <None Include="shader\ShadowMapVShader.glsl" />
+    <None Include="shader\GeneralVS.glsl" />
+    <None Include="shader\GeneralFS.glsl" />
   </ItemGroup>
 </Project>

@@ -1,24 +1,47 @@
 /*
 	Description:
-	Base class for framebuffer object.
+	Abstraction for FBO
 
-	Is this base class really needed?
-	Even if more types of FBO will be used in the future, each one of them will be unique,
-	which means it's unncessary to use inheritance, and also no places in this application
-	will need the base class as the pointer type in order to support polymorphism
+    TODO:
+    1. The initialization of static member draw_buffers[]?
 */
 
 
 #pragma once
 #include <GL/glew.h>
+#include <iostream>
+
+/*
+    Govern the type of FBO.
+    General:    1 color buffer + 1 depth buffer
+    Depth:      1 depth buffer
+    Multiple:   > 1 color buffers + 1 depth buffer (Not implemented)
+    (More?)
+*/
+enum class FBOCreationType {GENERAL, DEPTH, MULTIPLE};
 
 class FrameBuffer
 {
 public:
-	virtual ~FrameBuffer() = 0 {}
+    FrameBuffer(int width, int height, FBOCreationType type = FBOCreationType::GENERAL);
+    ~FrameBuffer();
+    FrameBuffer(const FrameBuffer&) = delete;
+    FrameBuffer& operator=(const FrameBuffer&) = delete;
 
-	virtual GLuint GetFrameBuffer()  const = 0;
-	virtual GLuint GetColorTexture() const = 0;
-	virtual GLuint GetDepthTexture() const = 0;
+    GLuint GetFrameBuffer()     const { return frameBuffer; }
+    GLuint GetColorTexture()    const { return colorTexture; }
+    GLuint GetDepthTexture()    const { return depthTexture; }
+
+private:
+    int width, height;
+    FBOCreationType FBOtype;
+
+    GLuint frameBuffer  = 0;
+    GLuint colorTexture = 0;
+    GLuint depthTexture = 0;
+
+    void GeneralFBO();
+    void DepthOnlyFBO();
+
+    static const GLenum draw_buffers[];
 };
-

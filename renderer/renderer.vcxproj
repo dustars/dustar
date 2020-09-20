@@ -147,7 +147,7 @@
   <ItemGroup>
     <ClCompile Include="atmosphere\Cloud.cpp" />
     <ClCompile Include="atmosphere\model.cpp" />
-    <ClCompile Include="GeneralFrameBuffer.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Others\Voxelization.cpp" />
@@ -171,7 +171,6 @@
     <ClInclude Include="atmosphere\model.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="FrameBuffer.h" />
-    <ClInclude Include="GeneralFrameBuffer.h" />
     <ClInclude Include="HeightMap.h" />
     <ClInclude Include="Lightings\Light.h" />
     <ClInclude Include="Lightings\PointLight.h" />
@@ -195,16 +194,19 @@
     <None Include="shader\AtmosphereVShader.glsl" />
     <None Include="shader\CloudFShader.glsl" />
     <None Include="shader\CloudVShader.glsl" />
+    <None Include="shader\GeneralFS.glsl" />
+    <None Include="shader\GeneralVS.glsl" />
     <None Include="shader\HeightMapFShader.glsl" />
     <None Include="shader\HeightMapVShader.glsl" />
     <None Include="shader\LearningVShader.glsl" />
+    <None Include="shader\ShadowMapFShader.glsl" />
+    <None Include="shader\ShadowMapVShader.glsl" />
     <None Include="shader\TextRenderingFShader.glsl" />
     <None Include="shader\TextRenderingVShader.glsl" />
     <None Include="shader\TextureOnlyFShader.glsl" />
     <None Include="shader\TextureOnlyVShader.glsl" />
     <None Include="shader\ParticleBaseFShader.glsl" />
     <None Include="shader\ParticleBaseVShader.glsl" />
-    <None Include="shader\PhongShadingFS.glsl" />
     <None Include="shader\PhongShadingVS.glsl" />
     <None Include="shader\SkyBoxFShader.glsl" />
     <None Include="shader\SkyBoxVShader.glsl" />

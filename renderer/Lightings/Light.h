@@ -2,7 +2,6 @@
 class Light
 {
 public:
-	Light() {}
 	virtual ~Light() = 0 {}
 };
 

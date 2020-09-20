@@ -27,7 +27,7 @@
 #include "RenderBase.h"
 #include "RenderObject.h"
 #include "Camera.h"
-#include "GeneralFrameBuffer.h"
+#include "FrameBuffer.h"
 
 //Features (Objects)
 #include "HeightMap.h"
@@ -49,6 +49,9 @@
 //temp parameters for terrain, need to be removed
 constexpr auto MAPWIDTH = 500;
 constexpr auto MAPLENGTH = 500;
+
+constexpr auto SHADOWWIDTH = 1024;
+constexpr auto SHADOWHEIGHT = 1024;
 
 //Fina a way to get rid of this forward declaration.
 class ParticleMaster;
@@ -87,7 +90,14 @@ private:
 	Matrix4		modelMatrix;
 
 	//Lightings
-	PointLight*			pointLight1		= nullptr;
+	std::unique_ptr<PointLight> light1;
+
+	//Shadow Mapping
+	std::unique_ptr<FrameBuffer> shadowFBO;
+	RenderObject shadowMappingShader;
+	Matrix4 lightMatrix;
+	void CreateShadowMap();
+	void RenderShadowMap();
 
 	//Particle System
 	ParticleMaster*		particleMaster	= nullptr;
@@ -126,6 +136,7 @@ private:
 	void RenderText();
 	void ImGUIInit(Window& parent);
 	void RenderImGUI();
+	void UpdateControl(float msec); //temp
 
 //Some public utility methods may be helpful.
 public:

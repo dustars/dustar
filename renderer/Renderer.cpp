@@ -3,17 +3,18 @@
 
 Renderer::Renderer(Window& parent)
 	: RenderBase(parent),
-	renderFBO(new GeneralFrameBuffer(width, height)),
+	light1(new PointLight(Vector3(2000.f, 600.f, 2000.f), Vector4(1.0f, 0.9f, 0.9f, 1.f))),
+	renderFBO(new FrameBuffer(width, height)),
 	textRenderer(TextRenderer(width, height))
 {
 	//Pre-defined values to take screenshot at the same position and orientaion.
-	camera = new Camera(parent, 12.78f, 172.82f, Vector3(0.f, 250.f, 5.f));
-	//camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
+	//camera = new Camera(parent, 12.78f, 172.82f, Vector3(0.f, 250.f, 5.f));
+	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 #ifdef TESTING_OBJECT
 	object = new RenderObject();
-	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
+	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
@@ -22,7 +23,7 @@ Renderer::Renderer(Window& parent)
 	object->GetMesh()->CreatePlane();
 #else
 	object = new RenderObject();
-	if (!object->SetShader("shader/PhongShadingVS.glsl", "shader/PhongShadingFS.glsl")) {
+	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
 		cout << "Shader set up failed!" << endl;
 	}
 	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
@@ -30,8 +31,6 @@ Renderer::Renderer(Window& parent)
 	}
 	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
 #endif
-
-	pointLight1 = new PointLight(Vector4(0.f, 0.f, 500.f, 1.f), Vector4(1.0f, 0.9f, 0.9f, 1.f));
 
 #ifdef ATMOSPHERE
 	CreateAtmosphericScatteringModel();
@@ -43,18 +42,22 @@ Renderer::Renderer(Window& parent)
 	CreateCloud();
 #endif // RENDER_CLOUD
 
+#ifdef SHADOW_MAPPING
+	CreateShadowMap();
+#endif // SHADOW_MAPPING
+
 #ifdef IMGUI
 	ImGUIInit(parent);
 #endif // IMGUI
 	init = true;
 }
 
-Renderer::~Renderer() {
+Renderer::~Renderer()
+{
 	if (camera)						delete camera;
 	if (object)						delete object;
 	if (trajectory)					delete trajectory;
 	if (skybox)						delete skybox;
-	if (pointLight1)				delete pointLight1;
 	if (particleMaster)				delete particleMaster;
 #ifdef IMGUI
 	ImGui_ImplOpenGL3_Shutdown();
@@ -63,9 +66,11 @@ Renderer::~Renderer() {
 #endif
 }
 
-void Renderer::Update(float dt) {
+void Renderer::Update(float dt)
+{
 
 	camera->UpdateCamera(dt);
+	UpdateControl(dt);
 
 	//Temporary method to limit frame rate at 60FPS
 	oneFramePerMilliSecond += dt;
@@ -82,7 +87,7 @@ void Renderer::Update(float dt) {
 
 void Renderer::Render()
 {
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -97,6 +102,10 @@ void Renderer::Render()
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderCloud();
+#endif
+
+#ifdef SHADOW_MAPPING
+	RenderShadowMap();
 #endif
 
 #ifdef TESTING_OBJECT
@@ -114,7 +123,7 @@ void Renderer::Render()
 	ScreenShot("Offline_Rendering");
 #else
 	UtilityRender();
-	::SwapBuffers(deviceContext);
+	SwapBuffers(deviceContext);
 #endif
 }
 
@@ -141,33 +150,37 @@ void Renderer::UtilityRender()
 void Renderer::renderObject()
 {
 	glUseProgram(object->GetShader()->GetProgram());
+
+#ifdef SHADOW_MAPPING
+	glBindTextureUnit(2, shadowFBO->GetDepthTexture());
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
+#endif
+
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-	if (pointLight1) {
+	if (light1.get()) {
 		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "sunDir"), 1, (float*)&camera->GetSunDirection());
-		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&pointLight1->GetPosition());
-		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&pointLight1->GetColor());
+		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&light1->GetPosition());
+		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&light1->GetColor());
 	}
+
 	object->Draw();
 	glUseProgram(0);
 }
 
 void Renderer::renderSkyBox()
 {
-	glUseProgram(skybox->GetShader()->GetProgram());
 	glDepthMask(GL_FALSE);
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glUseProgram(skybox->GetShader()->GetProgram());
 	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE,(float*)&camera->BuildViewMatrix());
 	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetTexture()->GetTexture());
-	
 	skybox->GetMesh()->Draw();
 
-	glDepthMask(GL_TRUE);
 	glUseProgram(0);
+	glDepthMask(GL_TRUE);
 }
 
 void Renderer::RenderText()
@@ -399,6 +412,37 @@ void Renderer::RenderAtmosphericScatteringModel()
 	glUseProgram(0);
 }
 
+void Renderer::CreateShadowMap()
+{
+	if (!shadowMappingShader.SetShader("shader/ShadowMapVShader.glsl", "shader/ShadowMapFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+
+	shadowFBO.reset(new FrameBuffer(SHADOWWIDTH, SHADOWHEIGHT, FBOCreationType::DEPTH));
+}
+
+void Renderer::RenderShadowMap()
+{
+	glEnable(GL_DEPTH_TEST);
+	glViewport(0, 0, SHADOWWIDTH, SHADOWHEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO->GetFrameBuffer());
+	glClear(GL_DEPTH_BUFFER_BIT);
+	
+	lightMatrix = Matrix4::BuildViewMatrix(light1->GetPosition(), Vector3(0, 0, 0));
+	lightMatrix = projMatrix * lightMatrix * modelMatrix;
+
+	glUseProgram(shadowMappingShader.GetShader()->GetProgram());
+	glUniformMatrix4fv(glGetUniformLocation(shadowMappingShader.GetShader()->GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
+
+	object->Draw();
+
+	glUseProgram(0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, width, height);
+	glDisable(GL_DEPTH_TEST);
+}
+
 void Renderer::CreateSkybox()
 {
 	skybox = new RenderObject();
@@ -413,6 +457,9 @@ void Renderer::CreateSkybox()
 		"../assets/Skybox/bluecloud_bk.jpg",
 		"../assets/Skybox/bluecloud_ft.jpg");
 	skybox->GetMesh()->CreateQuad();
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetTexture()->GetTexture());
 }
 
 void Renderer::CreateTrajectory()
@@ -456,6 +503,37 @@ void Renderer::RenderImGUI()
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Renderer::UpdateControl(float msec)
+{
+	if (Window::GetKeyboard()->KeyHeld(KEYBOARD_CONTROL)) {
+		Vector3 temp = light1->GetPosition();
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
+			temp.z += msec;
+			light1->SetPosition(temp);
+		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_A)) {
+			temp.x -= msec;
+			light1->SetPosition(temp);
+		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_S)) {
+			temp.z -= msec;
+			light1->SetPosition(temp);
+		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_D)) {
+			temp.x += msec;
+			light1->SetPosition(temp);
+		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_SPACE)) {
+			temp.y += msec;
+			light1->SetPosition(temp);
+		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_SHIFT)) {
+			temp.y -= msec;
+			light1->SetPosition(temp);
+		}
+	}
 }
 
 void Renderer::ScreenShot(std::string filename)
