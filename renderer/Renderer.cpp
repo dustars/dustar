@@ -157,13 +157,18 @@ void Renderer::renderObject()
 #endif
 
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&camera->BuildViewMatrix());
+	cameraMatrix = camera->BuildViewMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&cameraMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	if (light1.get()) {
-		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
-		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "sunDir"), 1, (float*)&camera->GetSunDirection());
-		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&light1->GetPosition());
-		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&light1->GetColor());
+		Vector3 tempPos = camera->GetPosition();
+		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&tempPos);
+		Vector3 tempDir = camera->GetSunDirection();
+		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "sunDir"), 1, (float*)&tempDir);
+		tempPos = light1->GetPosition();
+		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&tempPos);
+		Vector4 tempColor = light1->GetColor();
+		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&tempColor);
 	}
 
 	object->Draw();
@@ -174,7 +179,8 @@ void Renderer::renderSkyBox()
 {
 	glDepthMask(GL_FALSE);
 	glUseProgram(skybox->GetShader()->GetProgram());
-	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE,(float*)&camera->BuildViewMatrix());
+	cameraMatrix = camera->BuildViewMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE,(float*)&cameraMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	
 	skybox->GetMesh()->Draw();
@@ -226,10 +232,12 @@ void Renderer::RenderCloud()
 	glUseProgram(cloudShader.GetShader()->GetProgram());
 
 	glBindTextureUnit(0, renderFBO->GetColorTexture());
-
-	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "viewMatrix"), 1, true, (float*)&camera->BuildViewMatrix());
-	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());;
-	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sunDirection"), 1, (float*)&camera->GetSunDirection());
+	cameraMatrix = camera->BuildViewMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
+	Vector3 tempPos = camera->GetPosition();
+	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&tempPos);
+	Vector3 tempDir = camera->GetSunDirection();
+	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sunDirection"), 1, (float*)&tempDir);
 	//Control parameters
 	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalCoverage"), cloudModel->globalCoverage);
 	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalDensity"), cloudModel->globalDensity);
@@ -403,8 +411,9 @@ void Renderer::RenderAtmosphericScatteringModel()
 		cameraPos.z, cameraPos.x, cameraPos.y);
 	glUniform1f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "exposure"),
 		use_luminance_ != NONE ? exposure_ * 1e-5 : exposure_);
+	cameraMatrix = camera->BuildViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "viewMatrix"),
-		1, true, (float*)&camera->BuildViewMatrix());
+		1, true, (float*)&cameraMatrix);
 	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "sun_direction"),
 		sunDir.z, sunDir.x, sunDir.y);
 

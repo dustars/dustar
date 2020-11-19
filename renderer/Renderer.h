@@ -59,7 +59,7 @@ class ParticleMaster;
 class Renderer : public RenderBase
 {
 public:
-	//Initializa and create everything.
+	//Initialization.
 	Renderer(Window& parent);
 	~Renderer() override;
 
@@ -88,6 +88,7 @@ private:
 	Camera*		camera					= nullptr;
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
+	Matrix4		cameraMatrix;
 
 	//Lightings
 	std::unique_ptr<PointLight> light1;

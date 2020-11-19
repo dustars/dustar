@@ -4,6 +4,6 @@
 #define THREADING
 //#define RENDER_CLOUD
 //#define ATMOSPHERE
-//#define TESTING_OBJECT
+#define TESTING_OBJECT
 #define IMGUI
 #define SHADOW_MAPPING

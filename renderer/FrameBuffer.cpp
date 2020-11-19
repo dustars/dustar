@@ -39,6 +39,7 @@ void FrameBuffer::GeneralFBO()
 {
 	glGenTextures(1, &colorTexture);
 	glBindTexture(GL_TEXTURE_2D, colorTexture);
+	//why this operation brings OpenGL error 1281
 	glTexStorage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -50,7 +51,6 @@ void FrameBuffer::GeneralFBO()
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
 	glDrawBuffers(1, draw_buffers);
-	
 }
 
 void FrameBuffer::DepthOnlyFBO()
