@@ -178,5 +178,6 @@
     <None Include="shader\ShadowMapVShader.glsl" />
     <None Include="shader\GeneralVS.glsl" />
     <None Include="shader\GeneralFS.glsl" />
+    <None Include="shader\TestCShader.glsl" />
   </ItemGroup>
 </Project>

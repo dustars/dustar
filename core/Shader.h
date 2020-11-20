@@ -11,7 +11,7 @@ public:
 	Shader(string vs = "", string fs = "", string gs = "", string cs = "", string es = "");
 	~Shader();
 
-	inline const GLuint GetProgram() { return program; }
+	GLuint GetProgram() { return program; }
 	bool LinkProgram();
 
 protected:

@@ -28,6 +28,7 @@
 #include "RenderObject.h"
 #include "Camera.h"
 #include "FrameBuffer.h"
+#include "ComputeShader.h"
 
 //Features (Objects)
 #include "HeightMap.h"
@@ -138,6 +139,9 @@ private:
 	void ImGUIInit(Window& parent);
 	void RenderImGUI();
 	void UpdateControl(float msec); //temp
+
+	//Compute Shader
+	void ComputeShaderPlayground();
 
 //Some public utility methods may be helpful.
 public:

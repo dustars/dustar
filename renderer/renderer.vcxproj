@@ -201,6 +201,7 @@
     <None Include="shader\LearningVShader.glsl" />
     <None Include="shader\ShadowMapFShader.glsl" />
     <None Include="shader\ShadowMapVShader.glsl" />
+    <None Include="shader\TestCShader.glsl" />
     <None Include="shader\TextRenderingFShader.glsl" />
     <None Include="shader\TextRenderingVShader.glsl" />
     <None Include="shader\TextureOnlyFShader.glsl" />
