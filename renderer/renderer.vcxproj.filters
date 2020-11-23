@@ -68,6 +68,9 @@
     <ClCompile Include="FrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ComputeShaderExamples.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -119,6 +122,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="atmosphere\Cloud.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShaderExamples.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
@@ -179,5 +185,7 @@
     <None Include="shader\GeneralVS.glsl" />
     <None Include="shader\GeneralFS.glsl" />
     <None Include="shader\TestCShader.glsl" />
+    <None Include="shader\ComputeShader\PrefixSumCS.glsl" />
+    <None Include="shader\ComputeShader\InversePictureCS.glsl" />
   </ItemGroup>
 </Project>

@@ -24,7 +24,7 @@ ComputeShader::ComputeShader(const std::string& file)
 	}
 
 	glAttachShader(program, computeShader);
-	//linking process
+	//linking
 	glLinkProgram(program);
 	GLint code;
 	glGetProgramiv(program, GL_LINK_STATUS, &code);

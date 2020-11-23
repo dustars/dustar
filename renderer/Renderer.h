@@ -28,15 +28,15 @@
 #include "RenderObject.h"
 #include "Camera.h"
 #include "FrameBuffer.h"
-#include "ComputeShader.h"
 
-//Features (Objects)
+//Features
 #include "HeightMap.h"
 #include "Trajectory.h"
 #include "atmosphere/model.h"
 #include "atmosphere/Cloud.h"
 #include "Lightings/PointLight.h"
 #include "ParticleSystem/ParticleMaster.h"
+#include "ComputeShaderExamples.h"
 
 //Tools
 #include "tools/Debug.h"
@@ -85,11 +85,14 @@ private:
 	//The FBO contains the result of Rasterization rendering.
 	std::unique_ptr<FrameBuffer> renderFBO;
 
-	//Coordinate related
+	//Transformation
 	Camera*		camera					= nullptr;
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
 	Matrix4		cameraMatrix;
+	//Testing
+	GLuint		transformUBO; 
+	void		SetTransformUBO();
 
 	//Lightings
 	std::unique_ptr<PointLight> light1;
@@ -140,7 +143,6 @@ private:
 	void RenderImGUI();
 	void UpdateControl(float msec); //temp
 
-	//Compute Shader
 	void ComputeShaderPlayground();
 
 //Some public utility methods may be helpful.

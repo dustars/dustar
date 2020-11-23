@@ -14,6 +14,8 @@ Renderer::Renderer(Window& parent)
 	//camera = new Camera(parent, 12.78f, 172.82f, Vector3(0.f, 250.f, 5.f));
 	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
+	//Testing
+	SetTransformUBO();
 
 #ifdef TESTING_OBJECT
 	object = new RenderObject();
@@ -422,6 +424,16 @@ void Renderer::RenderAtmosphericScatteringModel()
 	glUseProgram(0);
 }
 
+void Renderer::SetTransformUBO()
+{
+	//Buffer creation
+	glCreateBuffers(1, &transformUBO);
+	//coloum or row?
+	glNamedBufferStorage(transformUBO, sizeof(Matrix4), (const void*)&projMatrix, GL_DYNAMIC_STORAGE_BIT);
+	//Bind buffer
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, transformUBO);
+}
+
 void Renderer::CreateShadowMap()
 {
 	if (!shadowMappingShader.SetShader("shader/ShadowMapVShader.glsl", "shader/ShadowMapFShader.glsl")) {
@@ -548,32 +560,8 @@ void Renderer::UpdateControl(float msec)
 
 void Renderer::ComputeShaderPlayground()
 {
-	ComputeShader test("shader/TestCShader.glsl");
-	glUseProgram(test.GetProgram());
-
-	//Texture creation (for both I/O)
-	GLuint readWriteTex;
-	glGenTextures(1, &readWriteTex);
-	glBindTexture(GL_TEXTURE_2D, readWriteTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, nChannels;
-	unsigned char* dataIn = stbi_load("../assets/Textures/particleStar.png", &width, &height, &nChannels, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dataIn);
-	stbi_image_free(dataIn);
-	//Bind texture
-	glBindImageTexture(0, readWriteTex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
-
-	//Execute compute shader
-	glDispatchCompute(width/32, height/32, 1); //the size of work group is 32
-
-	//Save texture to file
-	unsigned char* dataOut = new unsigned char[width * height * 4];
-	glGetTextureImage(readWriteTex, 0, GL_RGBA, GL_UNSIGNED_BYTE, width * height * 4, dataOut);
-	stbi_write_png("../demo/computeShader.png", width, height, 4, dataOut, 0);
+	//InversePicture();
+	PrefixSum();
 }
 
 void Renderer::ScreenShot(std::string filename)

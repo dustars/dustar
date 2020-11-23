@@ -1,6 +1,12 @@
 #version 450 core
 
 uniform int HaveColor = 0;
+
+//Testing UBO(uniforma buffer object)
+layout (std140, binding = 0) uniform TransformBlock{
+	mat4 ProjMatrix;
+}transform;
+
 uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjMatrix;
@@ -30,5 +36,6 @@ void main(void) {
 	OUT.vNormal = normalize(normalMatrix * normalize(normal));
 	OUT.lightSpacePos = lightMatrix * vec4(position, 1.0);
 
-	gl_Position = ProjMatrix * ViewMatrix * temp;
+	//gl_Position = ProjMatrix * ViewMatrix * temp;
+	gl_Position = transform.ProjMatrix * ViewMatrix * temp;
 }

@@ -157,6 +157,7 @@
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="ComputeShaderExamples.cpp" />
     <ClCompile Include="Trajectory.cpp" />
     <ClCompile Include="WorleyNoise.cpp" />
   </ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="atmosphere\Cloud.h" />
     <ClInclude Include="atmosphere\constants.h" />
     <ClInclude Include="atmosphere\model.h" />
+    <ClInclude Include="ComputeShaderExamples.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="HeightMap.h" />
@@ -194,6 +196,8 @@
     <None Include="shader\AtmosphereVShader.glsl" />
     <None Include="shader\CloudFShader.glsl" />
     <None Include="shader\CloudVShader.glsl" />
+    <None Include="shader\ComputeShader\InversePictureCS.glsl" />
+    <None Include="shader\ComputeShader\PrefixSumCS.glsl" />
     <None Include="shader\GeneralFS.glsl" />
     <None Include="shader\GeneralVS.glsl" />
     <None Include="shader\HeightMapFShader.glsl" />
