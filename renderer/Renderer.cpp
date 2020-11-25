@@ -8,14 +8,16 @@ Renderer::Renderer(Window& parent)
 	renderFBO(new FrameBuffer(width, height)),
 	textRenderer(TextRenderer(width, height))
 {
-	ComputeShaderPlayground();
+	//ComputeShaderPlayground();
 
 	//Pre-defined values to take screenshot at the same position and orientaion.
 	//camera = new Camera(parent, 12.78f, 172.82f, Vector3(0.f, 250.f, 5.f));
 	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
+
 	//Testing
 	SetTransformUBO();
+	//CreateAtomicBuffer();
 
 #ifdef TESTING_OBJECT
 	object = new RenderObject();
@@ -51,6 +53,15 @@ Renderer::Renderer(Window& parent)
 	CreateShadowMap();
 #endif // SHADOW_MAPPING
 
+#ifdef POST_PROCESSING
+	postProcessingFBO.reset(new FrameBuffer(width, height));
+
+#ifdef DEPTH_OF_FIELD
+	CreateDepthOfField();
+#endif// DEPTH_OF_FIELD
+
+#endif //POST_PROCESSING
+
 #ifdef IMGUI
 	ImGUIInit(parent);
 #endif // IMGUI
@@ -85,12 +96,18 @@ void Renderer::Update(float dt)
 		UtilityUpdate();
 		//Render
 		Render();
+		ComputeShaderPlayground();
 	}
 }
 
 void Renderer::Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+#ifdef SHADOW_MAPPING
+	RenderShadowMap(); //Is it better to use "create" instead of "render"?
+#endif
+
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -107,8 +124,9 @@ void Renderer::Render()
 	RenderCloud();
 #endif
 
-#ifdef SHADOW_MAPPING
-	RenderShadowMap();
+#ifdef POST_PROCESSING
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO->GetFrameBuffer());
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #endif
 
 #ifdef TESTING_OBJECT
@@ -121,6 +139,19 @@ void Renderer::Render()
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 #endif // TESTING_OBJECT
+
+////////////////////////////////
+//// Post Processing Effect ////
+////////////////////////////////
+
+#ifdef POST_PROCESSING
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+#ifdef DEPTH_OF_FIELD
+	RenderDepthOfField();
+#endif //DEPTH_OF_FIELD
+
+#endif //POST_PROCESSING
 
 #ifdef OFFLINE
 	ScreenShot("Offline_Rendering");
@@ -152,6 +183,8 @@ void Renderer::UtilityRender()
 
 void Renderer::renderObject()
 {
+	//ResetAtomicBuffer();
+
 	glUseProgram(object->GetShader()->GetProgram());
 
 #ifdef SHADOW_MAPPING
@@ -234,7 +267,7 @@ void Renderer::RenderCloud()
 {
 	glUseProgram(cloudShader.GetShader()->GetProgram());
 
-	glBindTextureUnit(0, renderFBO->GetColorTexture());
+	glBindTextureUnit(1, renderFBO->GetColorTexture());
 	cameraMatrix = camera->BuildViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
 	Vector3 tempPos = camera->GetPosition();
@@ -424,6 +457,23 @@ void Renderer::RenderAtmosphericScatteringModel()
 	glUseProgram(0);
 }
 
+void Renderer::CreateDepthOfField()
+{
+	if (!DOFShader.SetShader("shader/EmptrVShader.glsl", "shader/DepthOfFieldFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	DOFShader.GetMesh()->CreateQuad();
+}
+
+void Renderer::RenderDepthOfField()
+{
+	//SummedAreaTable();
+
+	glUseProgram(DOFShader.GetShader()->GetProgram());
+	DOFShader.Draw();
+	glUseProgram(0);
+}
+
 void Renderer::SetTransformUBO()
 {
 	//Buffer creation
@@ -432,6 +482,30 @@ void Renderer::SetTransformUBO()
 	glNamedBufferStorage(transformUBO, sizeof(Matrix4), (const void*)&projMatrix, GL_DYNAMIC_STORAGE_BIT);
 	//Bind buffer
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, transformUBO);
+}
+
+//This snippet of code is used to show the order of pixel rendering on local hardware.
+//From: https://www.geeks3d.com/20120309/opengl-4-2-atomic-counter-demo-rendering-order-of-fragments/#overview
+void Renderer::CreateAtomicBuffer()
+{
+
+	glGenBuffers(1, &atomicBuffer);
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicBuffer);
+	glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), NULL, GL_DYNAMIC_COPY);
+	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicBuffer);
+	ResetAtomicBuffer();
+}
+
+//Reset buffer by using Map, glBufferSubData() and glClearBufferSubData are also available
+void Renderer::ResetAtomicBuffer()
+{
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicBuffer);
+	GLuint* ptr = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
+		0, sizeof(GLuint),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+	ptr[0] = 0; //why 2?What are stored in the first two indices?
+	glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
 }
 
 void Renderer::CreateShadowMap()
@@ -561,7 +635,6 @@ void Renderer::UpdateControl(float msec)
 void Renderer::ComputeShaderPlayground()
 {
 	//InversePicture();
-	PrefixSum();
 }
 
 void Renderer::ScreenShot(std::string filename)

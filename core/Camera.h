@@ -58,6 +58,6 @@ private:
 	float sunAzimuth = 342.5f;
 
 	//Camera update speed
-	static constexpr float UPDATE_MULTIPLIER = 1.f;
+	static constexpr float UPDATE_MULTIPLIER = 10.f;
 };
 

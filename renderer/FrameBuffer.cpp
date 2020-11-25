@@ -40,13 +40,14 @@ void FrameBuffer::GeneralFBO()
 	glGenTextures(1, &colorTexture);
 	glBindTexture(GL_TEXTURE_2D, colorTexture);
 	//why this operation brings OpenGL error 1281
-	glTexStorage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height);
+	//Because the level parameter has to be 1 to create at least one texture
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexStorage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, width, height);
 	
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorTexture, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);

@@ -3,6 +3,8 @@
 layout(binding = 0) uniform sampler2D ourTexture;
 layout(binding = 2) uniform sampler2D shadowMap;
 
+layout(binding = 0, offset = 0) uniform atomic_uint counter;
+
 uniform vec3 cameraPos;
 uniform vec4 LightPos;
 uniform vec4 LightColor;
@@ -50,4 +52,9 @@ void main() {
 		 color	+= diffuse.rgb * 0.1;					// ambience;
 	
 	FragColor = vec4(color, diffuse.a);
+
+	//使用atomic counter来看local hardware对pixel的渲染顺序，很好玩
+	//uint counter = atomicCounterIncrement(counter);
+	//float r = (counter / 1024) / 1024.f;
+	//FragColor = vec4(r, 0, 0, 1);
 }

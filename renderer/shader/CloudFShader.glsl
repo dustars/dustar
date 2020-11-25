@@ -13,7 +13,7 @@ in VS{
 out vec4 FragColor;
 
 //Previously rendered scene in this FBO
-layout(binding = 0) uniform sampler2D renderFBO;
+layout(binding = 1) uniform sampler2D renderFBO;
 //Cloud model and weather map textures
 layout(binding = 2) uniform sampler3D cloudBaseTexture;
 layout(binding = 3) uniform sampler3D cloudDetailTexture;

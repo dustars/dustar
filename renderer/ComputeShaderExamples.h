@@ -3,3 +3,4 @@
 
 void InversePicture();
 void PrefixSum();
+void SummedAreaTable();

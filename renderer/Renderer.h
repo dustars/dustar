@@ -90,9 +90,13 @@ private:
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
 	Matrix4		cameraMatrix;
-	//Testing
+	//UBO testing
 	GLuint		transformUBO; 
 	void		SetTransformUBO();
+	//atomic counter testing
+	GLuint		atomicBuffer;
+	void		CreateAtomicBuffer();
+	void		ResetAtomicBuffer();
 
 	//Lightings
 	std::unique_ptr<PointLight> light1;
@@ -128,6 +132,15 @@ private:
 	//into these two methods (model initialization and rendering)
 	void CreateAtmosphericScatteringModel();
 	void RenderAtmosphericScatteringModel();
+
+////////////////////////////////
+//// Post Processing Effect ////
+////////////////////////////////
+	std::unique_ptr<FrameBuffer> postProcessingFBO;
+	//Depth of field
+	RenderObject DOFShader;
+	void CreateDepthOfField();
+	void RenderDepthOfField();
 
 	//Utility
 	const float renderFrames = 1000.f / 60.f;
