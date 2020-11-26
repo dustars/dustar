@@ -6,6 +6,7 @@ Renderer::Renderer(Window& parent)
 	: RenderBase(parent),
 	light1(new PointLight(Vector3(2000.f, 600.f, 2000.f), Vector4(1.0f, 0.9f, 0.9f, 1.f))),
 	renderFBO(new FrameBuffer(width, height)),
+	SATComputeShader("shader/ComputeShader/PrefixSum2DCS.glsl"),
 	textRenderer(TextRenderer(width, height))
 {
 	//ComputeShaderPlayground();
@@ -111,6 +112,9 @@ void Renderer::Render()
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO->GetFrameBuffer());
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #endif
 
 #ifdef ATMOSPHERE
@@ -121,12 +125,14 @@ void Renderer::Render()
 
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	RenderCloud();
-#endif
-
 #ifdef POST_PROCESSING
 	glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+#endif // POST_PROCESSING
+#endif // RENDER_CLOUD
+
+#ifdef RENDER_CLOUD
+	RenderCloud();
 #endif
 
 #ifdef TESTING_OBJECT
@@ -463,14 +469,43 @@ void Renderer::CreateDepthOfField()
 		cout << "Shader set up failed!" << endl;
 	}
 	DOFShader.GetMesh()->CreateQuad();
+
+	glGenTextures(1, &outputTex);
+	glBindTexture(GL_TEXTURE_2D, outputTex);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, height, width);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void Renderer::RenderDepthOfField()
 {
-	//SummedAreaTable();
+	SummedAreaTable(postProcessingFBO->GetColorTexture());
 
 	glUseProgram(DOFShader.GetShader()->GetProgram());
+
+	glBindTextureUnit(1, postProcessingFBO->GetColorTexture());
+	glBindTextureUnit(2, postProcessingFBO->GetDepthTexture());
+	glUniform1f(glGetUniformLocation(DOFShader.GetShader()->GetProgram(), "focalDistance"), focalDistance);
+	glUniform1f(glGetUniformLocation(DOFShader.GetShader()->GetProgram(), "focalDepth"), focalDepth);
+
 	DOFShader.Draw();
+	glUseProgram(0);
+}
+
+void Renderer::SummedAreaTable(GLuint texture)
+{
+	glUseProgram(SATComputeShader.GetProgram());
+
+	glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(1, outputTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	glDispatchCompute(width, 1, 1);
+
+	glBindImageTexture(0, outputTex, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(1, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	glDispatchCompute(height, 1, 1);
+
 	glUseProgram(0);
 }
 
@@ -589,6 +624,8 @@ void Renderer::RenderImGUI()
 
 	//This demo showcases most of the features of Dear ImGUI
 	//ImGui::ShowDemoWindow((bool*)true);
+
+#ifdef RENDER_CLOUD
 	ImGui::SliderFloat("Cloud global coverage", &cloudModel->globalCoverage, 0.0f, 1.0f);
 	ImGui::SliderFloat("Cloud global density", &cloudModel->globalDensity, 0.0f, 1.0f);
 	ImGui::SliderFloat("Cloud scale", &cloudModel->cloudScale, 0.1f, 10.f);
@@ -596,6 +633,12 @@ void Renderer::RenderImGUI()
 
 	ImGui::SliderInt("Sample steps", &cloudModel->sampleSteps, 1, 128);
 	ImGui::SliderInt("Light sample steps", &cloudModel->lightSampleSteps, 1, 10);
+#endif
+
+#ifdef DEPTH_OF_FIELD
+	ImGui::SliderFloat("Focal Distance", &focalDistance, 0.f, 500.f);
+	ImGui::SliderFloat("Focal Depth", &focalDepth, 0.f, 500.f);
+#endif
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

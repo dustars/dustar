@@ -2,11 +2,12 @@
 
 #version 450 core
 
-layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
 
-shared uvec3 shared_data[gl_WorkGroupSize.x * 2];
+shared vec3 shared_data[gl_WorkGroupSize.x * 2];
 
-layout(binding = 0, rgba8ui) uniform uimage2D input_image;
+layout (binding = 0, rgba32f) readonly uniform image2D input_image;
+layout (binding = 1, rgba32f) writeonly uniform image2D output_image;
 
 void main(void)
 {
@@ -38,6 +39,7 @@ void main(void)
 		memoryBarrierShared();
 	}
 
-	imageStore(input_image, P.yx, uvec4(shared_data[id * 2], 255));
-	imageStore(input_image, P.yx + ivec2(0, 1), uvec4(shared_data[id * 2 + 1], 255));
+	// Is 1.f here valid?
+	imageStore(output_image, P.yx, vec4(shared_data[id * 2], 1.f));
+	imageStore(output_image, P.yx + ivec2(0, 1), vec4(shared_data[id * 2 + 1], 1.f));
 }

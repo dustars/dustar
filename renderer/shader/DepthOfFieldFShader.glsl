@@ -1,11 +1,12 @@
 #version 450 core
 
-layout (binding = 0) uniform sampler2D input_image;
+layout (binding = 1) uniform sampler2D input_image;
+layout (binding = 2) uniform sampler2D depthTex;
 
 out vec4 FragColor;
 
-uniform float focal_distance = 50.0;
-uniform float focal_depth = 30.0;
+uniform float focalDistance	 = 50.0;
+uniform float focalDepth	 = 30.0;
 
 void main(void)
 {
@@ -18,6 +19,7 @@ void main(void)
 	// of the filter. The last channel of this value stores
 	// the view-space depth of the pixel.
 	vec4 v = texelFetch(input_image, ivec2(gl_FragCoord.xy), 0).rgba;
+	v.w = texelFetch(depthTex, ivec2(gl_FragCoord.xy), 0).r;
 	// m will be the radius of our filter kernel
 	float m;
 	// For this application, we clear our depth image to zero
@@ -29,11 +31,11 @@ void main(void)
 		m = 0.5;
 	} else {
 		// Calculate a circle of confusion
-		m = abs(v.w - focal_distance);
+		m = abs(v.w - focalDistance);
 		// Simple smoothstep scale and bias. Minimum radius is
 		// 0.5 (diameter 1.0), maximum is 8.0. Box filter kernels
 		// greater than about 16 pixels don't look good at all.
-		m = 0.5 + smoothstep(0.0, focal_depth, m) * 7.5;
+		m = 0.5 + smoothstep(0.0, focalDepth, m) * 7.5;
 	}
 	// Calculate the positions of the four corners of our
 	// area to sample from.
@@ -58,6 +60,5 @@ void main(void)
 	// Divide through by area
 	f /= float(m * m);
 	// Output final color
-	//color = vec4(f, 1.0);
-	FragColor = vec4(.3f, 0.2f, 0.f, 1.f);
+	FragColor = vec4(f, 1.0);
 }

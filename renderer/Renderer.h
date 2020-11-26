@@ -141,6 +141,12 @@ private:
 	RenderObject DOFShader;
 	void CreateDepthOfField();
 	void RenderDepthOfField();
+	float focalDistance	= 50.0;
+	float focalDepth	= 30.0;
+
+	ComputeShader SATComputeShader;
+	GLuint outputTex;
+	void SummedAreaTable(GLuint texture);
 
 	//Utility
 	const float renderFrames = 1000.f / 60.f;
