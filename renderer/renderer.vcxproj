@@ -196,9 +196,14 @@
     <None Include="shader\AtmosphereVShader.glsl" />
     <None Include="shader\CloudFShader.glsl" />
     <None Include="shader\CloudVShader.glsl" />
+    <None Include="shader\ComputeShader\CloudBaseTextureNoiseCS.glsl" />
+    <None Include="shader\ComputeShader\CloudDetailTextureNoiseCS.glsl" />
     <None Include="shader\ComputeShader\InversePictureCS.glsl" />
+    <None Include="shader\ComputeShader\PerlinNoiseBufferCS.glsl" />
+    <None Include="shader\ComputeShader\PerlinNoiseCS.glsl" />
     <None Include="shader\ComputeShader\PrefixSum2DCS.glsl" />
     <None Include="shader\ComputeShader\PrefixSumCS.glsl" />
+    <None Include="shader\ComputeShader\ValueNoiseCS.glsl" />
     <None Include="shader\EmptrVShader.glsl" />
     <None Include="shader\DepthOfFieldFShader.glsl" />
     <None Include="shader\GeneralFS.glsl" />

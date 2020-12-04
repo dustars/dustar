@@ -47,12 +47,6 @@
 #include <memory>
 #include <thread>
 
-//temp parameters for terrain, need to be removed
-constexpr auto MAPWIDTH = 500;
-constexpr auto MAPLENGTH = 500;
-
-constexpr auto SHADOWWIDTH = 1024;
-constexpr auto SHADOWHEIGHT = 1024;
 
 //Fina a way to get rid of this forward declaration.
 class ParticleMaster;

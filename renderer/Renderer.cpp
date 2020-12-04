@@ -12,8 +12,8 @@ Renderer::Renderer(Window& parent)
 	//ComputeShaderPlayground();
 
 	//Pre-defined values to take screenshot at the same position and orientaion.
-	//camera = new Camera(parent, 12.78f, 172.82f, Vector3(0.f, 250.f, 5.f));
-	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
+	camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
+	//camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 	//Testing
@@ -97,7 +97,6 @@ void Renderer::Update(float dt)
 		UtilityUpdate();
 		//Render
 		Render();
-		ComputeShaderPlayground();
 	}
 }
 
@@ -113,8 +112,10 @@ void Renderer::Render()
 	glBindFramebuffer(GL_FRAMEBUFFER, renderFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #else
+#ifdef POST_PROCESSING
 	glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+#endif // POST_PROCESSING
 #endif
 
 #ifdef ATMOSPHERE
@@ -125,6 +126,7 @@ void Renderer::Render()
 
 #ifdef RENDER_CLOUD
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
 #ifdef POST_PROCESSING
 	glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO->GetFrameBuffer());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -255,6 +257,7 @@ void Renderer::CreateCloud()
 	cloudModel.reset(new atmosphere::Cloud(128));
 
 	glUseProgram(cloudShader.GetShader()->GetProgram());
+	glBindTextureUnit(1, renderFBO->GetColorTexture());
 	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
 	glBindTextureUnit(3, cloudModel->GetDetailShapeNoiseTex());
 	glBindTextureUnit(4, cloudModel->GetWeatherMapTex());
@@ -273,7 +276,6 @@ void Renderer::RenderCloud()
 {
 	glUseProgram(cloudShader.GetShader()->GetProgram());
 
-	glBindTextureUnit(1, renderFBO->GetColorTexture());
 	cameraMatrix = camera->BuildViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
 	Vector3 tempPos = camera->GetPosition();
@@ -677,7 +679,9 @@ void Renderer::UpdateControl(float msec)
 
 void Renderer::ComputeShaderPlayground()
 {
-	//InversePicture();
+	//ValueNoise2D();
+	//PerlinNoise();
+	PerlinNoiseBuffer();
 }
 
 void Renderer::ScreenShot(std::string filename)

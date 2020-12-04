@@ -1,15 +1,23 @@
 #pragma once
 
+//Size of terrain
+constexpr auto MAPWIDTH = 512;
+constexpr auto MAPLENGTH = 512;
+
+//Resolutoin of shadow map
+constexpr auto SHADOWWIDTH = 1024;
+constexpr auto SHADOWHEIGHT = 1024;
+
 //#define OFFLINE
 #define THREADING
-//#define RENDER_CLOUD
-#define ATMOSPHERE
+#define RENDER_CLOUD
+//#define ATMOSPHERE
 //#define TESTING_OBJECT
 #define IMGUI
-#define SHADOW_MAPPING
+//#define SHADOW_MAPPING
 
 // Macro POST_PROCESSING must be defined if
 // there's any other post processing effect!
-#define POST_PROCESSING
+//#define POST_PROCESSING
 
-#define DEPTH_OF_FIELD
+//#define DEPTH_OF_FIELD

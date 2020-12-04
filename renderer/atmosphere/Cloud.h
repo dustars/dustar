@@ -49,7 +49,9 @@ public:
 
 private:
 	void CreateBaseShapeTexture();
+	void CreateBaseShapeTextureCS();
 	void CreateDetailShapeTexture();
+	void CreateDetailShapeTextureCS();
 	void CreateWeatherMapTexture();
 	void CreateBlueNoiseTexture();
 
