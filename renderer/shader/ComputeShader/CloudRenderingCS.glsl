@@ -1,22 +1,24 @@
 #version 450 core
 
-in VS{
-	vec2 texCoord;
-	vec3 viewRay;
-}IN;
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-out vec4 FragColor;
-
-//Previously rendered scene in this FBO
-layout(binding = 1) uniform sampler2D renderFBO;
-//Cloud model and weather map textures
-layout(binding = 2) uniform sampler3D cloudBaseTexture;
-layout(binding = 3) uniform sampler3D cloudDetailTexture;
-layout(binding = 4) uniform sampler2D weatherMap;
-layout(binding = 5) uniform sampler2D blueNoiseTexture;
+layout (binding = 0, rgba32f) readonly uniform image2D renderFBO;
+//layout (binding = 1, rgba32f) readonly uniform image3D cloudBaseTexture;
+//layout (binding = 2, rgba32f) readonly uniform image3D cloudDetailTexture;
+layout (binding = 1) uniform sampler3D cloudBaseTexture;
+layout (binding = 2) uniform sampler3D cloudDetailTexture;
+layout (binding = 3) uniform sampler2D weatherMap;
+layout (binding = 4) uniform sampler2D blueNoiseTexture;
+//layout (binding = 3, rgba8) readonly uniform image2D weatherMap;
+//layout (binding = 4, rgba8) readonly uniform image2D blueNoiseTexture;
+//Result Image
+layout (binding = 5, rgba32f) writeonly uniform image2D cloudTex;
 
 //View-related parameters
 uniform vec3 cameraPos;
+uniform mat4 viewMatrix;
+//Possible image resolution needed
+uniform vec2 resolution;
 //Cloud-related parameters
 uniform float globalCoverage;
 uniform float globalDensity;
@@ -41,7 +43,6 @@ float eccentricityG = 0.2f;
 vec4 cloudInnerSphere = vec4(0, cloudHeightAboveGround - cloudLayerRadius, 0, cloudLayerRadius);
 vec4 cloudOuterSphere = vec4(cloudInnerSphere.xyz, cloudLayerRadius + cloudLayerLength);
 
-
 //Original: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
 bool RaySphereIntersectionTest(vec3 rayDir, out vec3 intersecPoint, out float intervalDist) {
 
@@ -49,7 +50,7 @@ bool RaySphereIntersectionTest(vec3 rayDir, out vec3 intersecPoint, out float in
 	//Make sure the camera is inside the sphere.
 	if (length(L) > cloudInnerSphere.w) return false;
 	float projLength = dot(L, rayDir);
-	float cToRay2 = dot(L,L) - projLength * projLength;
+	float cToRay2 = dot(L, L) - projLength * projLength;
 	//if the ray doesn't hit the sphere
 	//if (cToRay2 > (cloudInnerSphere.w * cloudInnerSphere.w)) return false;
 
@@ -108,7 +109,7 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 	//Sample the raw data from noise texture.
 	vec4 rawData = texture(cloudBaseTexture, uvw);
 	float fbmWorley = rawData.g * 0.625f + rawData.b * 0.25f + rawData.a * 0.125f;
-	float baseNoise = map(rawData.r, -( 1.f - fbmWorley), 1.f, 0.f, 1.f);
+	float baseNoise = map(rawData.r, -(1.f - fbmWorley), 1.f, 0.f, 1.f);
 
 	if (sampleDetail == true) {
 		//Currently no alpha channel for the weather map
@@ -124,7 +125,7 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 		float weatherMapFactor = globalCoverage * max(wm.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * wm.g * 2.f);
 
 		float wmModified = clamp(map(heightModified, 1.f - weatherMapFactor, 1.f, 0.f, 1.f), 0.f, 1.f);
-		
+
 		wmModified = clamp(map(wmModified, SampleDetailNoise(uvw, pHeight), 1.f, 0.f, 1.f), 0.f, 1.f);
 		//Density-altering height function at last
 		return wmModified * DensityHeightFunc(pHeight, wmAlpha);
@@ -153,11 +154,16 @@ float lightCalculation(float density, vec3 rayDir, float blueNoise)
 
 void main(void)
 {
-	vec3 color = texture(renderFBO, IN.texCoord).xyz;
-	vec3 rayDir = normalize(IN.viewRay);	//Ray direction
+	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+
+	vec3 color = imageLoad(renderFBO, p).xyz;
+
+	vec2 uv = (p - .5 * resolution.xy) / resolution.y;
+	vec3 rayDir = mat3(viewMatrix) * normalize(vec3(uv.x, -uv.y, -1));
+
 	vec3 pos;								//Intersection point
 	float intervalDist;						//Length to march
-
+	
 	if (RaySphereIntersectionTest(rayDir, pos, intervalDist)) {
 		//Accumulated density for ray marching
 		float density = 0.f;
@@ -171,7 +177,7 @@ void main(void)
 		//The smallest number is 64, but may be extended if the rayDistance is too long
 		float stepLength = cloudLayerLength / sampleSteps;
 		vec3 stepDir = stepLength * rayDir;
-		int totalSteps = int(intervalDist / stepLength); 
+		int totalSteps = int(intervalDist / stepLength);
 
 		//Optimizations
 		float cloud_test = 0.f;
@@ -207,7 +213,7 @@ void main(void)
 						//The following light calculation is incorrect.
 						transmittance *= exp(-density);
 						lightEnergy += density * lightCalculation(densityAloneLightRay, sunDirection, blueNoise) * transmittance;
-						
+
 						//When the effect of continuing ray marching is trivial, break;
 						if (transmittance < 0.01f) break;
 						densityAloneLightRay = 0;
@@ -236,5 +242,5 @@ void main(void)
 		color = mix(cloudColor, color, transmittance);
 	}
 
-	FragColor = vec4(color, 1);
+	imageStore(cloudTex, p, vec4(color, 1.f));
 }

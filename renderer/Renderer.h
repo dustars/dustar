@@ -119,6 +119,12 @@ private:
 	void CreateCloud();
 	void RenderCloud();
 
+	ComputeShader cloudCS;
+	GLuint cloudTex;
+	void CreateCloudCS();
+	void RenderCloudCS();
+	RenderObject toolerShader;
+
 	//For atmospheic scattering
 	std::unique_ptr<atmosphere::Model> atmosphereScattering;
 	RenderObject atmosphereScatteringShader;

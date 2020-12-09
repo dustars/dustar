@@ -7,13 +7,14 @@ Renderer::Renderer(Window& parent)
 	light1(new PointLight(Vector3(2000.f, 600.f, 2000.f), Vector4(1.0f, 0.9f, 0.9f, 1.f))),
 	renderFBO(new FrameBuffer(width, height)),
 	SATComputeShader("shader/ComputeShader/PrefixSum2DCS.glsl"),
-	textRenderer(TextRenderer(width, height))
+	textRenderer(TextRenderer(width, height)),
+	cloudCS("shader/ComputeShader/CloudRenderingCS.glsl")
 {
 	//ComputeShaderPlayground();
 
 	//Pre-defined values to take screenshot at the same position and orientaion.
-	camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
-	//camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
+	//camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
+	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 	//Testing
@@ -47,7 +48,11 @@ Renderer::Renderer(Window& parent)
 #endif // ATMOSPHERE
 
 #ifdef RENDER_CLOUD
+#ifdef RENDER_CLOUD_CS
+	CreateCloudCS();
+#else
 	CreateCloud();
+#endif // Compute Shader
 #endif // RENDER_CLOUD
 
 #ifdef SHADOW_MAPPING
@@ -134,7 +139,11 @@ void Renderer::Render()
 #endif // RENDER_CLOUD
 
 #ifdef RENDER_CLOUD
+#ifdef RENDER_CLOUD_CS
+	RenderCloudCS();
+#else
 	RenderCloud();
+#endif // Compute Shader
 #endif
 
 #ifdef TESTING_OBJECT
@@ -192,7 +201,6 @@ void Renderer::UtilityRender()
 void Renderer::renderObject()
 {
 	//ResetAtomicBuffer();
-
 	glUseProgram(object->GetShader()->GetProgram());
 
 #ifdef SHADOW_MAPPING
@@ -292,6 +300,72 @@ void Renderer::RenderCloud()
 	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
 	
 	cloudShader.Draw();
+	glUseProgram(0);
+}
+
+void Renderer::CreateCloudCS()
+{
+	if (!toolerShader.SetShader("shader/TextureOnlyVShader.glsl", "shader/TextureOnlyFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	toolerShader.GetMesh()->CreatePlane();
+
+	cloudModel.reset(new atmosphere::Cloud(128));
+
+	glGenTextures(1, &cloudTex);
+	glBindTexture(GL_TEXTURE_2D, cloudTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+
+	//Binding Texture image uints
+	glUseProgram(cloudCS.GetProgram());
+	glBindImageTexture(0, renderFBO->GetColorTexture(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindTextureUnit(1, cloudModel->GetBaseShapeTex());
+	glBindTextureUnit(2, cloudModel->GetDetailShapeNoiseTex());
+	glBindTextureUnit(3, cloudModel->GetWeatherMapTex());
+	glBindTextureUnit(4, cloudModel->GetBlueNoiseTex());
+	glBindImageTexture(5, cloudTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	//Resolution
+	Vector2 resolution(width, height);
+	glUniform2fv(glGetUniformLocation(cloudCS.GetProgram(), "resolution"), 1, (float*)&resolution);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
+
+	glUseProgram(0);
+}
+
+void Renderer::RenderCloudCS()
+{
+	glUseProgram(cloudCS.GetProgram());
+	cameraMatrix = camera->BuildViewMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(cloudCS.GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
+	glBindImageTexture(0, renderFBO->GetColorTexture(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	Vector3 tempPos = camera->GetPosition();
+	glUniform3fv(glGetUniformLocation(cloudCS.GetProgram(), "cameraPos"), 1, (float*)&tempPos);
+	Vector3 tempDir = camera->GetSunDirection();
+	glUniform3fv(glGetUniformLocation(cloudCS.GetProgram(), "sunDirection"), 1, (float*)&tempDir);
+	//Control parameters
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "globalCoverage"), cloudModel->globalCoverage);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "globalDensity"), cloudModel->globalDensity);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudScale"), cloudModel->cloudScale);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudOffset"), cloudModel->cloudOffset);
+	glUniform1i(glGetUniformLocation(cloudCS.GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
+	glUniform1i(glGetUniformLocation(cloudCS.GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
+
+	glDispatchCompute(ceil(width / 8), ceil(height / 8), 1);
+
+	glUseProgram(0);
+
+	glUseProgram(toolerShader.GetShader()->GetProgram());
+	glBindTextureUnit(1, cloudTex);
+	toolerShader.Draw();
+	glBindTextureUnit(1, 0);
 	glUseProgram(0);
 }
 

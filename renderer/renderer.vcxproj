@@ -198,6 +198,7 @@
     <None Include="shader\CloudVShader.glsl" />
     <None Include="shader\ComputeShader\CloudBaseTextureNoiseCS.glsl" />
     <None Include="shader\ComputeShader\CloudDetailTextureNoiseCS.glsl" />
+    <None Include="shader\ComputeShader\CloudRenderingCS.glsl" />
     <None Include="shader\ComputeShader\InversePictureCS.glsl" />
     <None Include="shader\ComputeShader\PerlinNoiseBufferCS.glsl" />
     <None Include="shader\ComputeShader\PerlinNoiseCS.glsl" />

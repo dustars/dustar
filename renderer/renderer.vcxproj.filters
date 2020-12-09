@@ -195,5 +195,6 @@
     <None Include="shader\ComputeShader\PerlinNoiseBufferCS.glsl" />
     <None Include="shader\ComputeShader\CloudDetailTextureNoiseCS.glsl" />
     <None Include="shader\ComputeShader\CloudBaseTextureNoiseCS.glsl" />
+    <None Include="shader\ComputeShader\CloudRenderingCS.glsl" />
   </ItemGroup>
 </Project>

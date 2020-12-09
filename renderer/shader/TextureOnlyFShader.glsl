@@ -1,6 +1,6 @@
 #version 450 core
 
-uniform sampler2D ourTexture;
+layout (binding = 1) uniform sampler2D tex;
 
 in VS{
 	vec2 texCoord;
@@ -10,5 +10,5 @@ out vec4 FragColor;
 
 void main()
 {
-	FragColor = texture(ourTexture, IN.texCoord);
+	FragColor = texture(tex, IN.texCoord);
 }
