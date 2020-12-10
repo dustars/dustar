@@ -32,6 +32,8 @@ public:
 	GLuint GetWeatherMapTex() { return weatherMapTex; }
 	GLuint GetBlueNoiseTex() { return blueNoiseTex; }
 
+	void Update(float msec);
+
 	//Don't bother the data encapsulation for these parameters. :)
 	float globalCoverage = 0.8f;
 	float globalDensity = 1.0f;

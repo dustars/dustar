@@ -12,34 +12,15 @@ Renderer::Renderer(Window& parent)
 {
 	//ComputeShaderPlayground();
 
-	//Pre-defined values to take screenshot at the same position and orientaion.
-	//camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
-	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
+	camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
+	//camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 	//Testing
 	SetTransformUBO();
 	//CreateAtomicBuffer();
 
-#ifdef TESTING_OBJECT
-	object = new RenderObject();
-	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
-		cout << "Texture set up failed!" << endl;
-	}
-	object->GetMesh()->CreatePlane();
-#else
-	object = new RenderObject();
-	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
-		cout << "Texture set up failed!" << endl;
-	}
-	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
-#endif
+	CreateObject();
 
 #ifdef ATMOSPHERE
 	CreateAtmosphericScatteringModel();
@@ -77,7 +58,6 @@ Renderer::Renderer(Window& parent)
 Renderer::~Renderer()
 {
 	if (camera)						delete camera;
-	if (object)						delete object;
 	if (trajectory)					delete trajectory;
 	if (skybox)						delete skybox;
 	if (particleMaster)				delete particleMaster;
@@ -100,6 +80,7 @@ void Renderer::Update(float dt)
 		if (particleMaster) particleMaster->Update(oneFramePerMilliSecond);
 		if (trajectory) trajectory->GetMesh()->Update(oneFramePerMilliSecond);
 		UtilityUpdate();
+		cloudModel->Update(dt);
 		//Render
 		Render();
 	}
@@ -123,10 +104,13 @@ void Renderer::Render()
 #endif // POST_PROCESSING
 #endif
 
+	//--------------------------
+	//---Background Rendering---
+	//--------------------------
 #ifdef ATMOSPHERE
 	if (atmosphereScattering.get()) RenderAtmosphericScatteringModel();
 #else
-	if (skybox) renderSkyBox();
+	if (skybox) RenderSkyBox();
 #endif // ATMOSPHERE
 
 #ifdef RENDER_CLOUD
@@ -138,6 +122,9 @@ void Renderer::Render()
 #endif // POST_PROCESSING
 #endif // RENDER_CLOUD
 
+	//---------------------
+	//---Cloud Rendering---
+	//---------------------
 #ifdef RENDER_CLOUD
 #ifdef RENDER_CLOUD_CS
 	RenderCloudCS();
@@ -146,21 +133,23 @@ void Renderer::Render()
 #endif // Compute Shader
 #endif
 
-#ifdef TESTING_OBJECT
-	if (object) renderObject();
+	//--------------------------------------
+	//---Post Processing Effect Rendering---
+	//--------------------------------------
+#ifdef SQUARE_OBJECT
+	RenderObject();
 #else
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	if (object) renderObject();
+	RenderObject();
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-#endif // TESTING_OBJECT
+#endif // SQUARE_OBJECT
 
-////////////////////////////////
-//// Post Processing Effect ////
-////////////////////////////////
-
+	//--------------------------------------
+	//---Post Processing Effect Rendering---
+	//--------------------------------------
 #ifdef POST_PROCESSING
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -198,61 +187,91 @@ void Renderer::UtilityRender()
 	if (isRenderingText) RenderText();
 }
 
-void Renderer::renderObject()
+void Renderer::CreateObject()
+{
+	object.reset(new GameObject());
+#ifdef SQUARE_OBJECT
+	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	if (!object->GetTexture()->SetTexture("../assets/Textures/container.jpg")) {
+		cout << "Texture set up failed!" << endl;
+	}
+	object->GetMesh()->CreatePlane();
+#else
+	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+	if (!object->GetTexture()->SetTexture("../assets/Textures/Barren Reds.jpg")) {
+		cout << "Texture set up failed!" << endl;
+	}
+	object->SetMesh(new HeightMap(5, 2, 0.707, MAPWIDTH, MAPLENGTH));
+#endif
+}
+
+void Renderer::RenderObject()
 {
 	//ResetAtomicBuffer();
-	glUseProgram(object->GetShader()->GetProgram());
+	glUseProgram(object->GetProgram());
+	glBindTextureUnit(0, object->GetTexture()->GetTexture());
 
 #ifdef SHADOW_MAPPING
 	glBindTextureUnit(2, shadowFBO->GetDepthTexture());
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
 #endif
 
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	cameraMatrix = camera->BuildViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&cameraMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&cameraMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 	if (light1.get()) {
 		Vector3 tempPos = camera->GetPosition();
-		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "cameraPos"), 1, (float*)&tempPos);
+		glUniform3fv(glGetUniformLocation(object->GetProgram(), "cameraPos"), 1, (float*)&tempPos);
 		Vector3 tempDir = camera->GetSunDirection();
-		glUniform3fv(glGetUniformLocation(object->GetShader()->GetProgram(), "sunDir"), 1, (float*)&tempDir);
+		glUniform3fv(glGetUniformLocation(object->GetProgram(), "sunDir"), 1, (float*)&tempDir);
 		tempPos = light1->GetPosition();
-		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightPos"), 1, (float*)&tempPos);
+		glUniform4fv(glGetUniformLocation(object->GetProgram(), "LightPos"), 1, (float*)&tempPos);
 		Vector4 tempColor = light1->GetColor();
-		glUniform4fv(glGetUniformLocation(object->GetShader()->GetProgram(), "LightColor"), 1, (float*)&tempColor);
+		glUniform4fv(glGetUniformLocation(object->GetProgram(), "LightColor"), 1, (float*)&tempColor);
 	}
 
 	object->Draw();
+
+	glBindTextureUnit(0, 0);
 	glUseProgram(0);
 }
 
-void Renderer::renderSkyBox()
+void Renderer::CreateSkybox()
+{
+	skybox = new GameObject();
+	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {
+		cout << "Shader set up failed!" << endl;
+	}
+
+	skybox->GetTexture()->CreateCubeMap("../assets/Skybox/bluecloud_rt.jpg",
+		"../assets/Skybox/bluecloud_lf.jpg",
+		"../assets/Skybox/bluecloud_up.jpg",
+		"../assets/Skybox/bluecloud_dn.jpg",
+		"../assets/Skybox/bluecloud_bk.jpg",
+		"../assets/Skybox/bluecloud_ft.jpg");
+	skybox->GetMesh()->CreateQuad();
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glBindTextureUnit(0, skybox->GetTexture()->GetTexture());
+}
+
+void Renderer::RenderSkyBox()
 {
 	glDepthMask(GL_FALSE);
-	glUseProgram(skybox->GetShader()->GetProgram());
+	glUseProgram(skybox->GetProgram());
 	cameraMatrix = camera->BuildViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ViewMatrix"), 1, GL_FALSE,(float*)&cameraMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(skybox->GetShader()->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
-	
-	skybox->GetMesh()->Draw();
+	glUniformMatrix4fv(glGetUniformLocation(skybox->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&cameraMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(skybox->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+
+	skybox->Draw();
 
 	glUseProgram(0);
 	glDepthMask(GL_TRUE);
-}
-
-void Renderer::RenderText()
-{
-	textRenderer.RenderText("FPS: " + to_string(fps), 10.0f, height - 25.f);
-	string CameraPositionText = "Camera Position: " +
-		to_string(camera->GetPosition().x) + ", " +
-		to_string(camera->GetPosition().y) + ", " +
-		to_string(camera->GetPosition().z);
-	textRenderer.RenderText(CameraPositionText, 10.0f, height - 45.f);
-	textRenderer.RenderText("Camera Pitch: " + to_string(camera->GetPitch()), 10.0f, height - 65.f);
-	textRenderer.RenderText("Camera Yaw: " + to_string(camera->GetYaw()), 10.0f, height - 85.f);
-	textRenderer.RenderText("Sun Zenith : " + to_string(camera->GetSunZenithDegree()), 10.0f, height - 105.f);
-	textRenderer.RenderText("Sun Azimuth: " + to_string(camera->GetSunAzimuthDegree()), 10.0f, height - 125.f);
 }
 
 void Renderer::CreateCloud()
@@ -264,42 +283,44 @@ void Renderer::CreateCloud()
 
 	cloudModel.reset(new atmosphere::Cloud(128));
 
-	glUseProgram(cloudShader.GetShader()->GetProgram());
-	glBindTextureUnit(1, renderFBO->GetColorTexture());
-	glBindTextureUnit(2, cloudModel->GetBaseShapeTex());
-	glBindTextureUnit(3, cloudModel->GetDetailShapeNoiseTex());
-	glBindTextureUnit(4, cloudModel->GetWeatherMapTex());
-	glBindTextureUnit(5, cloudModel->GetBlueNoiseTex());
+	glUseProgram(cloudShader.GetProgram());
+	glBindTextureUnit(6, cloudModel->GetBaseShapeTex());
+	glBindTextureUnit(7, cloudModel->GetDetailShapeNoiseTex());
+	glBindTextureUnit(8, cloudModel->GetWeatherMapTex());
+	glBindTextureUnit(9, cloudModel->GetBlueNoiseTex());
 
-	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "projMatrix"), 1, GL_FALSE, (float*)&projMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetProgram(), "projMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
 
 	glUseProgram(0);
 }
 
 void Renderer::RenderCloud()
 {
-	glUseProgram(cloudShader.GetShader()->GetProgram());
+	glUseProgram(cloudShader.GetProgram());
+	glBindTextureUnit(0, renderFBO->GetColorTexture());
 
 	cameraMatrix = camera->BuildViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
 	Vector3 tempPos = camera->GetPosition();
-	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cameraPos"), 1, (float*)&tempPos);
+	glUniform3fv(glGetUniformLocation(cloudShader.GetProgram(), "cameraPos"), 1, (float*)&tempPos);
 	Vector3 tempDir = camera->GetSunDirection();
-	glUniform3fv(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sunDirection"), 1, (float*)&tempDir);
+	glUniform3fv(glGetUniformLocation(cloudShader.GetProgram(), "sunDirection"), 1, (float*)&tempDir);
 	//Control parameters
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalCoverage"), cloudModel->globalCoverage);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "globalDensity"), cloudModel->globalDensity);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudScale"), cloudModel->cloudScale);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "cloudOffset"), cloudModel->cloudOffset);
-	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
-	glUniform1i(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
-	glUniform1f(glGetUniformLocation(cloudShader.GetShader()->GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "globalCoverage"), cloudModel->globalCoverage);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "globalDensity"), cloudModel->globalDensity);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudScale"), cloudModel->cloudScale);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudOffset"), cloudModel->cloudOffset);
+	glUniform1i(glGetUniformLocation(cloudShader.GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
+	glUniform1i(glGetUniformLocation(cloudShader.GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
 	
 	cloudShader.Draw();
+
+	glBindTextureUnit(0, 0);
 	glUseProgram(0);
 }
 
@@ -319,14 +340,19 @@ void Renderer::CreateCloudCS()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	//Binding Texture image uints
 	glUseProgram(cloudCS.GetProgram());
 	glBindImageTexture(0, renderFBO->GetColorTexture(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-	glBindTextureUnit(1, cloudModel->GetBaseShapeTex());
-	glBindTextureUnit(2, cloudModel->GetDetailShapeNoiseTex());
-	glBindTextureUnit(3, cloudModel->GetWeatherMapTex());
-	glBindTextureUnit(4, cloudModel->GetBlueNoiseTex());
+	//glBindImageTexture(1, cloudModel->GetBaseShapeTex(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	//glBindImageTexture(2, cloudModel->GetDetailShapeNoiseTex(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	//glBindImageTexture(3, cloudModel->GetWeatherMapTex(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+	//glBindImageTexture(4, cloudModel->GetBlueNoiseTex(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32F);
+	glBindTextureUnit(6, cloudModel->GetBaseShapeTex());
+	glBindTextureUnit(7, cloudModel->GetDetailShapeNoiseTex());
+	glBindTextureUnit(8, cloudModel->GetWeatherMapTex());
+	glBindTextureUnit(9, cloudModel->GetBlueNoiseTex());
 	glBindImageTexture(5, cloudTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
 	//Resolution
@@ -342,9 +368,10 @@ void Renderer::CreateCloudCS()
 void Renderer::RenderCloudCS()
 {
 	glUseProgram(cloudCS.GetProgram());
+	
+
 	cameraMatrix = camera->BuildViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(cloudCS.GetProgram(), "viewMatrix"), 1, true, (float*)&cameraMatrix);
-	glBindImageTexture(0, renderFBO->GetColorTexture(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 	Vector3 tempPos = camera->GetPosition();
 	glUniform3fv(glGetUniformLocation(cloudCS.GetProgram(), "cameraPos"), 1, (float*)&tempPos);
 	Vector3 tempDir = camera->GetSunDirection();
@@ -362,10 +389,10 @@ void Renderer::RenderCloudCS()
 
 	glUseProgram(0);
 
-	glUseProgram(toolerShader.GetShader()->GetProgram());
-	glBindTextureUnit(1, cloudTex);
+	glUseProgram(toolerShader.GetProgram());
+	glBindTextureUnit(0, cloudTex);
 	toolerShader.Draw();
-	glBindTextureUnit(1, 0);
+	glBindTextureUnit(0, 0);
 	glUseProgram(0);
 }
 
@@ -468,21 +495,21 @@ void Renderer::CreateAtmosphericScatteringModel()
 
 	//Linking shader program
 	atmosphereScatteringShader.SetShader("shader/AtmosphereVShader.glsl", "shader/AtmosphereFShader.glsl");
-	glAttachShader(atmosphereScatteringShader.GetShader()->GetProgram(), atmosphereScattering->shader());
-	glLinkProgram(atmosphereScatteringShader.GetShader()->GetProgram());
+	glAttachShader(atmosphereScatteringShader.GetProgram(), atmosphereScattering->shader());
+	glLinkProgram(atmosphereScatteringShader.GetProgram());
 	GLint code;
-	glGetProgramiv(atmosphereScatteringShader.GetShader()->GetProgram(), GL_LINK_STATUS, &code);
+	glGetProgramiv(atmosphereScatteringShader.GetProgram(), GL_LINK_STATUS, &code);
 
 	if (!code) {
 		cout << "Shader for atmospheric scattering set up failed!" << endl;
 	}
 
-	glDetachShader(atmosphereScatteringShader.GetShader()->GetProgram(), atmosphereScattering->shader());
+	glDetachShader(atmosphereScatteringShader.GetProgram(), atmosphereScattering->shader());
 	atmosphereScatteringShader.GetMesh()->CreatePlane();
 
 	//Set 3 constant uniforms in fragment shader
-	glUseProgram(atmosphereScatteringShader.GetShader()->GetProgram());
-	atmosphereScattering->SetProgramUniforms(atmosphereScatteringShader.GetShader()->GetProgram(), 0, 1, 2, 3);
+	glUseProgram(atmosphereScatteringShader.GetProgram());
+	atmosphereScattering->SetProgramUniforms(atmosphereScatteringShader.GetProgram(), 0, 1, 2, 3);
 	double white_point_r = 1.0;
 	double white_point_g = 1.0;
 	double white_point_b = 1.0;
@@ -494,18 +521,18 @@ void Renderer::CreateAtmosphericScatteringModel()
 		white_point_g /= white_point;
 		white_point_b /= white_point;
 	}
-	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "white_point"),
+	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "white_point"),
 		white_point_r, white_point_g, white_point_b);
-	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "earth_center"),
+	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "earth_center"),
 		0.0, 0.0, -kBottomRadius / kLengthUnitInMeters );
-	glUniform2f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "sun_size"),
+	glUniform2f(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "sun_size"),
 		tan(kSunAngularRadius),
 		cos(kSunAngularRadius));
 
 	//Don't know why it is needed, probably due to precomputation
 	glViewport(0, 0, width, height);
 
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "projMatrix"), 1, GL_FALSE,
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "projMatrix"), 1, GL_FALSE,
 		(float*)&projMatrix);
 
 	glUseProgram(0);
@@ -521,18 +548,18 @@ void Renderer::RenderAtmosphericScatteringModel()
 	Vector3 sunDir = camera->GetSunDirection();
 	Vector3 cameraPos = camera->GetPosition();
 
-	glUseProgram(atmosphereScatteringShader.GetShader()->GetProgram());
+	glUseProgram(atmosphereScatteringShader.GetProgram());
 	//For some reasons, coordinate system in Bruneton's model is in order z,x,y
 	//whereas OpenGL has x,y,z order.
 	//PS: This adjustment also applies to the vertex shader when generating view ray.
-	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "camera"),
+	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "camera"),
 		cameraPos.z, cameraPos.x, cameraPos.y);
-	glUniform1f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "exposure"),
+	glUniform1f(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "exposure"),
 		use_luminance_ != NONE ? exposure_ * 1e-5 : exposure_);
 	cameraMatrix = camera->BuildViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "viewMatrix"),
+	glUniformMatrix4fv(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "viewMatrix"),
 		1, true, (float*)&cameraMatrix);
-	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetShader()->GetProgram(), "sun_direction"),
+	glUniform3f(glGetUniformLocation(atmosphereScatteringShader.GetProgram(), "sun_direction"),
 		sunDir.z, sunDir.x, sunDir.y);
 
 	atmosphereScatteringShader.Draw();
@@ -557,12 +584,12 @@ void Renderer::RenderDepthOfField()
 {
 	SummedAreaTable(postProcessingFBO->GetColorTexture());
 
-	glUseProgram(DOFShader.GetShader()->GetProgram());
+	glUseProgram(DOFShader.GetProgram());
 
 	glBindTextureUnit(1, postProcessingFBO->GetColorTexture());
 	glBindTextureUnit(2, postProcessingFBO->GetDepthTexture());
-	glUniform1f(glGetUniformLocation(DOFShader.GetShader()->GetProgram(), "focalDistance"), focalDistance);
-	glUniform1f(glGetUniformLocation(DOFShader.GetShader()->GetProgram(), "focalDepth"), focalDepth);
+	glUniform1f(glGetUniformLocation(DOFShader.GetProgram(), "focalDistance"), focalDistance);
+	glUniform1f(glGetUniformLocation(DOFShader.GetProgram(), "focalDepth"), focalDepth);
 
 	DOFShader.Draw();
 	glUseProgram(0);
@@ -638,8 +665,8 @@ void Renderer::RenderShadowMap()
 	lightMatrix = Matrix4::BuildViewMatrix(light1->GetPosition(), Vector3(0, 0, 0));
 	lightMatrix = projMatrix * lightMatrix * modelMatrix;
 
-	glUseProgram(shadowMappingShader.GetShader()->GetProgram());
-	glUniformMatrix4fv(glGetUniformLocation(shadowMappingShader.GetShader()->GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
+	glUseProgram(shadowMappingShader.GetProgram());
+	glUniformMatrix4fv(glGetUniformLocation(shadowMappingShader.GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
 
 	object->Draw();
 
@@ -650,28 +677,9 @@ void Renderer::RenderShadowMap()
 	glDisable(GL_DEPTH_TEST);
 }
 
-void Renderer::CreateSkybox()
-{
-	skybox = new RenderObject();
-	if (!skybox->SetShader("shader/SkyBoxVShader.glsl", "shader/SkyBoxFShader.glsl")) {
-		cout << "Shader set up failed!" << endl;
-	}
-
-	skybox->GetTexture()->CreateCubeMap("../assets/Skybox/bluecloud_rt.jpg",
-		"../assets/Skybox/bluecloud_lf.jpg",
-		"../assets/Skybox/bluecloud_up.jpg",
-		"../assets/Skybox/bluecloud_dn.jpg",
-		"../assets/Skybox/bluecloud_bk.jpg",
-		"../assets/Skybox/bluecloud_ft.jpg");
-	skybox->GetMesh()->CreateQuad();
-
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetTexture()->GetTexture());
-}
-
 void Renderer::CreateTrajectory()
 {
-	trajectory = new RenderObject();
+	trajectory = new GameObject();
 
 	if (!trajectory->SetShader("shader/TriangleVShader.glsl", "shader/TriangleFShader.glsl")) {
 		cout << "Shader set up failed!" << endl;
@@ -690,6 +698,20 @@ void Renderer::ImGUIInit(Window& parent)
 
 	ImGui_ImplWin32_Init(parent.GetHandle());
 	ImGui_ImplOpenGL3_Init();
+}
+
+void Renderer::RenderText()
+{
+	textRenderer.RenderText("FPS: " + to_string(fps), 10.0f, height - 25.f);
+	string CameraPositionText = "Camera Position: " +
+		to_string(camera->GetPosition().x) + ", " +
+		to_string(camera->GetPosition().y) + ", " +
+		to_string(camera->GetPosition().z);
+	textRenderer.RenderText(CameraPositionText, 10.0f, height - 45.f);
+	textRenderer.RenderText("Camera Pitch: " + to_string(camera->GetPitch()), 10.0f, height - 65.f);
+	textRenderer.RenderText("Camera Yaw: " + to_string(camera->GetYaw()), 10.0f, height - 85.f);
+	textRenderer.RenderText("Sun Zenith : " + to_string(camera->GetSunZenithDegree()), 10.0f, height - 105.f);
+	textRenderer.RenderText("Sun Azimuth: " + to_string(camera->GetSunAzimuthDegree()), 10.0f, height - 125.f);
 }
 
 void Renderer::RenderImGUI()

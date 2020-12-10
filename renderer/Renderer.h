@@ -25,7 +25,7 @@
 
 //Cores
 #include "RenderBase.h"
-#include "RenderObject.h"
+#include "GameObject.h"
 #include "Camera.h"
 #include "FrameBuffer.h"
 
@@ -71,21 +71,13 @@ private:
 	void UtilityUpdate();
 	void UtilityRender();
 
-	//Render Objects
-	RenderObject*		object			= nullptr;
-	RenderObject*		trajectory		= nullptr;
-	RenderObject*		skybox			= nullptr;
-
-	//The FBO contains the result of Rasterization rendering.
-	std::unique_ptr<FrameBuffer> renderFBO;
-
 	//Transformation
-	Camera*		camera					= nullptr;
+	Camera* camera = nullptr;
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
 	Matrix4		cameraMatrix;
 	//UBO testing
-	GLuint		transformUBO; 
+	GLuint		transformUBO;
 	void		SetTransformUBO();
 	//atomic counter testing
 	GLuint		atomicBuffer;
@@ -95,39 +87,46 @@ private:
 	//Lightings
 	std::unique_ptr<PointLight> light1;
 
+	//The FBO contains the result of Rasterization rendering.
+	std::unique_ptr<FrameBuffer> renderFBO;
+
+	//Particle System
+	ParticleMaster* particleMaster = nullptr;
+
+	//Render Objects
+	std::unique_ptr<GameObject> object;
+	void CreateObject();
+	void RenderObject();
+
+	GameObject* skybox = nullptr;
+	void CreateSkybox();
+	void RenderSkyBox();
+
+	GameObject*	trajectory	= nullptr;
+	void CreateTrajectory();
+
 	//Shadow Mapping
 	std::unique_ptr<FrameBuffer> shadowFBO;
-	RenderObject shadowMappingShader;
+	GameObject shadowMappingShader;
 	Matrix4 lightMatrix;
 	void CreateShadowMap();
 	void RenderShadowMap();
 
-	//Particle System
-	ParticleMaster*		particleMaster	= nullptr;
-
-	//Temp creations
-	void CreateSkybox();
-	void CreateTrajectory();
-
-	//Rendering
-	void renderObject();
-	void renderSkyBox();
-
 	//For Cloud
 	std::unique_ptr<atmosphere::Cloud> cloudModel;
-	RenderObject cloudShader;
+	GameObject cloudShader;
 	void CreateCloud();
 	void RenderCloud();
-
+	//Cloud Compute Shader
 	ComputeShader cloudCS;
 	GLuint cloudTex;
 	void CreateCloudCS();
 	void RenderCloudCS();
-	RenderObject toolerShader;
+	GameObject toolerShader;
 
-	//For atmospheic scattering
+	//Atmospheic scattering
 	std::unique_ptr<atmosphere::Model> atmosphereScattering;
-	RenderObject atmosphereScatteringShader;
+	GameObject atmosphereScatteringShader;
 	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
 	//into these two methods (model initialization and rendering)
 	void CreateAtmosphericScatteringModel();
@@ -138,7 +137,7 @@ private:
 ////////////////////////////////
 	std::unique_ptr<FrameBuffer> postProcessingFBO;
 	//Depth of field
-	RenderObject DOFShader;
+	GameObject DOFShader;
 	void CreateDepthOfField();
 	void RenderDepthOfField();
 	float focalDistance	= 50.0;

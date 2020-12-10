@@ -30,6 +30,12 @@ Cloud::~Cloud()
 	glDeleteTextures(1, &blueNoiseTex);
 }
 
+void Cloud::Update(float msec)
+{
+	cloudOffset = cloudOffset + msec / 50000;
+	if (cloudOffset > 10.f) cloudOffset = 0.f;
+}
+
 
 void Cloud::CreateBaseShapeTexture()
 {
@@ -85,6 +91,7 @@ void Cloud::CreateBaseShapeTexture()
 	//Update the texture with the noise data
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, res_B, res_B, res_B, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<void*>(data));
 	delete[] data;
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 void Cloud::CreateBaseShapeTextureCS()
@@ -152,7 +159,7 @@ void Cloud::CreateBaseShapeTextureCS()
 
 	//Execute
 	glDispatchCompute(ceil(res_B / 8), ceil(res_B / 8), res_B);
-
+	glBindTexture(GL_TEXTURE_3D, 0);
 	glUseProgram(0);
 }
 
@@ -185,6 +192,7 @@ void Cloud::CreateDetailShapeTexture()
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, res_D, res_D, res_D, 0, GL_RGB, GL_UNSIGNED_BYTE, static_cast<void*>(data));
 	delete[] data;
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 void Cloud::CreateDetailShapeTextureCS()
@@ -220,8 +228,9 @@ void Cloud::CreateDetailShapeTextureCS()
 
 	//Execute
 	glDispatchCompute(ceil(res_D / 8), ceil(res_D / 8), res_D);
-
+	
 	glUseProgram(0);
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 void Cloud::CreateWeatherMapTexture()
@@ -229,8 +238,8 @@ void Cloud::CreateWeatherMapTexture()
 	//Create high frequency texture
 	glGenTextures(1, &weatherMapTex);
 	glBindTexture(GL_TEXTURE_2D, weatherMapTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//stbi_set_flip_vertically_on_load(true);
@@ -238,7 +247,7 @@ void Cloud::CreateWeatherMapTexture()
 	unsigned char* data = stbi_load("../assets/Textures/WeatherMapRedChannel_02.png", &width, &height, &nChannels, 0);
 	assert(data != NULL && "Data not loaded by stbi_load");
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	
+	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(data);
 }
 
@@ -253,7 +262,8 @@ void Cloud::CreateBlueNoiseTexture()
 	int width, height, nChannels;
 	unsigned char* data = stbi_load("../assets/Textures/blueNoise.png", &width, &height, &nChannels, 0);
 	assert(data != NULL && "Blue Noise data loading fails");
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(data);
 }
 

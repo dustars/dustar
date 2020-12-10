@@ -8,12 +8,12 @@ in VS{
 out vec4 FragColor;
 
 //Previously rendered scene in this FBO
-layout(binding = 1) uniform sampler2D renderFBO;
+layout (binding = 0) uniform sampler2D renderFBO;
 //Cloud model and weather map textures
-layout(binding = 2) uniform sampler3D cloudBaseTexture;
-layout(binding = 3) uniform sampler3D cloudDetailTexture;
-layout(binding = 4) uniform sampler2D weatherMap;
-layout(binding = 5) uniform sampler2D blueNoiseTexture;
+layout (binding = 6) uniform sampler3D cloudBaseTexture;
+layout (binding = 7) uniform sampler3D cloudDetailTexture;
+layout (binding = 8) uniform sampler2D weatherMap;
+layout (binding = 9) uniform sampler2D blueNoiseTexture;
 
 //View-related parameters
 uniform vec3 cameraPos;

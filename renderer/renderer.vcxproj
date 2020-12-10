@@ -156,7 +156,7 @@
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="ComputeShaderExamples.cpp" />
     <ClCompile Include="Trajectory.cpp" />
     <ClCompile Include="WorleyNoise.cpp" />
@@ -182,7 +182,7 @@
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="Renderer.h" />
-    <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Trajectory.h" />
     <ClInclude Include="WorleyNoise.h" />
   </ItemGroup>

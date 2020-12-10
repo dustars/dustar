@@ -1,6 +1,6 @@
 #version 450 core
 
-layout (binding = 1) uniform sampler2D tex;
+layout (binding = 0) uniform sampler2D tex;
 
 in VS{
 	vec2 texCoord;

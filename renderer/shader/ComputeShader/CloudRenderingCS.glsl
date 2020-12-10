@@ -5,14 +5,14 @@ layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 layout (binding = 0, rgba32f) readonly uniform image2D renderFBO;
 //layout (binding = 1, rgba32f) readonly uniform image3D cloudBaseTexture;
 //layout (binding = 2, rgba32f) readonly uniform image3D cloudDetailTexture;
-layout (binding = 1) uniform sampler3D cloudBaseTexture;
-layout (binding = 2) uniform sampler3D cloudDetailTexture;
-layout (binding = 3) uniform sampler2D weatherMap;
-layout (binding = 4) uniform sampler2D blueNoiseTexture;
-//layout (binding = 3, rgba8) readonly uniform image2D weatherMap;
-//layout (binding = 4, rgba8) readonly uniform image2D blueNoiseTexture;
+//ayout (binding = 3, rgba8) readonly uniform image2D weatherMap;
+//layout (binding = 4, r32f) readonly uniform image2D blueNoiseTexture;
 //Result Image
 layout (binding = 5, rgba32f) writeonly uniform image2D cloudTex;
+layout(binding = 6) uniform sampler3D cloudBaseTexture;
+layout(binding = 7) uniform sampler3D cloudDetailTexture;
+layout(binding = 8) uniform sampler2D weatherMap;
+layout(binding = 9) uniform sampler2D blueNoiseTexture;
 
 //View-related parameters
 uniform vec3 cameraPos;
@@ -156,13 +156,15 @@ void main(void)
 {
 	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
 
-	vec3 color = imageLoad(renderFBO, p).xyz;
+	vec3 color = imageLoad(renderFBO, ivec2(p.x, resolution.y - p.y)).xyz;
 
 	vec2 uv = (p - .5 * resolution.xy) / resolution.y;
 	vec3 rayDir = mat3(viewMatrix) * normalize(vec3(uv.x, -uv.y, -1));
 
 	vec3 pos;								//Intersection point
 	float intervalDist;						//Length to march
+
+	//vec4 testColor = vec4(1.f);
 	
 	if (RaySphereIntersectionTest(rayDir, pos, intervalDist)) {
 		//Accumulated density for ray marching
@@ -185,6 +187,8 @@ void main(void)
 
 		//Adding a little noise to reduce banding
 		float blueNoise = texture(blueNoiseTexture, pos.xz / 10.f).x;
+		//float blueNoise = imageLoad(blueNoiseTexture, ivec2(pos.xz/10.f) % 256).x;
+		//testColor = vec4(vec3(blueNoise) ,1.f);
 		pos += (blueNoise - 0.5) * 2 * stepDir;
 
 		for (int i = 0; i < totalSteps; i++) {
@@ -243,4 +247,5 @@ void main(void)
 	}
 
 	imageStore(cloudTex, p, vec4(color, 1.f));
+	//imageStore(cloudTex, p, testColor);
 }

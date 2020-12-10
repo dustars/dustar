@@ -38,9 +38,6 @@
     <ClCompile Include="ParticleSystem\ParticleMaster.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
-    <ClCompile Include="RenderObject.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="HeightMap.cpp">
       <Filter>StaticObjects</Filter>
     </ClCompile>
@@ -71,6 +68,9 @@
     <ClCompile Include="ComputeShaderExamples.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -81,9 +81,6 @@
     </ClInclude>
     <ClInclude Include="ParticleSystem\ParticleMaster.h">
       <Filter>ParticleSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderObject.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="HeightMap.h">
       <Filter>StaticObjects</Filter>
@@ -125,6 +122,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="ComputeShaderExamples.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

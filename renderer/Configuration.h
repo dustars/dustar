@@ -10,13 +10,15 @@ constexpr auto SHADOWHEIGHT = 1024;
 
 //#define OFFLINE
 #define THREADING
+
 #define RENDER_CLOUD
 //Optional: Using Compute Shader to render cloud in a texture
 #ifdef RENDER_CLOUD
 #define RENDER_CLOUD_CS
 #endif
-//#define ATMOSPHERE
-#define TESTING_OBJECT
+
+#define ATMOSPHERE
+//#define SQUARE_OBJECT
 #define IMGUI
 //#define SHADOW_MAPPING
 
