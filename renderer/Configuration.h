@@ -8,8 +8,11 @@ constexpr auto MAPLENGTH = 512;
 constexpr auto SHADOWWIDTH = 1024;
 constexpr auto SHADOWHEIGHT = 1024;
 
+//Camera Update speed
+constexpr auto UPDATE_MULTIPLIER = 100.f;
+
 //#define OFFLINE
-#define THREADING
+//#define THREADING
 
 //#define RENDER_CLOUD
 //Optional: Using Compute Shader to render cloud in a texture
@@ -17,8 +20,8 @@ constexpr auto SHADOWHEIGHT = 1024;
 #define RENDER_CLOUD_CS
 #endif
 
-//#define ATMOSPHERE
-//#define SQUARE_OBJECT
+#define ATMOSPHERE
+#define SQUARE_OBJECT
 #define IMGUI
 //#define SHADOW_MAPPING
 

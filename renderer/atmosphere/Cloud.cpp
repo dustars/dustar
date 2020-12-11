@@ -36,7 +36,6 @@ void Cloud::Update(float msec)
 	if (cloudOffset > 10.f) cloudOffset = 0.f;
 }
 
-
 void Cloud::CreateBaseShapeTexture()
 {
 	//Create high frequency texture

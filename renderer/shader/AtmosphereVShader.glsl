@@ -3,7 +3,6 @@
 	Vertex shader for generating view ray used in atmospheic scattering.
 */
 
-
 #version 450 core
 
 uniform mat4 viewMatrix;

@@ -14,15 +14,17 @@ Model::Model(const std::string& path)
 	directory = path.substr(0, path.find_last_of('/')); //what does it do?
 
 	ProcessNode(scene->mRootNode, scene);
+
+    for (auto& ele : meshes) {
+        ele.BufferDataToGPU();
+    }
 }
 
 void Model::Draw()
 {
     for (std::size_t i = 0; i < meshes.size(); i++) {
-
-        //Texture Binding
-        for (auto& texture : materials[&meshes[i]]) {
-            //texture.GetTexture();
+        for (std::size_t j = 0; j < materialsIndex[i].size(); j++) {
+            glBindTextureUnit(10 + j, materials[materialsIndex[i][j]].GetTexture());
         }
 
         meshes[i].Draw();
@@ -36,6 +38,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         ProcessMesh(mesh, scene); //Should use move semantics
+        meshCount++;
     }
     // then do the same for each of its children
     for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -75,25 +78,49 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
         for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE); i++)
         {
             aiString str;
             material->GetTexture(aiTextureType_DIFFUSE, i, &str);
-            Texture texture;
-            texture.SetTexture(str.C_Str());
-            texture.SetTextureType(Texture::TextureType::DIFFUSE);
-            materials[&ourMesh].push_back(texture);
+            std::string filePath = directory + "/" + str.C_Str();
+            //Using file path to uniquely identify if the texture is already loaded
+            auto texIndex = std::find_if(materials.begin(), materials.end(),
+                                         [&filePath](Texture& b) {return filePath == b.GetPath();});
+            if (texIndex != materials.end()) {
+                materialsIndex[meshCount].push_back(texIndex - materials.begin());
+            } else {
+                Texture texture;
+                if (!texture.SetTexture(filePath)) {
+                    std::cout << "Model Initilization: Texture setup failed! " << std::endl;
+                }
+                texture.SetTextureType(Texture::TextureType::DIFFUSE);
+
+                materialsIndex[meshCount].push_back(materials.end() - materials.begin());
+                materials.push_back(texture);
+            }
         }
 
         for (unsigned int i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR); i++)
         {
             aiString str;
             material->GetTexture(aiTextureType_SPECULAR, i, &str);
-            Texture texture;
-            texture.SetTexture(str.C_Str());
-            texture.SetTextureType(Texture::TextureType::SPECULAR);
-            materials[&ourMesh].push_back(texture);
+            std::string filePath = directory + "/" + str.C_Str();
+            //Using file path to uniquely identify if the texture is already loaded
+            auto texIndex = std::find_if(materials.begin(), materials.end(),
+                                         [&filePath](Texture& b) {return filePath == b.GetPath();});
+            if (texIndex != materials.end()) {
+                materialsIndex[meshCount].push_back(texIndex - materials.begin());
+            }
+            else {
+                Texture texture;
+                if (!texture.SetTexture(filePath)) {
+                    std::cout << "Model Initilization: Texture setup failed! " << std::endl;
+                }
+                texture.SetTextureType(Texture::TextureType::SPECULAR);
+
+                materialsIndex[meshCount].push_back(materials.end() - materials.begin());
+                materials.push_back(texture);
+            }
         }
     }
 }

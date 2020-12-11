@@ -24,16 +24,12 @@ protected:
 
 public:
 	Mesh();
-	explicit Mesh(const std::string& filename); //using Assimp as model loader
 	virtual ~Mesh();
 
 	void CreatePlane();
 	void CreateCube();
 	void CreateQuad();
 
-	int						GetNumOfVertices()		const { return numOfVertices; }
-	GLuint					GetVAO()				const { return vao; }
-	GLuint					GetType()				const { return renderType; }
 	std::vector<Vector3>&		GetPosition()			{ return position; }
 	std::vector<Vector3>&		GetColor()				{ return color; }
 	std::vector<Vector2>&		GetTexCoord()			{ return texCoord; }
@@ -42,13 +38,14 @@ public:
 
 	virtual void Draw();
 	virtual void Update(float dt);
+
+	void BufferDataToGPU();
+	void UpdateDataToGPU();
 	
 protected:
 	GLuint vao;
 	GLuint vbo[MAXBUFFER];
 	GLuint renderType;
-	unsigned numOfVertices; //?
-	unsigned numOfIndex; //?
 
 	std::vector<Vector3> position;
 	std::vector<Vector3> color;
@@ -60,9 +57,6 @@ protected:
 	void DisableAttribs();
 
 	void GenerateNormals();
-
-	void BufferDataToGPU();
-	void UpdateDataToGPU();
 };
 
 

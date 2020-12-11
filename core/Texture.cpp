@@ -3,6 +3,7 @@
 
 bool Texture::SetTexture(const std::string& file, unsigned numR)
 {
+	path = file;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	// set the texture wrapping/filtering options (on the currently bound texture object)
@@ -13,7 +14,7 @@ bool Texture::SetTexture(const std::string& file, unsigned numR)
 
 	int width, height, nChannels;
 
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(file.c_str(), &width, &height, &nChannels, 0);
 
 	int GL_Channels = GL_RGB;
@@ -35,7 +36,7 @@ bool Texture::SetTexture(const std::string& file, unsigned numR)
 	return data ? true : false;
 }
 
-void Texture::CreateCubeMap(const char* right, const char* left, const char* top, const char* bottom, const char* back, const char* front)
+void Texture::SetTexture(const char* right, const char* left, const char* top, const char* bottom, const char* back, const char* front)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);

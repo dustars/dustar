@@ -23,9 +23,13 @@ public:
 	void Draw();
 
 private:
+	typedef std::size_t meshIndex;
+
 	std::vector<Mesh> meshes;
-	std::unordered_map<Mesh*, std::vector<Texture>> materials;
+	std::unordered_map<meshIndex, std::vector<std::size_t>> materialsIndex;
+	std::vector<Texture> materials;
 	std::string directory;
+	meshIndex meshCount = 0;
 
 	void ProcessNode(aiNode* node, const aiScene* scene);
 	void ProcessMesh(aiMesh* mesh, const aiScene* scene);

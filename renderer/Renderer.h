@@ -28,6 +28,7 @@
 #include "GameObject.h"
 #include "Camera.h"
 #include "FrameBuffer.h"
+#include "Model.h"
 
 //Features
 #include "HeightMap.h"
@@ -93,7 +94,6 @@ private:
 	//Particle System
 	ParticleMaster* particleMaster = nullptr;
 
-	//Render Objects
 	GameObject* object;
 	void CreateObject();
 	void RenderObject();
@@ -104,6 +104,11 @@ private:
 
 	GameObject*	trajectory	= nullptr;
 	void CreateTrajectory();
+
+	//Model Object
+	unique_ptr<Model> modelObject;
+	void CreateModelObject();
+	void RenderModelObject();
 
 	//Shadow Mapping
 	std::unique_ptr<FrameBuffer> shadowFBO;

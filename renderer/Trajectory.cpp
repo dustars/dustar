@@ -4,8 +4,6 @@ Trajectory::Trajectory()
 {
 	renderType = GL_LINE_STRIP;
 
-	numOfVertices = totalPoints;
-
 	CreateTrajectory();
 
 	BufferDataToGPU();

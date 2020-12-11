@@ -2,8 +2,6 @@
 
 Mesh::Mesh() :
 	renderType(GL_TRIANGLES),
-	numOfVertices(0),
-	numOfIndex(0),
 	vao(0)
 {
 	for (int i = 0; i < MAXBUFFER; ++i) {
@@ -19,8 +17,6 @@ Mesh::~Mesh()
 
 void Mesh::CreatePlane()
 {
-	numOfVertices = 4;
-	numOfIndex = 6;
 	renderType = GL_TRIANGLES;
 
 	position.push_back(Vector3(-1.0f, 1.0f, 0.0f));
@@ -56,7 +52,6 @@ void Mesh::CreatePlane()
 
 void Mesh::CreateCube()
 {
-	numOfVertices = 36;
 	renderType = GL_TRIANGLES;
 
 	position.push_back(Vector3(-0.5f, -0.5f, -0.5f));
@@ -143,7 +138,6 @@ void Mesh::CreateCube()
 
 void Mesh::CreateQuad()
 {
-	numOfVertices = 4;
 	renderType = GL_TRIANGLE_STRIP;
 
 	position.push_back(Vector3(-1.0f, 1.0f, 0.0f));
@@ -178,28 +172,28 @@ void Mesh::BufferDataToGPU()
 	glCreateVertexArrays(1, &vao);
 	if (!position.empty()) {
 		glCreateBuffers(1, &vbo[POSITION]);
-		glNamedBufferStorage(vbo[POSITION], numOfVertices * sizeof(Vector3), static_cast<void*>(position.data()), GL_DYNAMIC_STORAGE_BIT);
+		glNamedBufferStorage(vbo[POSITION], position.size() * sizeof(Vector3), static_cast<void*>(position.data()), GL_DYNAMIC_STORAGE_BIT);
 		glVertexArrayVertexBuffer(vao, POSITION, vbo[POSITION], 0, sizeof(Vector3));
 		glVertexArrayAttribFormat(vao, POSITION, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, POSITION, POSITION);
 	}
 	if (!color.empty()) {
 		glCreateBuffers(1, &vbo[COLOR]);
-		glNamedBufferStorage(vbo[COLOR], numOfVertices * sizeof(Vector3), static_cast<void*>(color.data()), 0);
+		glNamedBufferStorage(vbo[COLOR], color.size() * sizeof(Vector3), static_cast<void*>(color.data()), 0);
 		glVertexArrayVertexBuffer(vao, COLOR, vbo[COLOR], 0, sizeof(Vector3));
 		glVertexArrayAttribFormat(vao, COLOR, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, COLOR, COLOR);
 	}
 	if (!texCoord.empty()) {
 		glCreateBuffers(1, &vbo[TEXTURE]);
-		glNamedBufferStorage(vbo[TEXTURE], numOfVertices * sizeof(Vector2), static_cast<void*>(texCoord.data()), 0);
+		glNamedBufferStorage(vbo[TEXTURE], texCoord.size() * sizeof(Vector2), static_cast<void*>(texCoord.data()), 0);
 		glVertexArrayVertexBuffer(vao, TEXTURE, vbo[TEXTURE], 0, sizeof(Vector2));
 		glVertexArrayAttribFormat(vao, TEXTURE, 2, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, TEXTURE, TEXTURE);
 	}
 	if (!normal.empty()) {
 		glCreateBuffers(1, &vbo[NORMAL]);
-		glNamedBufferStorage(vbo[NORMAL], numOfVertices * sizeof(Vector3), static_cast<void*>(normal.data()), 0);
+		glNamedBufferStorage(vbo[NORMAL], normal.size() * sizeof(Vector3), static_cast<void*>(normal.data()), 0);
 		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector3));
 		glVertexArrayAttribFormat(vao, NORMAL, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, NORMAL, NORMAL);
@@ -216,7 +210,7 @@ void Mesh::UpdateDataToGPU()
 	// For trajectory update (only updates position)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[POSITION]);
 	if (!position.empty()) {
-		glNamedBufferSubData(vbo[POSITION], 0, numOfVertices * sizeof(Vector3), static_cast<void*>(position.data()));
+		glNamedBufferSubData(vbo[POSITION], 0, position.size() * sizeof(Vector3), static_cast<void*>(position.data()));
 	}
 }
 
@@ -255,11 +249,11 @@ void Mesh::DisableAttribs()
 // From NCLGL, rich's implementation
 void Mesh::GenerateNormals() 
 {
-	for (GLuint i = 0; i < numOfVertices; ++i) {
+	for (GLuint i = 0; i < position.size(); ++i) {
 		normal.push_back(Vector3());
 	}
 	if (!index.empty()) { // Generate per - vertex normals
-		for (GLuint i = 0; i < numOfIndex; i += 3) {
+		for (GLuint i = 0; i < index.size(); i += 3) {
 			unsigned int a = index[i];
 			unsigned int b = index[i + 1];
 			unsigned int c = index[i + 2];
@@ -272,7 +266,7 @@ void Mesh::GenerateNormals()
 		}
 	}
 	else { // It's just a list of triangles , so generate face normals
-		for (GLuint i = 0; i < numOfVertices; i += 3) {
+		for (GLuint i = 0; i < position.size(); i += 3) {
 			Vector3& a = position[i];
 			Vector3& b = position[i + 1];
 			Vector3& c = position[i + 2];
@@ -284,7 +278,7 @@ void Mesh::GenerateNormals()
 			normal[i + 2] = tempNormal;
 		}
 	}
-	for (GLuint i = 0; i < numOfVertices; ++i) {
+	for (GLuint i = 0; i < position.size(); ++i) {
 		normal[i].Normalise();
 	}
 }

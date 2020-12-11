@@ -1,7 +1,12 @@
 #version 450 core
 
-layout(binding = 0) uniform sampler2D ourTexture;
-layout(binding = 2) uniform sampler2D shadowMap;
+layout (binding = 0) uniform sampler2D ourTexture;
+layout (binding = 2) uniform sampler2D shadowMap;
+
+layout (binding = 10) uniform sampler2D tex1;
+layout (binding = 11) uniform sampler2D tex2;
+layout (binding = 12) uniform sampler2D tex3;
+layout (binding = 13) uniform sampler2D tex4;
 
 layout(binding = 0, offset = 0) uniform atomic_uint counter;
 
@@ -29,12 +34,15 @@ float ShadowCalculation() {
 }
 
 void main() {
-	vec4 diffuse = texture(ourTexture, IN.texCoord) * vec4(IN.color, 1.f) * LightColor;
+	//vec4 diffuse = texture(ourTexture, IN.texCoord) * vec4(IN.color, 1.f) * LightColor;
+	vec4 diffuse = texture(tex1, IN.texCoord) * LightColor;
+	//vec4 diffuse = vec4(1, 1, 1, 1);// *LightColor;
 
 	vec3 n = normalize(IN.vNormal);
 	vec3 v = normalize(cameraPos - IN.vPos);
-	vec3 l = normalize(LightPos.xyz - IN.vPos);
-	//vec3 l = sunDir;
+	//The sun direction doesn't have shadow mappings, unfortunately
+	//vec3 l = normalize(LightPos.xyz - IN.vPos);
+	vec3 l = sunDir;
 	vec3 halfDir = normalize(l + v);
 
 	//How much diffuse reflection

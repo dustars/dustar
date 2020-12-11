@@ -7,9 +7,6 @@
 #include "ComputeShader.h"
 
 HeightMap::HeightMap(int layers, double lacunarity, double gain, int width, int length) : Mesh(){
-	
-	numOfVertices = width * length;
-	numOfIndex = (width - 1) * (length - 1) * 6;
 
 	Vector2 centerOffset = Vector2(HEIGHTMAP_X * width * 0.5, HEIGHTMAP_Z * length * 0.5);
 

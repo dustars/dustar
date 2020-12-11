@@ -1,7 +1,7 @@
 #version 450 core
 
 uniform int HaveColor = 0;
-uniform mat4 AtmosphereModelMatrix;
+uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjMatrix;
 
@@ -15,7 +15,7 @@ out VS{
 }OUT;
 
 void main(void) {
-	gl_Position = ProjMatrix * ViewMatrix * AtmosphereModelMatrix * vec4(position, 1.0f);
+	gl_Position = ProjMatrix * ViewMatrix * ModelMatrix * vec4(position, 1.0f);
 	if (HaveColor > 0) {
 		OUT.color = vec4(color, 1.0f);
 	}
