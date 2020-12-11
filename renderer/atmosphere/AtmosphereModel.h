@@ -58,9 +58,9 @@ namespace atmosphere {
         double constant_term;
     };
 
-class Model {
+class AtmosphereModel {
 public:
-    Model(
+    AtmosphereModel(
         // The wavelength values, in nanometers, and sorted in increasing order, for
         // which the solar_irradiance, rayleigh_scattering, mie_scattering,
         // mie_extinction and ground_albedo samples are provided. If your shaders
@@ -161,7 +161,7 @@ public:
         // most cases, except for very high exposure values.
         bool half_precision);
 
-    ~Model();
+    ~AtmosphereModel();
 
     void Init(unsigned int num_scattering_orders = 4);
 

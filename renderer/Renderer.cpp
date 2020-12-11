@@ -57,6 +57,7 @@ Renderer::Renderer(Window& parent)
 
 Renderer::~Renderer()
 {
+	if (object)						delete object;
 	if (camera)						delete camera;
 	if (trajectory)					delete trajectory;
 	if (skybox)						delete skybox;
@@ -80,7 +81,9 @@ void Renderer::Update(float dt)
 		if (particleMaster) particleMaster->Update(oneFramePerMilliSecond);
 		if (trajectory) trajectory->GetMesh()->Update(oneFramePerMilliSecond);
 		UtilityUpdate();
+#ifdef RENDER_CLOUD
 		cloudModel->Update(dt);
+#endif
 		//Render
 		Render();
 	}
@@ -189,7 +192,7 @@ void Renderer::UtilityRender()
 
 void Renderer::CreateObject()
 {
-	object.reset(new GameObject());
+	object = new GameObject();
 #ifdef SQUARE_OBJECT
 	if (!object->SetShader("shader/GeneralVS.glsl", "shader/GeneralFS.glsl")) {
 		cout << "Shader set up failed!" << endl;
@@ -254,16 +257,16 @@ void Renderer::CreateSkybox()
 		"../assets/Skybox/bluecloud_dn.jpg",
 		"../assets/Skybox/bluecloud_bk.jpg",
 		"../assets/Skybox/bluecloud_ft.jpg");
-	skybox->GetMesh()->CreateQuad();
+	skybox->GetMesh()->CreatePlane();
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	glBindTextureUnit(0, skybox->GetTexture()->GetTexture());
 }
 
 void Renderer::RenderSkyBox()
 {
 	glDepthMask(GL_FALSE);
 	glUseProgram(skybox->GetProgram());
+	glBindTextureUnit(0, skybox->GetTexture()->GetTexture());
 	cameraMatrix = camera->BuildViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(skybox->GetProgram(), "ViewMatrix"), 1, GL_FALSE, (float*)&cameraMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(skybox->GetProgram(), "ProjMatrix"), 1, GL_FALSE, (float*)&projMatrix);
@@ -485,7 +488,7 @@ void Renderer::CreateAtmosphericScatteringModel()
 		ground_albedo.push_back(kGroundAlbedo);
 	}
 
-	atmosphereScattering.reset(new atmosphere::Model(wavelengths, solar_irradiance, kSunAngularRadius,
+	atmosphereScattering.reset(new atmosphere::AtmosphereModel(wavelengths, solar_irradiance, kSunAngularRadius,
 		kBottomRadius, kTopRadius, { rayleigh_layer }, rayleigh_scattering,
 		{ mie_layer }, mie_scattering, mie_extinction, kMiePhaseFunctionG,
 		ozone_density, absorption_extinction, ground_albedo, max_sun_zenith_angle,
@@ -514,7 +517,7 @@ void Renderer::CreateAtmosphericScatteringModel()
 	double white_point_g = 1.0;
 	double white_point_b = 1.0;
 	if (do_white_balance_) {
-		atmosphere::Model::ConvertSpectrumToLinearSrgb(wavelengths, solar_irradiance,
+		atmosphere::AtmosphereModel::ConvertSpectrumToLinearSrgb(wavelengths, solar_irradiance,
 			&white_point_r, &white_point_g, &white_point_b);
 		double white_point = (white_point_r + white_point_g + white_point_b) / 3.0;
 		white_point_r /= white_point;

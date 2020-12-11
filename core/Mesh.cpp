@@ -11,19 +11,6 @@ Mesh::Mesh() :
 	}
 }
 
-Mesh::Mesh(const string& filename)
-{
-	//The following code is from https://learnopengl.com/Model-Loading/Model
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
-
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
-		return;
-	}
-}
-
 Mesh::~Mesh()
 {
 	glDeleteVertexArrays(1, &vao);
@@ -169,14 +156,16 @@ void Mesh::CreateQuad()
 
 void Mesh::Draw()
 {
+	glBindVertexArray(vao);
 	EnableAttribs();
 	if (vbo[INDEX]) {
-		glDrawElements(renderType, numOfIndex, GL_UNSIGNED_INT, static_cast<void*>(index.data()));
+		glDrawElements(renderType, index.size(), GL_UNSIGNED_INT, static_cast<void*>(index.data()));
 	}
 	else {
-		glDrawArrays(renderType, 0, numOfVertices);
+		glDrawArrays(renderType, 0, position.size());
 	}
 	DisableAttribs();
+	glBindVertexArray(0);
 }
 
 void Mesh::Update(float dt)
@@ -211,14 +200,14 @@ void Mesh::BufferDataToGPU()
 	if (!normal.empty()) {
 		glCreateBuffers(1, &vbo[NORMAL]);
 		glNamedBufferStorage(vbo[NORMAL], numOfVertices * sizeof(Vector3), static_cast<void*>(normal.data()), 0);
-		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector3)); // 5/11/2020£¬ÔøÔÚÕâÀïÒòVector2¶ø·Ç3·¢Éú¹ýÑª°¸
+		glVertexArrayVertexBuffer(vao, NORMAL, vbo[NORMAL], 0, sizeof(Vector3));
 		glVertexArrayAttribFormat(vao, NORMAL, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(vao, NORMAL, NORMAL);
 	}
 	if (!index.empty()) {
 		glCreateBuffers(1, &vbo[INDEX]);
 		//The data is directly fed into GPU by calling glDrawElements()?
-		//lNamedBufferStorage(vbo[INDEX], numOfIndex * sizeof(GLuint), (void*)(index.data()), 0);
+		//lNamedBufferStorage(vbo[INDEX], numOfIndex * sizeof(GLuint), (void*)(index.data())ï¼Œ0);
 	}
 }
 
@@ -233,7 +222,6 @@ void Mesh::UpdateDataToGPU()
 
 void Mesh::EnableAttribs()
 {
-	glBindVertexArray(vao);
 	if (!position.empty()) {
 		glEnableVertexAttribArray(POSITION);
 	}
@@ -262,7 +250,6 @@ void Mesh::DisableAttribs()
 	if (!normal.empty()) {
 		glDisableVertexAttribArray(NORMAL);
 	}
-	glBindVertexArray(0);
 }
 
 // From NCLGL, rich's implementation
@@ -284,7 +271,7 @@ void Mesh::GenerateNormals()
 			normal[c] += tempNormal;
 		}
 	}
-	else { // It ¡¯s just a list of triangles , so generate face normals
+	else { // It's just a list of triangles , so generate face normals
 		for (GLuint i = 0; i < numOfVertices; i += 3) {
 			Vector3& a = position[i];
 			Vector3& b = position[i + 1];

@@ -32,7 +32,7 @@
 //Features
 #include "HeightMap.h"
 #include "Trajectory.h"
-#include "atmosphere/model.h"
+#include "atmosphere/AtmosphereModel.h"
 #include "atmosphere/Cloud.h"
 #include "Lightings/PointLight.h"
 #include "ParticleSystem/ParticleMaster.h"
@@ -94,7 +94,7 @@ private:
 	ParticleMaster* particleMaster = nullptr;
 
 	//Render Objects
-	std::unique_ptr<GameObject> object;
+	GameObject* object;
 	void CreateObject();
 	void RenderObject();
 
@@ -125,7 +125,7 @@ private:
 	GameObject toolerShader;
 
 	//Atmospheic scattering
-	std::unique_ptr<atmosphere::Model> atmosphereScattering;
+	std::unique_ptr<atmosphere::AtmosphereModel> atmosphereScattering;
 	GameObject atmosphereScatteringShader;
 	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
 	//into these two methods (model initialization and rendering)

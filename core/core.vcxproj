@@ -159,6 +159,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="resources\ResourceBase.h" />
     <ClInclude Include="tools\Imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="tools\Imgui\imgui_impl_win32.h" />
@@ -185,6 +186,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="resources\ResourceBase.cpp" />
     <ClCompile Include="tools\Imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="tools\Imgui\imgui_impl_win32.cpp" />

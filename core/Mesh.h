@@ -9,14 +9,7 @@
 #include <string>
 #include <vector>
 #include "math/Math.h"
-
-//Assimp
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 #include <GL/glew.h>
-
-using namespace std;
 
 class Mesh {
 protected:
@@ -31,7 +24,7 @@ protected:
 
 public:
 	Mesh();
-	explicit Mesh(const string& filename); //using Assimp as model loader
+	explicit Mesh(const std::string& filename); //using Assimp as model loader
 	virtual ~Mesh();
 
 	void CreatePlane();
@@ -41,11 +34,11 @@ public:
 	int						GetNumOfVertices()		const { return numOfVertices; }
 	GLuint					GetVAO()				const { return vao; }
 	GLuint					GetType()				const { return renderType; }
-	vector<Vector3>&		GetPosition()			{ return position; }
-	vector<Vector3>&		GetColor()				{ return color; }
-	vector<Vector2>&		GetTexCoord()			{ return texCoord; }
-	vector<Vector3>&		GetNormal()				{ return normal; }
-	vector<unsigned>&		GetIndex()				{ return index; }
+	std::vector<Vector3>&		GetPosition()			{ return position; }
+	std::vector<Vector3>&		GetColor()				{ return color; }
+	std::vector<Vector2>&		GetTexCoord()			{ return texCoord; }
+	std::vector<Vector3>&		GetNormal()				{ return normal; }
+	std::vector<unsigned>&		GetIndex()				{ return index; }
 
 	virtual void Draw();
 	virtual void Update(float dt);
@@ -54,14 +47,14 @@ protected:
 	GLuint vao;
 	GLuint vbo[MAXBUFFER];
 	GLuint renderType;
-	unsigned numOfVertices;
-	unsigned numOfIndex;
+	unsigned numOfVertices; //?
+	unsigned numOfIndex; //?
 
-	vector<Vector3> position;
-	vector<Vector3> color;
-	vector<Vector2> texCoord;
-	vector<Vector3> normal;
-	vector<unsigned> index;
+	std::vector<Vector3> position;
+	std::vector<Vector3> color;
+	std::vector<Vector2> texCoord;
+	std::vector<Vector3> normal;
+	std::vector<unsigned> index;
 
 	void EnableAttribs();
 	void DisableAttribs();

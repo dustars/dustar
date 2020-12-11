@@ -4,24 +4,31 @@
 #include <vector>
 #include <GL/glew.h>
 
-using namespace std;
-
 class Texture
 {
 public:
-	Texture() : texture(0), numOfRows(0) {}
+	enum class TextureType {
+		DEFAULT,
+		DIFFUSE,
+		SPECULAR
+	};
+
+	Texture() : texture(0), type(TextureType::DEFAULT), numOfRows(0) {}
 	~Texture() {}
 
-	bool SetTexture(const string& file, unsigned numR = 1);
+	bool SetTexture(const std::string& file, unsigned numR = 1);
+	void SetTextureType(TextureType type) { this->type = type; }
 	void SetTexture(GLuint t, unsigned numR = 1) { texture = t; numOfRows = numR; }
 
 
 	GLuint GetTexture() { return texture; }
+	TextureType GetTextureType() { return type; }
 	unsigned GetNumOfRows() { return numOfRows; }
-	void CreateCubeMap(string right, string left, string top, string bottom, string back, string front);
+	void CreateCubeMap(const char* right, const char* left, const char* top, const char* bottom, const char* back, const char* front);
 
 private:
 	GLuint texture;
+	TextureType type;
 	unsigned numOfRows; //For texture altas
 };
 

@@ -9,7 +9,6 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "Texture.h"
-#include <memory>
 
 class GameObject
 {
@@ -17,21 +16,21 @@ public:
 	GameObject() : mesh(new Mesh), texture(new Texture) {}
 	~GameObject() {}
 
-	GLuint		GetProgram()	{ return shader.get()->GetProgram(); }
-	Mesh*		GetMesh()		{ return mesh.get(); }
-	Texture*	GetTexture()	{ return texture.get(); }
+	GLuint		GetProgram()	{ return shader->GetProgram(); }
+	Mesh*		GetMesh()		{ return mesh; }
+	Texture*	GetTexture()	{ return texture; }
 
-	void SetMesh(Mesh* m) { mesh.reset(m); }
+	void SetMesh(Mesh* m) { delete mesh; mesh = m; }
 	bool SetShader(string vs, string fs, string gs = "", string cs = "", string es = "") {
-		shader.reset(new Shader(vs, fs, gs, cs, es));
+		shader = new Shader(vs, fs, gs, cs, es);
 		return shader->LinkProgram();
 	}
 
-	void Draw() { GetMesh()->Draw(); }
+	void Draw() { mesh->Draw(); }
 
 protected:
-	unique_ptr<Shader>		shader;
-	unique_ptr<Mesh>		mesh;
-	unique_ptr<Texture>		texture;
+	Shader*		shader	= nullptr;
+	Mesh*		mesh	= nullptr;
+	Texture*	texture = nullptr;
 };
 

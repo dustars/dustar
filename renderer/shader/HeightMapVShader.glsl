@@ -1,7 +1,7 @@
 #version 450 core
 
 uniform int HaveColor = 0;
-uniform mat4 ModelMatrix;
+uniform mat4 AtmosphereModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjMatrix;
 
@@ -20,11 +20,11 @@ out VS
 void main(void)
 {
 
-	vec4 temp = ModelMatrix * vec4(position, 1.0f);
+	vec4 temp = AtmosphereModelMatrix * vec4(position, 1.0f);
 
 	OUT.texCoord = texCoord;
 	OUT.vPos = temp.xyz;
-	OUT.vNormal = (ModelMatrix * vec4(normal, 1.0f)).xyz;
+	OUT.vNormal = (AtmosphereModelMatrix * vec4(normal, 1.0f)).xyz;
 
 	gl_Position = ProjMatrix * ViewMatrix * temp;
 }

@@ -1,3 +1,4 @@
+#include "AtmosphereModel.h"
 /**
  * Copyright (c) 2017 Eric Bruneton
  * All rights reserved.
@@ -460,9 +461,9 @@ void ComputeSpectralRadianceToLuminanceFactors(
     *k_r = 0.0;
     *k_g = 0.0;
     *k_b = 0.0;
-    double solar_r = Interpolate(wavelengths, solar_irradiance, Model::kLambdaR);
-    double solar_g = Interpolate(wavelengths, solar_irradiance, Model::kLambdaG);
-    double solar_b = Interpolate(wavelengths, solar_irradiance, Model::kLambdaB);
+    double solar_r = Interpolate(wavelengths, solar_irradiance, AtmosphereModel::kLambdaR);
+    double solar_g = Interpolate(wavelengths, solar_irradiance, AtmosphereModel::kLambdaG);
+    double solar_b = Interpolate(wavelengths, solar_irradiance, AtmosphereModel::kLambdaB);
     int dlambda = 1;
     for (int lambda = kLambdaMin; lambda < kLambdaMax; lambda += dlambda) {
         double x_bar = CieColorMatchingFunctionTableValue(lambda, 1);
@@ -477,11 +478,11 @@ void ComputeSpectralRadianceToLuminanceFactors(
             xyz2srgb[6] * x_bar + xyz2srgb[7] * y_bar + xyz2srgb[8] * z_bar;
         double irradiance = Interpolate(wavelengths, solar_irradiance, lambda);
         *k_r += r_bar * irradiance / solar_r *
-            pow(lambda / Model::kLambdaR, lambda_power);
+            pow(lambda / AtmosphereModel::kLambdaR, lambda_power);
         *k_g += g_bar * irradiance / solar_g *
-            pow(lambda / Model::kLambdaG, lambda_power);
+            pow(lambda / AtmosphereModel::kLambdaG, lambda_power);
         *k_b += b_bar * irradiance / solar_b *
-            pow(lambda / Model::kLambdaB, lambda_power);
+            pow(lambda / AtmosphereModel::kLambdaB, lambda_power);
     }
     *k_r *= MAX_LUMINOUS_EFFICACY * dlambda;
     *k_g *= MAX_LUMINOUS_EFFICACY * dlambda;
@@ -491,7 +492,7 @@ void ComputeSpectralRadianceToLuminanceFactors(
 }  // anonymous namespace
 
 
-Model::Model(
+AtmosphereModel::AtmosphereModel(
     const std::vector<double>& wavelengths,
     const std::vector<double>& solar_irradiance,
     const double sun_angular_radius,
@@ -679,7 +680,7 @@ Model::Model(
 }
 
 
-Model::~Model() {
+AtmosphereModel::~AtmosphereModel() {
     glDeleteBuffers(1, &full_screen_quad_vbo_);
     glDeleteVertexArrays(1, &full_screen_quad_vao_);
     glDeleteTextures(1, &transmittance_texture_);
@@ -691,7 +692,7 @@ Model::~Model() {
     glDeleteShader(atmosphere_shader_);
 }
 
-void Model::Init(unsigned int num_scattering_orders) {
+void AtmosphereModel::Init(unsigned int num_scattering_orders) {
     // The precomputations require temporary textures, in particular to store the
     // contribution of one scattering order, which is needed to compute the next
     // order of scattering (the final precomputed textures store the sum of all
@@ -756,7 +757,7 @@ void Model::Init(unsigned int num_scattering_orders) {
                 // artefacts due to too large values when using half precision on GPU.
                 // We add this term back in kAtmosphereShader, via
                 // SKY_SPECTRAL_RADIANCE_TO_LUMINANCE (see also the comments in the
-                // Model constructor).
+                // AtmosphereModel constructor).
                 double x = CieColorMatchingFunctionTableValue(lambda, 1);
                 double y = CieColorMatchingFunctionTableValue(lambda, 2);
                 double z = CieColorMatchingFunctionTableValue(lambda, 3);
@@ -803,7 +804,7 @@ void Model::Init(unsigned int num_scattering_orders) {
     assert(glGetError() == 0);
 }
 
-void Model::SetProgramUniforms(
+void AtmosphereModel::SetProgramUniforms(
     GLuint program,
     GLuint transmittance_texture_unit,
     GLuint scattering_texture_unit,
@@ -832,7 +833,7 @@ void Model::SetProgramUniforms(
     }
 }
 
-void Model::ConvertSpectrumToLinearSrgb(
+void AtmosphereModel::ConvertSpectrumToLinearSrgb(
     const std::vector<double>& wavelengths,
     const std::vector<double>& spectrum,
     double* r, double* g, double* b) {
@@ -854,7 +855,7 @@ void Model::ConvertSpectrumToLinearSrgb(
         (XYZ_TO_SRGB[6] * x + XYZ_TO_SRGB[7] * y + XYZ_TO_SRGB[8] * z) * dlambda;
 }
 
-void Model::Precompute(
+void AtmosphereModel::Precompute(
     GLuint fbo,
     GLuint delta_irradiance_texture,
     GLuint delta_rayleigh_scattering_texture,

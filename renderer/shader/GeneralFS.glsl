@@ -29,7 +29,7 @@ float ShadowCalculation() {
 }
 
 void main() {
-	vec4 diffuse = texture(ourTexture, IN.texCoord) * vec4(IN.color, 1.0) * LightColor;
+	vec4 diffuse = texture(ourTexture, IN.texCoord) * vec4(IN.color, 1.f) * LightColor;
 
 	vec3 n = normalize(IN.vNormal);
 	vec3 v = normalize(cameraPos - IN.vPos);
@@ -52,7 +52,6 @@ void main() {
 		 color	+= diffuse.rgb * 0.1;					// ambience;
 	
 	FragColor = vec4(color, diffuse.a);
-	//使用atomic counter来看local hardware对pixel的渲染顺序，很好玩
 	//uint counter = atomicCounterIncrement(counter);
 	//float r = (counter / 1024) / 1024.f;
 	//FragColor = vec4(r, 0, 0, 1);

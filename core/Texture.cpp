@@ -1,7 +1,7 @@
 #include "Texture.h"
 #include <stb_image.h>
 
-bool Texture::SetTexture(const string& file, unsigned numR)
+bool Texture::SetTexture(const std::string& file, unsigned numR)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -35,21 +35,21 @@ bool Texture::SetTexture(const string& file, unsigned numR)
 	return data ? true : false;
 }
 
-void Texture::CreateCubeMap(string right, string left, string top, string bottom, string back, string front)
+void Texture::CreateCubeMap(const char* right, const char* left, const char* top, const char* bottom, const char* back, const char* front)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 	int width, height, nChannels;
 	unsigned char* data;
-	vector<string> fileCube = { right, left, top, bottom, back, front };
+	std::vector<const char*> fileCube = { right, left, top, bottom, back, front };
 	int i = 0;
 	for (auto& element : fileCube) {
-		data = stbi_load(element.c_str(), &width, &height, &nChannels, 0);
+		data = stbi_load(element, &width, &height, &nChannels, 0);
 		if (data) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		}
 		else {
-			cout << "Loading cube map failed: " << element << " is not valid file string" << endl;
+			std::cout << "Loading cube map failed: " << element << " is not valid file string" << std::endl;
 		}
 		stbi_image_free(data);
 	}

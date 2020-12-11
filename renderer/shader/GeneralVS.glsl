@@ -7,7 +7,7 @@ layout (std140, binding = 0) uniform TransformBlock{
 	mat4 ProjMatrix;
 }transform;
 
-uniform mat4 ModelMatrix;
+uniform mat4 AtmosphereModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjMatrix;
 uniform mat4 lightMatrix;
@@ -27,12 +27,12 @@ out VS {
 
 void main(void) {
 
-	vec4 temp = ModelMatrix * vec4(position, 1.0);
+	vec4 temp = AtmosphereModelMatrix * vec4(position, 1.0);
 
 	OUT.color = color;
 	OUT.texCoord = texCoord;
 	OUT.vPos = temp.xyz;
-	mat3 normalMatrix = transpose(inverse(mat3(ModelMatrix)));
+	mat3 normalMatrix = transpose(inverse(mat3(AtmosphereModelMatrix)));
 	OUT.vNormal = normalize(normalMatrix * normalize(normal));
 	OUT.lightSpacePos = lightMatrix * vec4(position, 1.0);
 

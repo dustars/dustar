@@ -146,7 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="atmosphere\Cloud.cpp" />
-    <ClCompile Include="atmosphere\model.cpp" />
+    <ClCompile Include="atmosphere\AtmosphereModel.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
@@ -169,7 +169,7 @@
   <ItemGroup>
     <ClInclude Include="atmosphere\Cloud.h" />
     <ClInclude Include="atmosphere\constants.h" />
-    <ClInclude Include="atmosphere\model.h" />
+    <ClInclude Include="atmosphere\AtmosphereModel.h" />
     <ClInclude Include="ComputeShaderExamples.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="FrameBuffer.h" />
