@@ -265,9 +265,9 @@ void Renderer::CreateSkybox()
 
 void Renderer::CreateModelObject()
 {
-	modelObject.reset(new Model("../assets/Models/backpack/backpack.obj"));
-	//modelObject.reset(new Model("../assets/Models/Aya/091_W_Aya_100K.obj"));
-	//modelObject.reset(new Model("../assets/Models/Standord_Bunny/bun_zipper.ply"));
+	modelObject.reset(new AssimpModel("../assets/Models/backpack/backpack.obj"));
+	//modelObject.reset(new AssimpModel("../assets/Models/Aya/091_W_Aya_100K.obj"));
+	//modelObject.reset(new AssimpModel("../assets/Models/Standord_Bunny/bun_zipper.ply"));
 }
 
 void Renderer::RenderModelObject()

@@ -28,7 +28,7 @@
 #include "GameObject.h"
 #include "Camera.h"
 #include "FrameBuffer.h"
-#include "Model.h"
+#include "AssimpModel.h"
 
 //Features
 #include "HeightMap.h"
@@ -105,8 +105,8 @@ private:
 	GameObject*	trajectory	= nullptr;
 	void CreateTrajectory();
 
-	//Model Object
-	unique_ptr<Model> modelObject;
+	//AssimpModel Object
+	unique_ptr<AssimpModel> modelObject;
 	void CreateModelObject();
 	void RenderModelObject();
 
@@ -133,7 +133,7 @@ private:
 	std::unique_ptr<atmosphere::AtmosphereModel> atmosphereScattering;
 	GameObject atmosphereScatteringShader;
 	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
-	//into these two methods (model initialization and rendering)
+	//into these two methods (Atmosphere Model initialization and rendering)
 	void CreateAtmosphericScatteringModel();
 	void RenderAtmosphericScatteringModel();
 

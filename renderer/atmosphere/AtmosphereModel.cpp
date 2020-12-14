@@ -34,7 +34,7 @@
 #include <memory>
 
 #include "constants.h"
-#include "model.h"
+#include "AtmosphereModel.h"
 
 namespace atmosphere {
 

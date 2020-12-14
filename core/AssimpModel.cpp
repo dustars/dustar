@@ -1,6 +1,6 @@
-#include "Model.h"
+#include "AssimpModel.h"
 
-Model::Model(const std::string& path)
+AssimpModel::AssimpModel(const std::string& path)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -20,7 +20,7 @@ Model::Model(const std::string& path)
     }
 }
 
-void Model::Draw()
+void AssimpModel::Draw()
 {
     for (std::size_t i = 0; i < meshes.size(); i++) {
         for (std::size_t j = 0; j < materialsIndex[i].size(); j++) {
@@ -31,7 +31,7 @@ void Model::Draw()
     }
 }
 
-void Model::ProcessNode(aiNode* node, const aiScene* scene)
+void AssimpModel::ProcessNode(aiNode* node, const aiScene* scene)
 {
     // process all the node's meshes (if any)
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -47,7 +47,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
     }
 }
 
-void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+void AssimpModel::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
     Mesh ourMesh;
     // process vertex
@@ -91,7 +91,7 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
             } else {
                 Texture texture;
                 if (!texture.SetTexture(filePath)) {
-                    std::cout << "Model Initilization: Texture setup failed! " << std::endl;
+                    std::cout << "AssimpModel Initilization: Texture setup failed! " << std::endl;
                 }
                 texture.SetTextureType(Texture::TextureType::DIFFUSE);
 
@@ -114,7 +114,7 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
             else {
                 Texture texture;
                 if (!texture.SetTexture(filePath)) {
-                    std::cout << "Model Initilization: Texture setup failed! " << std::endl;
+                    std::cout << "AssimpModel Initilization: Texture setup failed! " << std::endl;
                 }
                 texture.SetTextureType(Texture::TextureType::SPECULAR);
 

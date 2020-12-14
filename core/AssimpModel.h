@@ -1,8 +1,8 @@
 /*
 	Description:
-	Model class
+	AssimpModel class
 
-	Modified From: https://learnopengl.com/Model-Loading/Model
+	Modified From: https://learnopengl.com/AssimpModel-Loading/AssimpModel
 */
 
 #pragma once
@@ -15,10 +15,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-class Model
+class AssimpModel
 {
 public:
-	Model(const std::string& path);
+	AssimpModel(const std::string& path);
 
 	void Draw();
 
