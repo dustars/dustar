@@ -17,6 +17,7 @@ layout(binding = 9) uniform sampler2D blueNoiseTexture;
 //View-related parameters
 uniform vec3 cameraPos;
 uniform mat4 viewMatrix;
+uniform vec2 projFactor;
 //Possible image resolution needed
 uniform vec2 resolution;
 //Cloud-related parameters
@@ -32,7 +33,8 @@ uniform int sampleSteps;
 uniform int lightSampleSteps;
 
 uniform vec3 sunDirection;
-uniform float lightAbsorptionFactor;
+uniform float firstRayMarchingFactor = 1.f;
+uniform float secondRayMarchingFactor = 1.f;
 
 //Light parameters
 vec3 lightRay = normalize(vec3(10.f, 10.f, 10.f));
@@ -92,7 +94,7 @@ float DensityHeightFunc(float ph, float a) {
 
 //Sample the FBM detail noise.
 //The maximum influence it has is limited to 0.35, with a natural
-//number to exert the effect of globalCoverage as well.
+//number to apply the effect of globalCoverage as well.
 //The interpolation at return is for a more "rounded" shape.
 float SampleDetailNoise(vec3 uvw, float pHeight) {
 	vec3 rawDetailNoise = texture(cloudDetailTexture, uvw).rgb;
@@ -119,7 +121,7 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
 		//float pHeight = GetHeightPercentage(pos);
 		//Shape-altering height function
-		float heightModified = baseNoise * ShapeHeightFunc(pHeight, wm.b);
+		float heightModified = baseNoise;// *ShapeHeightFunc(pHeight, wm.b);
 
 		//Use Weather map to control the coverage of cloud
 		float weatherMapFactor = globalCoverage * max(wm.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * wm.g * 2.f);
@@ -128,7 +130,7 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
 		wmModified = clamp(map(wmModified, SampleDetailNoise(uvw, pHeight), 1.f, 0.f, 1.f), 0.f, 1.f);
 		//Density-altering height function at last
-		return wmModified * DensityHeightFunc(pHeight, wmAlpha);
+		return wmModified;// *DensityHeightFunc(pHeight, wmAlpha);
 	}
 
 	return baseNoise;
@@ -152,100 +154,96 @@ float lightCalculation(float density, vec3 rayDir, float blueNoise)
 
 }
 
+float lightIntensity() {
+
+	return 1.f;
+}
+
 void main(void)
 {
-	ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 p = ivec2(gl_GlobalInvocationID.xy);//Current pixel
+	//vec2 uv = (p - .5 * resolution.xy) / resolution.y;
+	vec2 uv = vec2(p) / resolution - 0.5f;
+	uv *= projFactor;
+	vec3 rayDir = mat3(viewMatrix) * normalize(vec3(uv.x, -uv.y, -0.5)); //why 0.5????
 
 	vec3 color = imageLoad(renderFBO, ivec2(p.x, resolution.y - p.y)).xyz;
 
-	vec2 uv = (p - .5 * resolution.xy) / resolution.y;
-	vec3 rayDir = mat3(viewMatrix) * normalize(vec3(uv.x, -uv.y, -1));
-
 	vec3 pos;								//Intersection point
 	float intervalDist;						//Length to march
-
-	//vec4 testColor = vec4(1.f);
 	
 	if (RaySphereIntersectionTest(rayDir, pos, intervalDist)) {
-		//Accumulated density for ray marching
 		float density = 0.f;
-		//Accumulated denstiy along the light ray.
-		float densityAloneLightRay = 0.f;
-		//Final light energy
-		float lightEnergy = 0.f;
-		vec3 cloud_Color = vec3(0.f);
-		float transmittance = 1.f;
-		//Total steps and step length
-		//The smallest number is 64, but may be extended if the rayDistance is too long
+		float radiance = 0.f;
+		float T = 1.f; //transmittance
+
+		//Cause of color banding artifact
 		float stepLength = cloudLayerLength / sampleSteps;
 		vec3 stepDir = stepLength * rayDir;
-		int totalSteps = int(intervalDist / stepLength);
 
-		//Optimizations
-		float cloud_test = 0.f;
+		//For optimizations
+		float densityTest = 0.f;
 		int zeroDensityCount = 0;
-
-		//Adding a little noise to reduce banding
 		float blueNoise = texture(blueNoiseTexture, pos.xz / 10.f).x;
-		//float blueNoise = imageLoad(blueNoiseTexture, ivec2(pos.xz/10.f) % 256).x;
-		//testColor = vec4(vec3(blueNoise) ,1.f);
-		pos += (blueNoise - 0.5) * 2 * stepDir;
+		pos += (blueNoise - 0.5) * 2 * stepDir; //Introduce randomness
 
-		for (int i = 0; i < totalSteps; i++) {
-			//Calculate the current height percentage in cloud layer.
+		int totalSteps = int(intervalDist / stepLength);
+		for (int i = 0; i < totalSteps; i++) { //Primary raymarching
+
 			float pHeight = float(i) / totalSteps;
+			//float pHeight = pos.y / cloudHeightAboveGround;
 
-			if (cloud_test > 0.f) {
-				float fullSample = SampleDensity(pos, pHeight, true);
-				if (fullSample == 0) {
+			if (densityTest > 0.f) { //Full sampling, otherwise cheap sampling
+				float sampleDensity = SampleDensity(pos, pHeight, true);
+				if (sampleDensity == 0) {
 					zeroDensityCount++;
 				}
 
-				//If 6 consecutive 0 samples have occured, switch to cheap sampling
-				if (zeroDensityCount != 6) {
-					density += fullSample;
-					//Light calculation
-					if (fullSample != 0) {
+				if (zeroDensityCount != 6) { //early exit check
+					if (sampleDensity != 0) {
+
+						density += sampleDensity;
+						T *= exp(-density * stepLength * firstRayMarchingFactor * 0.001);
+
+						float lightRayDensity = 0.f;
+						float Ts = 1.f; //transmittance for sample point and sun
+
 						vec3 lightSamplePos = pos;
-						vec3 sunStepLength = (cloudLayerLength * 0.5f / lightSampleSteps) * sunDirection;
-						//Accumulate the density along the light ray
-						for (int j = 0; j < lightSampleSteps; j++) {
-							densityAloneLightRay += SampleDensity(lightSamplePos, pHeight, true);
-							lightSamplePos += sunStepLength;
+						float sunStepLength = 0.5f * cloudLayerLength / lightSampleSteps;
+						vec3 sunStepSize = sunStepLength * sunDirection;
+
+						for (int j = 0; j < lightSampleSteps; j++) { //Secondary raymarching
+							lightRayDensity += SampleDensity(lightSamplePos, pHeight, true);
+							Ts *= exp(-lightRayDensity * sunStepLength * secondRayMarchingFactor * 0.01);
+							lightSamplePos += sunStepSize;
 						}
+						float sunRadiance = 10; //or 10?
+						float inScatteringRadiance = Ts * HenyeyGreenstein(clamp(dot(sunDirection, rayDir), 0.f, 1.f), eccentricityG) * sunRadiance;
+						//float inScatteringRadiance = Ts * lightCalculation(lightRayDensity, sunDirection, blueNoise) * sunRadiance;
 
-						//The following light calculation is incorrect.
-						transmittance *= exp(-density);
-						lightEnergy += density * lightCalculation(densityAloneLightRay, sunDirection, blueNoise) * transmittance;
+						radiance += T * 0.05 * inScatteringRadiance * stepLength;
 
-						//When the effect of continuing ray marching is trivial, break;
-						if (transmittance < 0.01f) break;
-						densityAloneLightRay = 0;
+						//radiance += density * lightCalculation(densityAloneLightRay, sunDirection, blueNoise) * T;
+
+						if (T < 0.001f) break; //Early exit if converging.
 					}
 					pos += stepDir;
 				}
 				else {
-					cloud_test = 0.f;
+					densityTest = 0.f;
 					zeroDensityCount = 0;
 				}
 			}
 			else {
-				//Cheap sampling
-				cloud_test = SampleDensity(pos, pHeight, false);
-				if (cloud_test == 0) {
-					pos += stepDir;
-				}
-				//Cloud boundary found, step one back to do full sampling
-				//else {
-				//	pos -= stepDir;
-				//}
+				densityTest = SampleDensity(pos, pHeight, false);
+				if (densityTest == 0) pos += stepDir;
+				else pos -= stepDir;
 			}
 		} //end of ray marching
-		transmittance = exp(-density);
-		vec3 cloudColor = lightColor * lightEnergy;
-		color = mix(cloudColor, color, transmittance);
+	
+		vec3 cloudColor = pow(vec3(1.f) - exp(-radiance), vec3(1.0/2.2));
+		color = mix(cloudColor, color, T);
 	}
 
 	imageStore(cloudTex, p, vec4(color, 1.f));
-	//imageStore(cloudTex, p, testColor);
 }

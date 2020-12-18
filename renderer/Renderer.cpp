@@ -21,7 +21,9 @@ Renderer::Renderer(Window& parent)
 	//CreateAtomicBuffer();
 
 	CreateObject();
+#ifdef MODEL_OBJECT
 	CreateModelObject();
+#endif // MODEL_OBJECT
 
 #ifdef ATMOSPHERE
 	CreateAtmosphericScatteringModel();
@@ -83,7 +85,7 @@ void Renderer::Update(float dt)
 		//if (trajectory) trajectory->GetMesh()->Update(oneFramePerMilliSecond);
 		UtilityUpdate();
 #ifdef RENDER_CLOUD
-		cloudModel->Update(dt);
+		//cloudModel->Update(dt);
 #endif
 		//Render
 		Render();
@@ -143,12 +145,17 @@ void Renderer::Render()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+#ifdef MODEL_OBJECT
+	RenderModelObject();
+#endif // MODEL_OBJECT
+
 #ifdef SQUARE_OBJECT
 	//RenderObject();
-	RenderModelObject();
 #else
 	RenderObject();
 #endif // SQUARE_OBJECT
+	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
 	//--------------------------------------
@@ -358,7 +365,8 @@ void Renderer::RenderCloud()
 	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudOffset"), cloudModel->cloudOffset);
 	glUniform1i(glGetUniformLocation(cloudShader.GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
 	glUniform1i(glGetUniformLocation(cloudShader.GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
-	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "firstRayMarchingFactor"), cloudModel->firstRayMarchingFactor);
+	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "secondRayMarchingFactor"), cloudModel->secondRayMarchingFactor);
 	
 	cloudShader.Draw();
 
@@ -400,6 +408,8 @@ void Renderer::CreateCloudCS()
 	//Resolution
 	Vector2 resolution(width, height);
 	glUniform2fv(glGetUniformLocation(cloudCS.GetProgram(), "resolution"), 1, (float*)&resolution);
+	Vector2 projFactor(1.f/projMatrix.values[0], 1.f/projMatrix.values[5]);
+	glUniform2fv(glGetUniformLocation(cloudCS.GetProgram(), "projFactor"), 1, (float*)&projFactor);
 	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
 	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
 	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
@@ -425,7 +435,8 @@ void Renderer::RenderCloudCS()
 	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudOffset"), cloudModel->cloudOffset);
 	glUniform1i(glGetUniformLocation(cloudCS.GetProgram(), "sampleSteps"), cloudModel->sampleSteps);
 	glUniform1i(glGetUniformLocation(cloudCS.GetProgram(), "lightSampleSteps"), cloudModel->lightSampleSteps);
-	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "lightAbsorptionFactor"), cloudModel->lightAbsorptionFactor);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "firstRayMarchingFactor"), cloudModel->firstRayMarchingFactor);
+	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "secondRayMarchingFactor"), cloudModel->secondRayMarchingFactor);
 
 	glDispatchCompute(ceil(width / 8), ceil(height / 8), 1);
 
@@ -771,6 +782,8 @@ void Renderer::RenderImGUI()
 	ImGui::SliderFloat("Cloud global density", &cloudModel->globalDensity, 0.0f, 1.0f);
 	ImGui::SliderFloat("Cloud scale", &cloudModel->cloudScale, 0.1f, 10.f);
 	ImGui::SliderFloat("Cloud offset", &cloudModel->cloudOffset, 0.f, 5.f);
+	ImGui::SliderFloat("First raymarching factor", &cloudModel->firstRayMarchingFactor, 0.01f, 100.f);
+	ImGui::SliderFloat("Second raymarching factor", &cloudModel->secondRayMarchingFactor, 0.01f, 100.f);
 
 	ImGui::SliderInt("Sample steps", &cloudModel->sampleSteps, 1, 128);
 	ImGui::SliderInt("Light sample steps", &cloudModel->lightSampleSteps, 1, 10);

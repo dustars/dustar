@@ -9,12 +9,12 @@ constexpr auto SHADOWWIDTH = 1024;
 constexpr auto SHADOWHEIGHT = 1024;
 
 //Camera Update speed
-constexpr auto UPDATE_MULTIPLIER = 100.f;
+constexpr auto UPDATE_MULTIPLIER = 1.f;
 
 //#define OFFLINE
 //#define THREADING
 
-//#define RENDER_CLOUD
+#define RENDER_CLOUD
 //Optional: Using Compute Shader to render cloud in a texture
 #ifdef RENDER_CLOUD
 #define RENDER_CLOUD_CS
@@ -22,6 +22,7 @@ constexpr auto UPDATE_MULTIPLIER = 100.f;
 
 #define ATMOSPHERE
 #define SQUARE_OBJECT
+//#define MODEL_OBJECT
 #define IMGUI
 //#define SHADOW_MAPPING
 
