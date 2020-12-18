@@ -1,8 +1,3 @@
-/*
-	Description:
-	The Cloud fragment shader.
-*/
-
 #version 450 core
 
 in VS{
@@ -13,12 +8,12 @@ in VS{
 out vec4 FragColor;
 
 //Previously rendered scene in this FBO
-layout(binding = 0) uniform sampler2D renderFBO;
+layout (binding = 0) uniform sampler2D renderFBO;
 //Cloud model and weather map textures
-layout(binding = 2) uniform sampler3D cloudBaseTexture;
-layout(binding = 3) uniform sampler3D cloudDetailTexture;
-layout(binding = 4) uniform sampler2D weatherMap;
-layout(binding = 5) uniform sampler2D blueNoiseTexture;
+layout (binding = 6) uniform sampler3D cloudBaseTexture;
+layout (binding = 7) uniform sampler3D cloudDetailTexture;
+layout (binding = 8) uniform sampler2D weatherMap;
+layout (binding = 9) uniform sampler2D blueNoiseTexture;
 
 //View-related parameters
 uniform vec3 cameraPos;
@@ -173,6 +168,7 @@ void main(void)
 		vec3 cloud_Color = vec3(0.f);
 		float transmittance = 1.f;
 		//Total steps and step length
+		//The smallest number is 64, but may be extended if the rayDistance is too long
 		float stepLength = cloudLayerLength / sampleSteps;
 		vec3 stepDir = stepLength * rayDir;
 		int totalSteps = int(intervalDist / stepLength); 
@@ -208,6 +204,7 @@ void main(void)
 							lightSamplePos += sunStepLength;
 						}
 
+						//The following light calculation is incorrect.
 						transmittance *= exp(-density);
 						lightEnergy += density * lightCalculation(densityAloneLightRay, sunDirection, blueNoise) * transmittance;
 						

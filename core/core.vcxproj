@@ -157,7 +157,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="AssimpModel.h" />
+    <ClInclude Include="resources\ResourceManager.h" />
+    <ClInclude Include="resources\ResourceBase.h" />
     <ClInclude Include="tools\Imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="tools\Imgui\imgui_impl_win32.h" />
     <ClInclude Include="InputDevice.h" />
@@ -176,13 +180,16 @@
     <ClInclude Include="tools\TextRenderer.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="tools\Debug.h" />
-    <ClInclude Include="Transform.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="AssimpModel.cpp" />
+    <ClCompile Include="resources\ResourceManager.cpp" />
+    <ClCompile Include="resources\ResourceBase.cpp" />
     <ClCompile Include="tools\Imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="tools\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="Keyboard.cpp" />
@@ -195,7 +202,6 @@
     <ClCompile Include="tools\TextRenderer.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="tools\Debug.cpp" />
-    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

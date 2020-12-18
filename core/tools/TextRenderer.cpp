@@ -73,8 +73,10 @@ TextRenderer::TextRenderer(std::size_t width, std::size_t height, std::size_t fo
     //link shader
     assert(textShader.LinkProgram() == true && "Text Shader set up failed");
     glUseProgram(textShader.GetProgram());
+    Matrix4 temp = Matrix4::Orthographic(0, 1.f, width, 0, height, 0);
     glUniformMatrix4fv(glGetUniformLocation(textShader.GetProgram(), "projection"), 1, GL_FALSE,
-        (float*)&Matrix4::Orthographic(0, 1.f, width, 0, height, 0));
+        (float*)&temp);
+
     glUseProgram(0);
 }
 

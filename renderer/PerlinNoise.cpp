@@ -4,12 +4,6 @@
 #include <algorithm>
 #include <numeric>
 
-// THIS IS A DIRECT TRANSLATION TO C++11 FROM THE REFERENCE
-// JAVA IMPLEMENTATION OF THE IMPROVED PERLIN FUNCTION (see http://mrl.nyu.edu/~perlin/noise/)
-// THE ORIGINAL JAVA IMPLEMENTATION IS COPYRIGHT 2002 KEN PERLIN
-
-// I ADDED AN EXTRA METHOD THAT GENERATES A NEW PERMUTATION VECTOR (THIS IS NOT PRESENT IN THE ORIGINAL IMPLEMENTATION)
-
 // Initialize with the reference values for the permutation vector
 PerlinNoise::PerlinNoise() {
 	// Initialize the permutation vector with the reference values
@@ -72,7 +66,10 @@ double PerlinNoise::noise(double x, double y, double z) {
 	int BB = p[B + 1] + Z;
 
 	// Add blended results from 8 corners of cube
-	double res = lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z)), lerp(u, grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z))), lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1)), lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1))));
+	double res = lerp(w,	lerp(v,		lerp(u, grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z)), 
+										lerp(u, grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z))),
+							lerp(v,		lerp(u, grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1)), 
+										lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1))));
 	return (res + 1.0) / 2.0;
 }
 

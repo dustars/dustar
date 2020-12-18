@@ -1,8 +1,9 @@
 #include "Texture.h"
 #include <stb_image.h>
 
-bool Texture::SetTexture(const string& file, unsigned numR)
+bool Texture::SetTexture(const std::string& file, unsigned numR)
 {
+	path = file;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	// set the texture wrapping/filtering options (on the currently bound texture object)
@@ -13,7 +14,7 @@ bool Texture::SetTexture(const string& file, unsigned numR)
 
 	int width, height, nChannels;
 
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(file.c_str(), &width, &height, &nChannels, 0);
 
 	int GL_Channels = GL_RGB;
@@ -31,24 +32,25 @@ bool Texture::SetTexture(const string& file, unsigned numR)
 	}
 	stbi_image_free(data);
 	numOfRows = numR;
+	glBindTexture(GL_TEXTURE_2D, 0);
 	return data ? true : false;
 }
 
-void Texture::CreateCubeMap(string right, string left, string top, string bottom, string back, string front)
+void Texture::SetTexture(const char* right, const char* left, const char* top, const char* bottom, const char* back, const char* front)
 {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 	int width, height, nChannels;
 	unsigned char* data;
-	vector<string> fileCube = { right, left, top, bottom, back, front };
+	std::vector<const char*> fileCube = { right, left, top, bottom, back, front };
 	int i = 0;
 	for (auto& element : fileCube) {
-		data = stbi_load(element.c_str(), &width, &height, &nChannels, 0);
+		data = stbi_load(element, &width, &height, &nChannels, 0);
 		if (data) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		}
 		else {
-			cout << "Loading cube map failed: " << element << " is not valid file string" << endl;
+			std::cout << "Loading cube map failed: " << element << " is not valid file string" << std::endl;
 		}
 		stbi_image_free(data);
 	}
@@ -57,4 +59,5 @@ void Texture::CreateCubeMap(string right, string left, string top, string bottom
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }

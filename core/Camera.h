@@ -10,6 +10,7 @@
 #pragma once
 #include "Window.h"
 #include "math/CommonOps.h"
+#include "../renderer/Configuration.h"
 
 class Camera
 {
@@ -56,8 +57,5 @@ private:
 
 	float sunZenith = 87.64f;
 	float sunAzimuth = 342.5f;
-
-	//Camera update speed
-	static constexpr float UPDATE_MULTIPLIER = 1.f;
 };
 

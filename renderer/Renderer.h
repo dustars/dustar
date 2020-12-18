@@ -25,17 +25,19 @@
 
 //Cores
 #include "RenderBase.h"
-#include "RenderObject.h"
+#include "GameObject.h"
 #include "Camera.h"
 #include "FrameBuffer.h"
+#include "AssimpModel.h"
 
-//Features (Objects)
+//Features
 #include "HeightMap.h"
 #include "Trajectory.h"
-#include "atmosphere/model.h"
+#include "atmosphere/AtmosphereModel.h"
 #include "atmosphere/Cloud.h"
 #include "Lightings/PointLight.h"
 #include "ParticleSystem/ParticleMaster.h"
+#include "ComputeShaderExamples.h"
 
 //Tools
 #include "tools/Debug.h"
@@ -46,12 +48,6 @@
 #include <memory>
 #include <thread>
 
-//temp parameters for terrain, need to be removed
-constexpr auto MAPWIDTH = 500;
-constexpr auto MAPLENGTH = 500;
-
-constexpr auto SHADOWWIDTH = 1024;
-constexpr auto SHADOWHEIGHT = 1024;
 
 //Fina a way to get rid of this forward declaration.
 class ParticleMaster;
@@ -59,7 +55,7 @@ class ParticleMaster;
 class Renderer : public RenderBase
 {
 public:
-	//Initializa and create everything.
+	//Initialization.
 	Renderer(Window& parent);
 	~Renderer() override;
 
@@ -76,53 +72,85 @@ private:
 	void UtilityUpdate();
 	void UtilityRender();
 
-	//Render Objects
-	RenderObject*		object			= nullptr;
-	RenderObject*		trajectory		= nullptr;
-	RenderObject*		skybox			= nullptr;
-
-	//The FBO contains the result of Rasterization rendering.
-	std::unique_ptr<FrameBuffer> renderFBO;
-
-	//Coordinate related
-	Camera*		camera					= nullptr;
+	//Transformation
+	Camera* camera = nullptr;
 	Matrix4		projMatrix;
 	Matrix4		modelMatrix;
+	Matrix4		cameraMatrix;
+	//UBO testing
+	GLuint		transformUBO;
+	void		SetTransformUBO();
+	//atomic counter testing
+	GLuint		atomicBuffer;
+	void		CreateAtomicBuffer();
+	void		ResetAtomicBuffer();
 
 	//Lightings
 	std::unique_ptr<PointLight> light1;
 
+	//The FBO contains the result of Rasterization rendering.
+	std::unique_ptr<FrameBuffer> renderFBO;
+
+	//Particle System
+	ParticleMaster* particleMaster = nullptr;
+
+	GameObject* object;
+	void CreateObject();
+	void RenderObject();
+
+	GameObject* skybox = nullptr;
+	void CreateSkybox();
+	void RenderSkyBox();
+
+	GameObject*	trajectory	= nullptr;
+	void CreateTrajectory();
+
+	//AssimpModel Object
+	unique_ptr<AssimpModel> modelObject;
+	void CreateModelObject();
+	void RenderModelObject();
+
 	//Shadow Mapping
 	std::unique_ptr<FrameBuffer> shadowFBO;
-	RenderObject shadowMappingShader;
+	GameObject shadowMappingShader;
 	Matrix4 lightMatrix;
 	void CreateShadowMap();
 	void RenderShadowMap();
 
-	//Particle System
-	ParticleMaster*		particleMaster	= nullptr;
-
-	//Temp creations
-	void CreateSkybox();
-	void CreateTrajectory();
-
-	//Rendering
-	void renderObject();
-	void renderSkyBox();
-
 	//For Cloud
 	std::unique_ptr<atmosphere::Cloud> cloudModel;
-	RenderObject cloudShader;
+	GameObject cloudShader;
 	void CreateCloud();
 	void RenderCloud();
+	//Cloud Compute Shader
+	ComputeShader cloudCS;
+	GLuint cloudTex;
+	void CreateCloudCS();
+	void RenderCloudCS();
+	GameObject toolerShader;
 
-	//For atmospheic scattering
-	std::unique_ptr<atmosphere::Model> atmosphereScattering;
-	RenderObject atmosphereScatteringShader;
+	//Atmospheic scattering
+	std::unique_ptr<atmosphere::AtmosphereModel> atmosphereScattering;
+	GameObject atmosphereScatteringShader;
 	//I port the demo by https://ebruneton.github.io/precomputed_atmospheric_scattering/
-	//into these two methods (model initialization and rendering)
+	//into these two methods (Atmosphere Model initialization and rendering)
 	void CreateAtmosphericScatteringModel();
 	void RenderAtmosphericScatteringModel();
+
+////////////////////////////////
+//// Post Processing Effect ////
+////////////////////////////////
+	std::unique_ptr<FrameBuffer> postProcessingFBO;
+	//Depth of field
+	GameObject DOFShader;
+	void CreateDepthOfField();
+	void RenderDepthOfField();
+	float focalDistance	= 50.0;
+	float focalDepth	= 30.0;
+
+	ComputeShader SATComputeShader;
+	GLuint outputTex;
+	void SummedAreaTable(GLuint texture);
 
 	//Utility
 	const float renderFrames = 1000.f / 60.f;
@@ -137,6 +165,8 @@ private:
 	void ImGUIInit(Window& parent);
 	void RenderImGUI();
 	void UpdateControl(float msec); //temp
+
+	void ComputeShaderPlayground();
 
 //Some public utility methods may be helpful.
 public:

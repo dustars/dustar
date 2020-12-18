@@ -146,7 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="atmosphere\Cloud.cpp" />
-    <ClCompile Include="atmosphere\model.cpp" />
+    <ClCompile Include="atmosphere\AtmosphereModel.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
     <ClCompile Include="main.cpp" />
@@ -156,7 +156,8 @@
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="ComputeShaderExamples.cpp" />
     <ClCompile Include="Trajectory.cpp" />
     <ClCompile Include="WorleyNoise.cpp" />
   </ItemGroup>
@@ -168,7 +169,8 @@
   <ItemGroup>
     <ClInclude Include="atmosphere\Cloud.h" />
     <ClInclude Include="atmosphere\constants.h" />
-    <ClInclude Include="atmosphere\model.h" />
+    <ClInclude Include="atmosphere\AtmosphereModel.h" />
+    <ClInclude Include="ComputeShaderExamples.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="HeightMap.h" />
@@ -180,7 +182,7 @@
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="Renderer.h" />
-    <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Trajectory.h" />
     <ClInclude Include="WorleyNoise.h" />
   </ItemGroup>
@@ -194,6 +196,17 @@
     <None Include="shader\AtmosphereVShader.glsl" />
     <None Include="shader\CloudFShader.glsl" />
     <None Include="shader\CloudVShader.glsl" />
+    <None Include="shader\ComputeShader\CloudBaseTextureNoiseCS.glsl" />
+    <None Include="shader\ComputeShader\CloudDetailTextureNoiseCS.glsl" />
+    <None Include="shader\ComputeShader\CloudRenderingCS.glsl" />
+    <None Include="shader\ComputeShader\InversePictureCS.glsl" />
+    <None Include="shader\ComputeShader\PerlinNoiseBufferCS.glsl" />
+    <None Include="shader\ComputeShader\PerlinNoiseCS.glsl" />
+    <None Include="shader\ComputeShader\PrefixSum2DCS.glsl" />
+    <None Include="shader\ComputeShader\PrefixSumCS.glsl" />
+    <None Include="shader\ComputeShader\ValueNoiseCS.glsl" />
+    <None Include="shader\EmptrVShader.glsl" />
+    <None Include="shader\DepthOfFieldFShader.glsl" />
     <None Include="shader\GeneralFS.glsl" />
     <None Include="shader\GeneralVS.glsl" />
     <None Include="shader\HeightMapFShader.glsl" />
@@ -201,6 +214,7 @@
     <None Include="shader\LearningVShader.glsl" />
     <None Include="shader\ShadowMapFShader.glsl" />
     <None Include="shader\ShadowMapVShader.glsl" />
+    <None Include="shader\TestCShader.glsl" />
     <None Include="shader\TextRenderingFShader.glsl" />
     <None Include="shader\TextRenderingVShader.glsl" />
     <None Include="shader\TextureOnlyFShader.glsl" />
