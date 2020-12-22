@@ -9,10 +9,10 @@ layout (binding = 0, rgba32f) readonly uniform image2D renderFBO;
 //layout (binding = 4, r32f) readonly uniform image2D blueNoiseTexture;
 //Result Image
 layout (binding = 5, rgba32f) writeonly uniform image2D cloudTex;
-layout(binding = 6) uniform sampler3D cloudBaseTexture;
-layout(binding = 7) uniform sampler3D cloudDetailTexture;
-layout(binding = 8) uniform sampler2D weatherMap;
-layout(binding = 9) uniform sampler2D blueNoiseTexture;
+layout (binding = 6) uniform sampler3D cloudBaseTexture;
+layout (binding = 7) uniform sampler3D cloudDetailTexture;
+layout (binding = 8) uniform sampler2D weatherMap;
+layout (binding = 9) uniform sampler2D blueNoiseTexture;
 
 //View-related parameters
 uniform vec3 cameraPos;
@@ -25,7 +25,7 @@ uniform float globalCoverage;
 uniform float globalDensity;
 uniform float cloudScale;
 uniform float cloudOffset;
-uniform float cloudLayerRadius;
+
 uniform float cloudHeightAboveGround;
 uniform float cloudLayerLength;
 
@@ -38,17 +38,44 @@ uniform float secondRayMarchingFactor = 1.f;
 
 //Light parameters
 vec3 lightRay = normalize(vec3(10.f, 10.f, 10.f));
-vec3 lightColor = vec3(1.f, 1.0f, 1.0f);
+vec3 lightColor = vec3(1.f, 1.f, 1.f);
 float eccentricityG = 0.2f;
 
 //Inner and outer spheres
-vec4 cloudInnerSphere = vec4(0, cloudHeightAboveGround - cloudLayerRadius, 0, cloudLayerRadius);
-vec4 cloudOuterSphere = vec4(cloudInnerSphere.xyz, cloudLayerRadius + cloudLayerLength);
+uniform vec3 earthCenter;
 
-//Original: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
+vec4 cloudInnerSphere = vec4(earthCenter.x * 1000.f, earthCenter.y * 1000.f, earthCenter.z * 1000.f, -earthCenter.y * 1000.f + cloudHeightAboveGround);
+vec4 cloudOuterSphere = vec4(cloudInnerSphere.xyz, cloudInnerSphere.w + cloudLayerLength);
+
+
 bool RaySphereIntersectionTest(vec3 rayDir, out vec3 intersecPoint, out float intervalDist) {
 
-	vec3 L = cameraPos - cloudInnerSphere.xyz;
+	vec3 L = cameraPos*1000 - cloudInnerSphere.xyz;
+	//Make sure the camera is inside the sphere.
+	//if (length(L) > cloudInnerSphere.w) return false;
+	float projLength = dot(L, rayDir);
+	float cToRay2 = dot(L, L) - projLength * projLength;
+	//if the ray doesn't hit the sphere
+	//if (cToRay2 > (cloudInnerSphere.w * cloudInnerSphere.w)) return false;
+
+	//Inner sphere intersection point
+	float tempInner = sqrt(cloudInnerSphere.w * cloudInnerSphere.w - cToRay2);
+	intersecPoint = cameraPos * 1000 + (tempInner - projLength) * rayDir;
+
+	//When intersection point above 0, it's visible, otherwise not.
+	if (intersecPoint.y < 0) return false;
+
+	//Calculate the length from camera to the outer sphere intersection point
+	float tempOuter = sqrt(cloudOuterSphere.w * cloudOuterSphere.w - cToRay2);
+	//distance between two intersection points
+	intervalDist = tempOuter - tempInner;
+
+	return true;
+}
+
+bool cloudLayerIntersection(vec3 rayDir, out vec3 intersecPoint, out float intervalDist) {
+
+	vec3 L = cameraPos * 1000 - cloudInnerSphere.xyz;
 	//Make sure the camera is inside the sphere.
 	if (length(L) > cloudInnerSphere.w) return false;
 	float projLength = dot(L, rayDir);
@@ -58,7 +85,7 @@ bool RaySphereIntersectionTest(vec3 rayDir, out vec3 intersecPoint, out float in
 
 	//Inner sphere intersection point
 	float tempInner = sqrt(cloudInnerSphere.w * cloudInnerSphere.w - cToRay2);
-	intersecPoint = cameraPos + (tempInner - projLength) * rayDir;
+	intersecPoint = cameraPos * 1000 + (tempInner - projLength) * rayDir;
 
 	//When intersection point above 0, it's visible, otherwise not.
 	if (intersecPoint.y < 0) return false;
@@ -121,7 +148,7 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
 		//float pHeight = GetHeightPercentage(pos);
 		//Shape-altering height function
-		float heightModified = baseNoise;// *ShapeHeightFunc(pHeight, wm.b);
+		float heightModified = baseNoise;//*ShapeHeightFunc(pHeight, wm.b);
 
 		//Use Weather map to control the coverage of cloud
 		float weatherMapFactor = globalCoverage * max(wm.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * wm.g * 2.f);
@@ -130,7 +157,7 @@ float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
 		wmModified = clamp(map(wmModified, SampleDetailNoise(uvw, pHeight), 1.f, 0.f, 1.f), 0.f, 1.f);
 		//Density-altering height function at last
-		return wmModified;// *DensityHeightFunc(pHeight, wmAlpha);
+		return wmModified * DensityHeightFunc(pHeight, wmAlpha);
 	}
 
 	return baseNoise;
@@ -154,7 +181,7 @@ float lightCalculation(float density, vec3 rayDir, float blueNoise)
 
 }
 
-float lightIntensity() {
+float lightC() {
 
 	return 1.f;
 }
@@ -191,7 +218,7 @@ void main(void)
 		for (int i = 0; i < totalSteps; i++) { //Primary raymarching
 
 			float pHeight = float(i) / totalSteps;
-			//float pHeight = pos.y / cloudHeightAboveGround;
+			//float pHeight = pos.y / cloudLayerLength;
 
 			if (densityTest > 0.f) { //Full sampling, otherwise cheap sampling
 				float sampleDensity = SampleDensity(pos, pHeight, true);
@@ -203,7 +230,7 @@ void main(void)
 					if (sampleDensity != 0) {
 
 						density += sampleDensity;
-						T *= exp(-density * stepLength * firstRayMarchingFactor * 0.001);
+						T *= exp(-density * stepLength * firstRayMarchingFactor * 0.01);
 
 						float lightRayDensity = 0.f;
 						float Ts = 1.f; //transmittance for sample point and sun
@@ -217,13 +244,25 @@ void main(void)
 							Ts *= exp(-lightRayDensity * sunStepLength * secondRayMarchingFactor * 0.01);
 							lightSamplePos += sunStepSize;
 						}
-						float sunRadiance = 10; //or 10?
-						float inScatteringRadiance = Ts * HenyeyGreenstein(clamp(dot(sunDirection, rayDir), 0.f, 1.f), eccentricityG) * sunRadiance;
-						//float inScatteringRadiance = Ts * lightCalculation(lightRayDensity, sunDirection, blueNoise) * sunRadiance;
 
-						radiance += T * 0.05 * inScatteringRadiance * stepLength;
+						//Attenuation Term
+						Ts = max(Ts, exp(-1 * sunStepLength * secondRayMarchingFactor * 0.01)) + blueNoise * 0.0003f;
+						//ambient absorption
+						float osa = 0.5f;
+						float OSambient = 1 - clamp(osa * pow(sampleDensity, map(pHeight, 0.3, 0.9, 0.5, 1.0)), 0.f, 1.f) *
+											  clamp(pow(map(pHeight, 0.0, 0.3, 0.8, 1.0), 0.8f) , 0.f, 1.f);
 
-						//radiance += density * lightCalculation(densityAloneLightRay, sunDirection, blueNoise) * T;
+						float sunViewRayAngle = clamp(dot(sunDirection, rayDir), 0.f, 1.f);
+						const float csi = 2.5;
+						const float cse = 2;
+						float ISA = csi * pow(clamp(sunViewRayAngle, 0.f, 1.f), cse);
+						float io = mix( max(HenyeyGreenstein(sunViewRayAngle, 0.2), ISA) , HenyeyGreenstein(sunViewRayAngle, -0.1),0.5);
+
+						//float inScatteringRadiance = Ts * HenyeyGreenstein(sunViewRayAngle, eccentricityG);
+						float inScatteringRadiance = Ts * io;
+
+						radiance += T * 0.05 * inScatteringRadiance * OSambient * stepLength;
+						//radiance += T * 0.05 * inScatteringRadiance * stepLength;
 
 						if (T < 0.001f) break; //Early exit if converging.
 					}
@@ -241,7 +280,7 @@ void main(void)
 			}
 		} //end of ray marching
 	
-		vec3 cloudColor = pow(vec3(1.f) - exp(-radiance), vec3(1.0/2.2));
+		vec3 cloudColor = lightColor * pow(vec3(1.f) - exp(-radiance), vec3(1.0/2.2));
 		color = mix(cloudColor, color, T);
 	}
 

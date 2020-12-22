@@ -85,7 +85,7 @@ void Renderer::Update(float dt)
 		//if (trajectory) trajectory->GetMesh()->Update(oneFramePerMilliSecond);
 		UtilityUpdate();
 #ifdef RENDER_CLOUD
-		//cloudModel->Update(dt);
+		cloudModel->Update(dt);
 #endif
 		//Render
 		Render();
@@ -340,7 +340,8 @@ void Renderer::CreateCloud()
 
 	glUniformMatrix4fv(glGetUniformLocation(cloudShader.GetProgram(), "projMatrix"), 1, GL_FALSE, (float*)&projMatrix);
 
-	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
+	Vector3 earthCenter(0, 0, 6360.0);
+	glUniform3fv(glGetUniformLocation(cloudShader.GetProgram(), "earthCenter"), 1, (float*)&earthCenter);
 	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
 	glUniform1f(glGetUniformLocation(cloudShader.GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
 
@@ -410,7 +411,9 @@ void Renderer::CreateCloudCS()
 	glUniform2fv(glGetUniformLocation(cloudCS.GetProgram(), "resolution"), 1, (float*)&resolution);
 	Vector2 projFactor(1.f/projMatrix.values[0], 1.f/projMatrix.values[5]);
 	glUniform2fv(glGetUniformLocation(cloudCS.GetProgram(), "projFactor"), 1, (float*)&projFactor);
-	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
+	//glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerRadius"), cloudModel->cloudLayerRadius);
+	Vector3 earthCenter(0, -6360.0, 0);
+	glUniform3fv(glGetUniformLocation(cloudCS.GetProgram(), "earthCenter"), 1, (float*)&earthCenter);
 	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudHeightAboveGround"), cloudModel->cloudHeightAboveGround);
 	glUniform1f(glGetUniformLocation(cloudCS.GetProgram(), "cloudLayerLength"), cloudModel->cloudLayerLength);
 

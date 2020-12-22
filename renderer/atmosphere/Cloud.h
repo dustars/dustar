@@ -40,8 +40,7 @@ public:
 	float cloudScale = 0.7f;
 	float cloudOffset = 0.f;
 
-	float cloudLayerRadius = 25000.f;
-	float cloudHeightAboveGround = 2000.f;
+	float cloudHeightAboveGround = 2500.f;
 	float cloudLayerLength = 2000.f;
 
 	//Reference:  A. Kokhanovsky, (2003). Optical properties of terrestrial clouds. doi:10.1016

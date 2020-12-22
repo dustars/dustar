@@ -8,7 +8,7 @@ ComputeShader::ComputeShader(const std::string& file)
 	std::cout << "Compiling Compute Shader ..." << std::endl;
 	//Generate compute shader code string
 	std::string data;
-	assert(LoadShaderFile(file, data) && "Failed to load compute shader file!\n");
+	assert(LoadShaderFile(file, data) && "Failed to load compute shader file!");
 	const char* temp = data.c_str();
 	glShaderSource(computeShader, 1, &temp, NULL);
 	//Compile compute shader

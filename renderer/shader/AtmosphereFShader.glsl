@@ -31,22 +31,17 @@
 //#define USE_LUMINANCE
 const float kLengthUnitInMeters = 1000.0;
 
-//uniform vec3 camera;
+uniform vec3 camera;
 //Use hard-coded camera position to fix the atmospheric scattering.
-vec3 camera = vec3(0, 0, 2.f);
+//vec3 camera = vec3(0, 0, 2.f);
 uniform float exposure;
 uniform vec3 white_point;
 uniform vec3 earth_center;
 uniform vec3 sun_direction;
 uniform vec2 sun_size;
 in vec3 view_ray;
-layout(location = 0) out vec4 color;
 
-const float PI = 3.14159265;
-const vec3 kSphereCenter = vec3(0.0, 0.0, 1000.0) / kLengthUnitInMeters;
-const float kSphereRadius = 1000.0 / kLengthUnitInMeters;
-const vec3 kSphereAlbedo = vec3(0.8);
-const vec3 kGroundAlbedo = vec3(0.0, 0.0, 0.04);
+layout(location = 0) out vec4 color;
 
 #ifdef USE_LUMINANCE
 #define GetSolarRadiance GetSolarLuminance

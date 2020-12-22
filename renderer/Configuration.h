@@ -9,7 +9,7 @@ constexpr auto SHADOWWIDTH = 1024;
 constexpr auto SHADOWHEIGHT = 1024;
 
 //Camera Update speed
-constexpr auto UPDATE_MULTIPLIER = 1.f;
+constexpr auto UPDATE_MULTIPLIER = 10000.f;
 
 //#define OFFLINE
 //#define THREADING
