@@ -13,7 +13,7 @@ Renderer::Renderer(Window& parent)
 	//ComputeShaderPlayground();
 
 	//camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
-	camera = new Camera(parent, 0, 0, Vector3(0.f, 0.f, 0.f));
+	camera = new Camera(parent, 0, 0, Vector3(0.f, 1.f, 0.f));
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
 	//Testing
