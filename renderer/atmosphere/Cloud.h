@@ -48,7 +48,7 @@ public:
 
 	//Warning: changing the number of samples will dramatically affect the performance!
 	int sampleSteps = 64;
-	int lightSampleSteps = 5;
+	int lightSampleSteps = 4;
 	float firstRayMarchingFactor = 1.0f;
 	float secondRayMarchingFactor = 1.0f;
 

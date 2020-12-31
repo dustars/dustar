@@ -1,3 +1,10 @@
+/*
+	Description:
+	Volumetric cloud rendering, by compute shader.
+	该shader使用的距离单位是米，所以以千米为单位的数据会 * 1000
+*/
+
+
 #version 450 core
 #define INTERSECTION_ANALTICALLY
 
@@ -15,65 +22,36 @@ layout (binding = 7) uniform sampler3D cloudDetailTexture;
 layout (binding = 8) uniform sampler2D weatherMap;
 layout (binding = 9) uniform sampler2D blueNoiseTexture;
 
-//View-related parameters
+//View ray parameters
 uniform vec3 cameraPos;
 uniform mat4 viewMatrix;
 uniform vec2 projFactor;
-//Possible image resolution needed
 uniform vec2 resolution;
-//Cloud-related parameters
+
+//Ray marching parameters
+uniform int sampleSteps;
+uniform int lightSampleSteps;
+
+//Cloud modeling parameters
 uniform float globalCoverage;
 uniform float globalDensity;
 uniform float cloudScale;
 uniform float cloudOffset;
 
-uniform float cloudHeightAboveGround;
-uniform float cloudLayerLength;
-
-uniform int sampleSteps;
-uniform int lightSampleSteps;
-
+//Lighting model parameters
 uniform vec3 sunDirection;
 uniform float firstRayMarchingFactor = 1.f;
 uniform float secondRayMarchingFactor = 1.f;
-
-//Light parameters
 vec3 lightRay = normalize(vec3(10.f, 10.f, 10.f));
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 float eccentricityG = 0.2f;
 
-//Inner and outer spheres
+//Geometrical parameters
 uniform vec3 earthCenter;
-
+uniform float cloudHeightAboveGround;
+uniform float cloudLayerLength;
 float cloudInnerRadius = -earthCenter.y * 1000 + cloudHeightAboveGround;
 float cloudOuterRadius = cloudInnerRadius + cloudLayerLength;
-
-
-bool RaySphereIntersectionTest(vec3 rayDir, out vec3 intersecPoint, out float marchingLength) {
-
-	vec3 L = cameraPos * 1000 - earthCenter * 1000;
-	//Make sure the camera is inside the sphere.
-	if (length(L) > cloudInnerRadius) return false;
-	float projLength = dot(L, rayDir);
-	float cToRay2 = dot(L, L) - projLength * projLength;
-	//if the ray doesn't hit the sphere
-	if (cToRay2 > (cloudInnerRadius * cloudInnerRadius)) return false;
-
-	//Inner sphere intersection point
-	float tempInner = sqrt(cloudOuterRadius * cloudOuterRadius - cToRay2);
-	intersecPoint = cameraPos * 1000 + (tempInner - projLength) * rayDir;
-
-	//When intersection point above 0, it's visible, otherwise not.
-	if (intersecPoint.y < 0) return false;
-
-	//Calculate the length from camera to the outer sphere intersection point
-	float tempOuter = sqrt(cloudOuterRadius * cloudOuterRadius - cToRay2);
-	//distance between two intersection points
-	marchingLength = tempOuter - tempInner;
-
-	return true;
-}
-
 
 //Solve ray-sphere intersection analytically, rayDir must be normalized
 float RaySphereIntersection(vec3 rayDir, float radius, out float t0, out float t1) {
@@ -102,7 +80,12 @@ float RaySphereIntersection(vec3 rayDir, float radius, out float t0, out float t
 	return discr;
 }
 
-bool cloudLayerIntersection( vec3 rayDir, out vec3 startingPoint, out float marchingLength ){
+//Camera can be placed below, inside or above the cloud layer.
+//Each case has one or more possible intersections when looking
+//at different angles.
+//Currently there's a thorny bug when camera is inside or above
+//the cloud layer, that the space above horizon appears to be empty.
+bool cloudLayerIntersection( vec3 rayDir, out vec3 startingPoint, out float marchingLength){
 
 	float cloudEntry = 0;	//The entry point of cloud layer
 	float cloudExit = 0;	//The exit
@@ -134,7 +117,7 @@ bool cloudLayerIntersection( vec3 rayDir, out vec3 startingPoint, out float marc
 					cloudEntry = t1Inner;
 					cloudExit = t1Outer;
 				}
-			}else { //Inside cloud layer, looking upwards, left or right.
+			}else { //Inside cloud layer, looking either upwards, left or right.
 				cloudEntry = 0;
 				cloudExit = t1Outer;
 			}
@@ -142,7 +125,7 @@ bool cloudLayerIntersection( vec3 rayDir, out vec3 startingPoint, out float marc
 	}
 
 	startingPoint = cameraPos * 1000 + cloudEntry * rayDir;
-	marchingLength = length((cameraPos * 1000 + cloudExit * rayDir) - startingPoint);
+	marchingLength = length((cloudExit - cloudEntry) * rayDir);
 
 	return (marchingLength == 0) ? false : true;
 }
@@ -155,9 +138,9 @@ float map(float value, float min1, float max1, float min2, float max2) {
 //Shape-altering height function.
 //It makes bottom thick, and makes top thin.
 float ShapeHeightFunc(float ph, float b) {
-	float SRbottom = clamp(map(ph, 0.f, 0.07f, 0.f, 1.f), 0.f, 1.f);
-	float SRtop = clamp(map(ph, b * 0.4f, b, 1.f, 0.f), 0.f, 1.f);
-	return SRbottom * SRtop;
+	float SRbottom = map(ph, 0.f, 0.3f, 0.f, 1.f);
+	float SRtop = map(ph, 0.4f, 0.8f, 1.f, 0.f);
+	return clamp(SRbottom * SRtop, 0, 1);
 }
 
 //Density-altering height function.
@@ -183,35 +166,30 @@ float SampleDetailNoise(vec3 uvw, float pHeight) {
 //Sample the base shape of the cloud
 float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
-	vec3 uvw = pos  * 0.0001 * cloudScale + 0.5 + cloudOffset * 0.1;
-	uvw.y = pHeight;
+	vec3 uvw = pos  * 0.0001 * cloudScale + cloudOffset * 0.1;
+	uvw.y = pHeight * 0.2 + 0.2 + cloudOffset * 0.1;
+
+	vec3 weatherMap = texture(weatherMap, uvw.xz).xyz;
+	weatherMap.z = 1.f;
+	float wmAlpha = 1.f;
 
 	//Sample the raw data from noise texture.
 	vec4 rawData = texture(cloudBaseTexture, uvw);
 	float fbmWorley = rawData.g * 0.625f + rawData.b * 0.25f + rawData.a * 0.125f;
 	float baseNoise = map(rawData.r, -(1.f - fbmWorley), 1.f, 0.f, 1.f);
 
-	if (sampleDetail == true) {
-		//Currently no alpha channel for the weather map
-		//Hard-coded wmAlpha = 1 to represent no density reduction.
-		vec3 wm = texture(weatherMap, uvw.xz).xyz;
-		float wmAlpha = 1.f;
+	float baseheightModified = baseNoise * ShapeHeightFunc(pHeight, weatherMap.b);
 
-		//float pHeight = GetHeightPercentage(pos);
-		//Shape-altering height function
-		float heightModified = baseNoise * ShapeHeightFunc(pHeight, wm.b);
+	float weatherMapFactor = globalCoverage * max(weatherMap.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * weatherMap.g * 2.f);
+	float baseCloud = clamp(map(baseheightModified, 1.f - weatherMapFactor, 1.f, 0.f, 1.f), 0.f, 1.f);
 
-		//Use Weather map to control the coverage of cloud
-		float weatherMapFactor = globalCoverage * max(wm.r, clamp(globalCoverage - 0.5f, 0.f, 1.f) * wm.g * 2.f);
-
-		float wmModified = clamp(map(heightModified, 1.f - weatherMapFactor, 1.f, 0.f, 1.f), 0.f, 1.f);
-
-		wmModified = clamp(map(wmModified, SampleDetailNoise(uvw, pHeight), 1.f, 0.f, 1.f), 0.f, 1.f);
+	if (sampleDetail) {
+		float detailedCloud = clamp(map(baseCloud, SampleDetailNoise(uvw, pHeight), 1.f, 0.f, 1.f), 0.f, 1.f);
 		//Density-altering height function at last
-		return wmModified * DensityHeightFunc(pHeight, wmAlpha);
+		return detailedCloud;// * DensityHeightFunc(pHeight, wmAlpha);
 	}
 
-	return baseNoise;
+	return baseCloud;
 }
 
 float HenyeyGreenstein(float cosAngle, float g)
@@ -220,44 +198,25 @@ float HenyeyGreenstein(float cosAngle, float g)
 	return ((1.0 - g2) / pow((1.0 + g2 - 2.0 * g * cosAngle), 1.5)) / 4.0 * 3.1415;
 }
 
-float lightCalculation(float density, vec3 rayDir, float blueNoise)
-{
-	float cosAngle = clamp(dot(sunDirection, rayDir), 0.f, 1.f);
-	float prim = exp(-6 * density);
-	float scnd = exp(-6 * 0.2) * 0.7;
-	float checkval = map(cosAngle, 0.0, 1.0, scnd, scnd * 0.5);
-	float atten = max(checkval, prim) + blueNoise * 0.0003f;
-	float outScattering = 1.f - exp(-density * 20.f);
-	return 2 * atten * outScattering * HenyeyGreenstein(cosAngle, eccentricityG);
-
-}
-
-float lightC() {
-
-	return 1.f;
-}
-
 vec4 RayMarching(vec3 rayDir, vec3 pos, float marchingLength){
 
 	float density = 0.f;
 	float radiance = 0.f;
 	float T = 1.f; //transmittance
 
-	//Cause of color banding artifact
 	float stepLength = cloudLayerLength / sampleSteps;
 	vec3 stepDir = stepLength * rayDir;
+	int totalSteps = int(marchingLength / stepLength);
 
-	//For optimizations
 	float densityTest = 0.f;
 	int zeroDensityCount = 0;
 	float blueNoise = texture(blueNoiseTexture, pos.xz / 10.f).x;
-	pos += (blueNoise - 0.5) * 2 * stepDir; //Introduce randomness
+	pos += (blueNoise - 0.5) * 2 * stepDir;
 
-	int totalSteps = int(marchingLength / stepLength);
 	for (int i = 0; i < totalSteps; i++) { //Primary raymarching
 
-		float pHeight = float(i) / totalSteps;
-		//float pHeight = pos.y / cloudLayerLength;
+		//Calculate the height percentage of the sample point in cloud layer. (very important)
+		float pHeight = (length(pos - earthCenter * 1000) - cloudInnerRadius) / cloudLayerLength;
 
 		if (densityTest > 0.f) { //Full sampling, otherwise cheap sampling
 			float sampleDensity = SampleDensity(pos, pHeight, true);
@@ -284,13 +243,13 @@ vec4 RayMarching(vec3 rayDir, vec3 pos, float marchingLength){
 						lightSamplePos += sunStepSize;
 					}
 					//Attenuation Term
-					Ts = max(Ts, exp(-1 * sunStepLength * secondRayMarchingFactor * 0.01)) + blueNoise * 0.0003f;
+					Ts = max(Ts, exp(-1 * sunStepLength * secondRayMarchingFactor * 0.01));// + blueNoise * 0.0003f;
 					//ambient absorption
 					float osa = 0.5f;
 					float OSambient = 1 - clamp(osa * pow(sampleDensity, map(pHeight, 0.3, 0.9, 0.5, 1.0)), 0.f, 1.f) *
 										  clamp(pow(map(pHeight, 0.0, 0.3, 0.8, 1.0), 0.8f) , 0.f, 1.f);
 
-					float sunViewRayAngle = clamp(dot(sunDirection, rayDir), 0.f, 1.f);
+					float sunViewRayAngle = clamp(dot(sunDirection, rayDir), 0, 1);
 					const float csi = 2.5;
 					const float cse = 2;
 					float ISA = csi * pow(clamp(sunViewRayAngle, 0.f, 1.f), cse);
@@ -302,7 +261,7 @@ vec4 RayMarching(vec3 rayDir, vec3 pos, float marchingLength){
 					radiance += T * 0.05 * inScatteringRadiance * OSambient * stepLength;
 					//radiance += T * 0.05 * inScatteringRadiance * stepLength;
 
-					if (T < 0.001f) break; //Early exit if converging.
+					if (T < 0.01f) break; //Early exit if converging.
 				}
 				pos += stepDir;
 			}
@@ -335,7 +294,6 @@ void main(void)
 	float marchingLength;						//Length to march
 	vec4 cloudColor;
 
-	//if (RaySphereIntersectionTest(rayDir, startingPoint, marchingLength)) {
 	if (cloudLayerIntersection(rayDir, startingPoint, marchingLength)) {
 
 		cloudColor = RayMarching(rayDir, startingPoint, marchingLength);
