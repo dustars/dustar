@@ -196,5 +196,6 @@
     <None Include="shader\ComputeShader\CloudDetailTextureNoiseCS.glsl" />
     <None Include="shader\ComputeShader\CloudBaseTextureNoiseCS.glsl" />
     <None Include="shader\ComputeShader\CloudRenderingCS.glsl" />
+    <None Include="LuaScripts\example.lua" />
   </ItemGroup>
 </Project>

@@ -273,6 +273,7 @@ void Renderer::CreateSkybox()
 void Renderer::CreateModelObject()
 {
 	modelObject.reset(new AssimpModel("../assets/Models/backpack/backpack.obj"));
+	//Scale size to 1/100, otherwise facing the attack on Aya
 	//modelObject.reset(new AssimpModel("../assets/Models/Aya/091_W_Aya_100K.obj"));
 	//modelObject.reset(new AssimpModel("../assets/Models/Standord_Bunny/bun_zipper.ply"));
 }
@@ -286,7 +287,7 @@ void Renderer::RenderModelObject()
 	glBindTextureUnit(2, shadowFBO->GetDepthTexture());
 	glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "lightMatrix"), 1, GL_FALSE, (float*)&lightMatrix);
 #endif
-	//Matrix4 temp = modelMatrix * Matrix4::Scale(Vector3(0.01, 0.01, 0.01));
+	Matrix4 temp = modelMatrix * Matrix4::Scale(Vector3(0.01, 0.01, 0.01));
 	//glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&temp);
 	glUniformMatrix4fv(glGetUniformLocation(object->GetProgram(), "ModelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
 	cameraMatrix = camera->BuildViewMatrix();

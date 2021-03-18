@@ -167,7 +167,7 @@ float SampleDetailNoise(vec3 uvw, float pHeight) {
 float SampleDensity(vec3 pos, float pHeight, bool sampleDetail) {
 
 	vec3 uvw = pos  * 0.0001 * cloudScale + cloudOffset * 0.1;
-	uvw.y = pHeight * 0.2 + 0.2 + cloudOffset * 0.1;
+	//uvw.y = pHeight * 0.2 + 0.2 + cloudOffset * 0.1;
 
 	vec3 weatherMap = texture(weatherMap, uvw.xz).xyz;
 	weatherMap.z = 1.f;
