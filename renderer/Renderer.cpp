@@ -10,7 +10,7 @@ Renderer::Renderer(Window& parent)
 	textRenderer(TextRenderer(width, height)),
 	cloudCS("shader/ComputeShader/CloudRenderingCS.glsl")
 {
-	//ComputeShaderPlayground();
+	ComputeShaderPlayground();
 
 	//camera = new Camera(parent, -20.f, 40.0f, Vector3(2000.f, 1000.f, 2000.f));
 	camera = new Camera(parent, 0, 0, Vector3(0.f, 1.f, 0.f));
@@ -836,8 +836,8 @@ void Renderer::UpdateControl(float msec)
 void Renderer::ComputeShaderPlayground()
 {
 	//ValueNoise2D();
-	//PerlinNoise();
-	PerlinNoiseBuffer();
+	PerlinNoise();
+	//PerlinNoiseBuffer();
 }
 
 void Renderer::ScreenShot(std::string filename)
