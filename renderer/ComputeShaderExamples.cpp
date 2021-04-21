@@ -211,7 +211,6 @@ void PerlinNoise()
 
 	//Execute Compute Shader
 	glDispatchCompute(ceil(width / 8), ceil(height / 8), 1);
-	//纯粹执行时间小于1ms，对不起CS和GPU，一开始低估你们了……
 	//SaveImageToFile(resultImg, width, height, 4);
 
 	glUseProgram(0);
